@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+format_check_passed=`nix fmt | grep "0 files changed"`
+
+if [ -z "$format_check_passed" ]; then
+    echo "nixfmt changes were added. Please commit and push again."
+    exit 1
+else
+    echo "Completed nixfmt hook."
+    exit 0
+fi

@@ -1,6 +1,8 @@
-{ lib }: rec {
+{ lib }:
+rec {
   scripts = {
-    kopia-backup = pkgs:
+    kopia-backup =
+      pkgs:
       pkgs.writeShellScript "kopia-backup" ''
         set -eou pipefail
 

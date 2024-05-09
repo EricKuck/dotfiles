@@ -1,7 +1,15 @@
-{ lib, inputs, pkgs, config, ... }: {
+{
+  lib,
+  inputs,
+  pkgs,
+  config,
+  ...
+}:
+{
   nix = {
-    registry = (lib.mapAttrs (_: flake: { inherit flake; }))
-      ((lib.filterAttrs (_: lib.isType "flake")) inputs);
+    registry = (lib.mapAttrs (_: flake: { inherit flake; })) (
+      (lib.filterAttrs (_: lib.isType "flake")) inputs
+    );
 
     package = pkgs.nixUnstable;
 
@@ -12,9 +20,11 @@
 
     gc = {
       automatic = true;
-      interval = {Day = 7;};
+      interval = {
+        Day = 7;
+      };
       options = "--delete-older-than 30d";
-#      user = config.custom.user.name;
+      #      user = config.custom.user.name;
     };
 
     generateRegistryFromInputs = true;

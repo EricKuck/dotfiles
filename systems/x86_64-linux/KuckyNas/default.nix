@@ -1,9 +1,22 @@
-{ config, lib, pkgs, inputs, modulesPath, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  modulesPath,
+  ...
+}:
+{
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   boot = {
     initrd = {
-      availableKernelModules = [ "xhci_pci" "ahci" "nvme" "sd_mod" ];
+      availableKernelModules = [
+        "xhci_pci"
+        "ahci"
+        "nvme"
+        "sd_mod"
+      ];
       kernelModules = [ ];
     };
 
@@ -20,7 +33,12 @@
 
     supportedFilesystems = [ "zfs" ];
 
-    zfs = { extraPools = [ "kuckyjar" "backups" ]; };
+    zfs = {
+      extraPools = [
+        "kuckyjar"
+        "backups"
+      ];
+    };
   };
 
   fileSystems = {
@@ -32,7 +50,10 @@
     "/boot" = {
       device = "/dev/disk/by-label/NIXBOOT";
       fsType = "vfat";
-      options = [ "fmask=0022" "dmask=0022" ];
+      options = [
+        "fmask=0022"
+        "dmask=0022"
+      ];
     };
   };
 
@@ -59,16 +80,13 @@
     enableIPv6 = false;
     defaultGateway = "192.168.1.1";
     networkmanager.enable = true;
-    nameservers = [ "192.168.1.1" "1.1.1.1" ];
+    nameservers = [ "192.168.1.1" ];
     firewall = {
       enable = false;
-      allowedTCPPorts = [ ];
-      allowedUDPPorts = [ ];
     };
   };
 
-  hardware.cpu.intel.updateMicrocode =
-    config.hardware.enableRedistributableFirmware;
+  hardware.cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
   time.timeZone = "America/New_York";
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
@@ -78,11 +96,16 @@
   };
 
   users.users = {
-    root = { hashedPassword = "!"; };
+    root = {
+      hashedPassword = "!";
+    };
 
     eric = {
       isNormalUser = true;
-      extraGroups = [ "wheel" "podman" ];
+      extraGroups = [
+        "wheel"
+        "podman"
+      ];
       shell = pkgs.fish;
       linger = true;
       openssh.authorizedKeys.keys = [
@@ -100,7 +123,9 @@
     zfs
   ];
 
-  programs = { fish.enable = true; };
+  programs = {
+    fish.enable = true;
+  };
 
   services = {
     openssh = {
@@ -117,14 +142,21 @@
     cockpit = {
       enable = true;
       port = 5000;
-      settings = { WebService = { AllowUnencrypted = true; }; };
+      settings = {
+        WebService = {
+          AllowUnencrypted = true;
+        };
+      };
     };
 
     zfs = {
       autoScrub = {
         enable = true;
         interval = "Sun, 02:00";
-        pools = [ "kuckyjar" "backups" ];
+        pools = [
+          "kuckyjar"
+          "backups"
+        ];
       };
 
       trim = {

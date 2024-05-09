@@ -1,12 +1,15 @@
-{ inputs, lib, pkgs, config, ... }: {
+{
+  inputs,
+  lib,
+  pkgs,
+  config,
+  ...
+}:
+{
   environment = {
-    shells = [
-      pkgs.fish 
-    ];
+    shells = [ pkgs.fish ];
 
-    systemPath = [
-      "/opt/homebrew/bin"
-    ];
+    systemPath = [ "/opt/homebrew/bin" ];
 
     shellAliases = {
       kopia = "/Applications/KopiaUI.app/Contents/Resources/server/kopia";

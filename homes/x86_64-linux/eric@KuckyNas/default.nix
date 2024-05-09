@@ -1,6 +1,18 @@
-{ inputs, lib, pkgs, config, osConfig ? { }, ... }:
-with lib.custom; {
-  custom = { cli-apps = { common.enable = true; }; };
+{
+  inputs,
+  lib,
+  pkgs,
+  config,
+  osConfig ? { },
+  ...
+}:
+with lib.custom;
+{
+  custom = {
+    cli-apps = {
+      common.enable = true;
+    };
+  };
 
   home.packages = with pkgs; [
     kitty # Needed for compat with kitty when sshing in
@@ -19,10 +31,11 @@ with lib.custom; {
         };
         Service = {
           Type = "oneshot";
-          ExecStart =
-            "${lib.getExe pkgs.bash} -c 'until ${lib.getExe' pkgs.host "host"} google.com; do sleep 1; done'";
+          ExecStart = "${lib.getExe pkgs.bash} -c 'until ${lib.getExe' pkgs.host "host"} google.com; do sleep 1; done'";
         };
-        Install = { WantedBy = [ "default.target" ]; };
+        Install = {
+          WantedBy = [ "default.target" ];
+        };
       };
 
       kopia-backup-all = {
@@ -33,8 +46,7 @@ with lib.custom; {
         Service = {
           Type = "oneshot";
           TimeoutSec = 900;
-          ExecStart =
-            "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia-backup-all.program}";
+          ExecStart = "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia-backup-all.program}";
         };
       };
 
@@ -45,10 +57,11 @@ with lib.custom; {
         };
         Service = {
           Type = "simple";
-          ExecStart =
-            "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia.program} server start --disable-csrf-token-checks --insecure --address=0.0.0.0:51515 --without-password";
+          ExecStart = "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia.program} server start --disable-csrf-token-checks --insecure --address=0.0.0.0:51515 --without-password";
         };
-        Install = { WantedBy = [ "default.target" ]; };
+        Install = {
+          WantedBy = [ "default.target" ];
+        };
       };
 
       podman-start-all = {
@@ -58,12 +71,12 @@ with lib.custom; {
         };
         Service = {
           Type = "forking";
-          Environment =
-            "PATH=/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin";
-          ExecStart =
-            "${lib.getExe pkgs.custom.podman-compose} start-all --dir='/kuckyjar/container/stacks/'";
+          Environment = "PATH=/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin";
+          ExecStart = "${lib.getExe pkgs.custom.podman-compose} start-all --dir='/kuckyjar/container/stacks/'";
         };
-        Install = { WantedBy = [ "default.target" ]; };
+        Install = {
+          WantedBy = [ "default.target" ];
+        };
       };
     };
 

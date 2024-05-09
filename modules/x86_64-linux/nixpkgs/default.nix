@@ -1,1 +1,4 @@
-{ lib, system, ... }: { nixpkgs.hostPlatform = system; }
+{ lib, system, ... }:
+{
+  nixpkgs.hostPlatform = system;
+}

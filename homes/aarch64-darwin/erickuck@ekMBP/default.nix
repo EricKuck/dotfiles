@@ -1,6 +1,18 @@
-{ inputs, lib, pkgs, config, osConfig ? { }, ... }:
-with lib.custom; {
-  custom = { cli-apps = { common.enable = true; }; };
+{
+  inputs,
+  lib,
+  pkgs,
+  config,
+  osConfig ? { },
+  ...
+}:
+with lib.custom;
+{
+  custom = {
+    cli-apps = {
+      common.enable = true;
+    };
+  };
 
   home = {
     sessionVariables = {
@@ -11,7 +23,7 @@ with lib.custom; {
       "/Users/erickuck/Library/Android/sdk/platform-tools"
       "/Users/erickuck/Library/Android/sdk/tools"
     ];
-    
+
     packages = with pkgs; [
       cloc
       eternal-terminal

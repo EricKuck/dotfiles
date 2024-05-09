@@ -21,12 +21,25 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     nix-inspect.url = "github:bluskript/nix-inspect";
   };
 
-  outputs = inputs:
+  outputs =
+    {
+      self,
+      snowfall-lib,
+      treefmt-nix,
+      nixpkgs-unstable,
+      systems,
+      ...
+    }@inputs:
     let
-      lib = inputs.snowfall-lib.mkLib {
+      lib = snowfall-lib.mkLib {
         inherit inputs;
         src = ./.;
 
@@ -39,5 +52,33 @@
           namespace = "custom";
         };
       };
-    in lib.mkFlake { channels-config = { allowUnfree = true; }; };
+
+      eachSystem =
+        f:
+        nixpkgs-unstable.lib.genAttrs (import systems) (
+          system: f nixpkgs-unstable.legacyPackages.${system}
+        );
+
+      treefmtEval = eachSystem (
+        pkgs:
+        treefmt-nix.lib.evalModule pkgs (pkgs: {
+          projectRootFile = "flake.nix";
+          settings.global.excludes = [ "./result/**" ];
+
+          programs.nixfmt-rfc-style.enable = true; # *.nix
+          programs.black.enable = true; # *.py
+        })
+      );
+    in
+    lib.mkFlake {
+      channels-config = {
+        allowUnfree = true;
+      };
+
+      formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
+
+      checks = eachSystem (pkgs: {
+        formatting = treefmtEval.${pkgs.system}.config.build.check self;
+      });
+    };
 }

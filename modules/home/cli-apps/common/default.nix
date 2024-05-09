@@ -1,35 +1,53 @@
-{ lib, pkgs, inputs, system, config, ... }:
+{
+  lib,
+  pkgs,
+  inputs,
+  system,
+  config,
+  ...
+}:
 
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.custom.cli-apps.common;
-in {
-  options.custom.cli-apps.common = { enable = mkEnableOption "common"; };
+in
+{
+  options.custom.cli-apps.common = {
+    enable = mkEnableOption "common";
+  };
 
   config = mkIf cfg.enable {
-    home.packages = with pkgs; [
-      inputs.nix-inspect.packages.${system}.default
-      nix-search-cli
-      helix
-      neovim
-      nnn
-      fd
-      ripgrep
-      fzf
-      btop
-      iftop
-      htop
-      bat
-      grc
-      curl
-      wget
-      jq
-      zip
-      unzip
-      git
-      git-lfs
-      lazygit
-    ];
+    home = {
+      packages = with pkgs; [
+        inputs.nix-inspect.packages.${system}.default
+        inputs.nixpkgs-unstable.legacyPackages.${system}.nixfmt-rfc-style
+        nix-search-cli
+        helix
+        neovim
+        nnn
+        fd
+        ripgrep
+        fzf
+        btop
+        iftop
+        htop
+        bat
+        grc
+        curl
+        wget
+        jq
+        zip
+        unzip
+        git
+        git-lfs
+        lazygit
+        delta
+      ];
+
+      shellAliases = {
+        lg = "lazygit";
+      };
+    };
 
     programs = {
       fish = {
