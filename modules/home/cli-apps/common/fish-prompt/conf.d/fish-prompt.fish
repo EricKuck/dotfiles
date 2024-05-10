@@ -194,7 +194,7 @@ function __prompt_git_status
 
         set -l state $branch
         if test -n $action
-            set state "$state <$action >"
+            set state "$state <$action>"
         end
 
         set -g __prompt_git_static "$__prompt_git_symbol $state"
