@@ -20,8 +20,8 @@ with lib.custom;
     };
 
     sessionPath = [
-      "/Users/erickuck/Library/Android/sdk/platform-tools"
-      "/Users/erickuck/Library/Android/sdk/tools"
+      "${osConfig.users.users.erickuck.home}/Library/Android/sdk/platform-tools"
+      "${osConfig.users.users.erickuck.home}/Library/Android/sdk/tools"
     ];
 
     packages = with pkgs; [

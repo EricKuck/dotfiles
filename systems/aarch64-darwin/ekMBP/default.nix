@@ -14,7 +14,6 @@
     shellAliases = {
       kopia = "/Applications/KopiaUI.app/Contents/Resources/server/kopia";
       gw = "gww";
-      duo_gen = "/Users/erickuck/Code/macOS/duo-2fa/duo_gen.py /Users/erickuck/Code/macOS/duo-2fa/duotoken.hotp";
     };
   };
 
@@ -61,9 +60,8 @@
     ];
   };
 
-  users.users.erickuck = {
-    name = "erickuck";
-    home = "/Users/erickuck";
+  users.users.erickuck = rec {
+    home = "/Users/${config.users.users.erickuck.name}";
   };
 
   system.stateVersion = 4;
