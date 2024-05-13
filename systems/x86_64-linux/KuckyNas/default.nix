@@ -7,7 +7,12 @@
   ...
 }:
 {
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+  disabledModules = [ "services/monitoring/ups.nix" ];
+  imports = [
+    "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/ups.nix"
+    inputs.sops-nix.nixosModules.sops
+    (modulesPath + "/installer/scan/not-detected.nix")
+  ];
 
   boot = {
     initrd = {
@@ -61,14 +66,14 @@
 
   security.wrappers = {
     kopia = {
-      owner = "eric";
-      group = "users";
+      owner = config.users.users.eric.name;
+      group = config.users.users.eric.group;
       capabilities = "cap_dac_read_search=+ep";
       source = lib.getExe' pkgs.kopia "kopia";
     };
     kopia-backup-all = {
-      owner = "eric";
-      group = "users";
+      owner = config.users.users.eric.name;
+      group = config.users.users.eric.group;
       capabilities = "cap_dac_read_search=+ep";
       source = lib.custom.scripts.kopia-backup pkgs;
     };
@@ -81,9 +86,7 @@
     defaultGateway = "192.168.1.1";
     networkmanager.enable = true;
     nameservers = [ "192.168.1.1" ];
-    firewall = {
-      enable = false;
-    };
+    firewall.enable = false;
   };
 
   hardware.cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
@@ -95,22 +98,42 @@
     useXkbConfig = false;
   };
 
-  users.users = {
-    root = {
-      hashedPassword = "!";
+  sops = {
+    defaultSopsFile = ../../../secrets/kuckynas.yaml;
+    age.sshKeyPaths = [ "${config.users.users.eric.home}/.ssh/id_ed25519_sops" ];
+    secrets = {
+      upsmon_user_pw.neededForUsers = true;
+      upsmon_user_hashed_pw.neededForUsers = true;
+    };
+  };
+
+  users = {
+    users = {
+      root = {
+        hashedPassword = "!";
+      };
+
+      eric = {
+        isNormalUser = true;
+        extraGroups = [
+          "wheel"
+          "podman"
+        ];
+        shell = pkgs.fish;
+        linger = true;
+        initialPassword = "pass";
+        openssh.authorizedKeys.keys = [ (builtins.readFile keys/ekMBP.pub) ];
+      };
+
+      upsmon = {
+        isSystemUser = true;
+        hashedPasswordFile = config.sops.secrets.upsmon_user_hashed_pw.path;
+        group = "upsmon";
+      };
     };
 
-    eric = {
-      isNormalUser = true;
-      extraGroups = [
-        "wheel"
-        "podman"
-      ];
-      shell = pkgs.fish;
-      linger = true;
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE9qlhgSQ5US+fHi66PePPM5cdafOVNJ74Ok2wFS8bWF erickuck"
-      ];
+    groups = {
+      upsmon = { };
     };
   };
 
@@ -174,6 +197,30 @@
         monthly = lib.mkDefault 0;
       };
     };
+  };
+
+  power.ups = rec {
+    enable = true;
+    mode = "standalone";
+
+    users.upsmon = {
+      passwordFile = config.sops.secrets.upsmon_user_pw.path;
+      upsmon = "primary";
+    };
+
+    ups = {
+      cyberpower = {
+        driver = "usbhid-ups";
+        port = "auto";
+        description = "CP1500 AVR UPS";
+        directives = [
+          "vendorid = 0764"
+          "productid = 0501"
+        ];
+      };
+    };
+
+    upsmon.monitor.cyberpower.user = config.users.users.upsmon.name;
   };
 
   virtualisation = {
