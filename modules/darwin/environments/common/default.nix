@@ -30,6 +30,17 @@ in
           NSAutomaticPeriodSubstitutionEnabled = false;
           NSAutomaticQuoteSubstitutionEnabled = false;
           NSAutomaticCapitalizationEnabled = false;
+          NSAutomaticDashSubstitutionEnabled = false;
+          AppleInterfaceStyle = "Dark";
+          ApplePressAndHoldEnabled = false;
+        };
+
+        finder = {
+          FXPreferredViewStyle = "clmv";
+        };
+
+        loginwindow = {
+          GuestEnabled = false;
         };
 
         CustomUserPreferences = {
@@ -43,7 +54,6 @@ in
             ShowHardDrivesOnDesktop = true;
             ShowMountedServersOnDesktop = true;
             ShowRemovableMediaOnDesktop = true;
-            FXPreferredViewStyle = "clmv";
           };
           "com.apple.desktopservices" = {
             # Avoid creating .DS_Store files on network or USB volumes
@@ -114,6 +124,10 @@ in
         "visual-studio-code"
         "istat-menus"
       ];
+
+      masApps = {
+        Slack = 803453959;
+      };
     };
   };
 }

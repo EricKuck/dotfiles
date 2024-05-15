@@ -10,6 +10,7 @@ with lib.custom;
     environments = {
       common.enable = true;
       android.enable = true;
+      ios.enable = true;
       backups.enable = true;
     };
   };
@@ -19,6 +20,13 @@ with lib.custom;
       "orcaslicer"
       "nrlquaker-winbox"
     ];
+
+    masApps = {
+      Spark = 1176895641;
+      Tailscale = 1475387142;
+      WireGuard = 1451685025;
+      Infuse = 1136220934;
+    };
   };
 
   system.stateVersion = 4;
