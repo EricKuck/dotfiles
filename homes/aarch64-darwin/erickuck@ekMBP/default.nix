@@ -3,7 +3,6 @@
   lib,
   pkgs,
   config,
-  osConfig ? { },
   ...
 }:
 with lib.custom;
@@ -12,18 +11,13 @@ with lib.custom;
     cli-apps = {
       common.enable = true;
     };
+
+    environments = {
+      android-darwin.enable = true;
+    };
   };
 
   home = {
-    sessionVariables = {
-      JAVA_HOME = "/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home";
-    };
-
-    sessionPath = [
-      "${osConfig.users.users.erickuck.home}/Library/Android/sdk/platform-tools"
-      "${osConfig.users.users.erickuck.home}/Library/Android/sdk/tools"
-    ];
-
     packages = with pkgs; [
       cloc
       eternal-terminal
