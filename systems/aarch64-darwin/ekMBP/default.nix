@@ -22,10 +22,11 @@ with lib.custom;
     ];
 
     masApps = {
-      Spark = 1176895641;
+      Spark = 6445813049;
       Tailscale = 1475387142;
       WireGuard = 1451685025;
       Infuse = 1136220934;
+      "MQTT Explorer" = 1455214828;
     };
   };
 

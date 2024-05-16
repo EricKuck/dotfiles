@@ -111,6 +111,7 @@ in
 
       casks = [
         "1password"
+        "arc"
         "obsidian"
         "macmediakeyforwarder"
         "spotify"
