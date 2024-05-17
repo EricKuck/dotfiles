@@ -13,6 +13,7 @@ in
     home = {
       sessionVariables = {
         JAVA_HOME = "/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home";
+        ANDROID_HOME = "/Users/${config.snowfallorg.user.name}/Library/Android/sdk";
       };
 
       sessionPath = [

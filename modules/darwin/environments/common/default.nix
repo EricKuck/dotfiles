@@ -10,6 +10,11 @@
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.custom.environments.common;
+
+  wallpaper = builtins.path {
+    path = ./StarrySur_Mac.png;
+    name = "StarrySur_Mac.png";
+  };
 in
 {
   options.custom.environments.common = {
@@ -18,20 +23,26 @@ in
 
   config = mkIf cfg.enable {
     system = {
+      activationScripts.userScript.text = ''
+        echo >&2 "wallpaper..."
+        osascript -e 'tell application "Finder" to set desktop picture to POSIX file "${wallpaper}"'
+      '';
+
       defaults = {
         dock = {
           autohide = true;
+          tilesize = 51;
           largesize = 58;
           magnification = true;
         };
 
         NSGlobalDomain = {
+          AppleInterfaceStyle = "Dark";
           NSAutomaticSpellingCorrectionEnabled = false;
           NSAutomaticPeriodSubstitutionEnabled = false;
           NSAutomaticQuoteSubstitutionEnabled = false;
           NSAutomaticCapitalizationEnabled = false;
           NSAutomaticDashSubstitutionEnabled = false;
-          AppleInterfaceStyle = "Dark";
           ApplePressAndHoldEnabled = false;
         };
 
@@ -124,11 +135,15 @@ in
         "bartender"
         "visual-studio-code"
         "istat-menus"
+        # Specific version of btt i have a license for. Continually zaps itself, so commented out until fixed.
+        # "https://raw.githubusercontent.com/Homebrew/homebrew-cask/81a82057d48abd085fb4769dd2e7ebcb20e6a36c/Casks/bettertouchtool.rb"
       ];
 
       masApps = {
         Slack = 803453959;
       };
     };
+
+    fonts.fonts = [ (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
   };
 }
