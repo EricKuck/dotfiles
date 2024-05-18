@@ -65,6 +65,7 @@ in
             ShowHardDrivesOnDesktop = true;
             ShowMountedServersOnDesktop = true;
             ShowRemovableMediaOnDesktop = true;
+            QuitMenuItem = true;
           };
           "com.apple.desktopservices" = {
             # Avoid creating .DS_Store files on network or USB volumes
@@ -93,6 +94,9 @@ in
             TrackpadFourFingerVertSwipeGesture = 0;
             TrackpadFourFingerHorizSwipeGesture = 0;
             TrackpadFiveFingerPinchGesture = 0;
+          };
+          "com.apple.TextEdit" = {
+            RichText = 0;
           };
         };
       };
