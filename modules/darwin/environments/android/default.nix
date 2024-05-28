@@ -18,20 +18,14 @@ in
 
   config = mkIf cfg.enable {
     homebrew = {
-      taps = [
-        "mdogan/zulu"
-        "pbreault/gww"
-      ];
+      taps = [ "pbreault/gww" ];
 
       brews = [
         "gradle-profiler"
         "pbreault/gww/gww"
       ];
 
-      casks = [
-        "android-studio"
-        "zulu-jdk17"
-      ];
+      casks = [ "android-studio" ];
     };
 
     environment = {
