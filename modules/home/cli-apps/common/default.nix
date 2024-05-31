@@ -42,6 +42,7 @@ in
         git-lfs
         lazygit
         delta
+        gh
       ];
 
       shellAliases = {

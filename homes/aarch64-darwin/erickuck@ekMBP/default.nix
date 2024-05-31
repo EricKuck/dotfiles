@@ -14,6 +14,7 @@ with lib.custom;
 
     environments = {
       android-darwin.enable = true;
+      ios-darwin.enable = true;
     };
   };
 
