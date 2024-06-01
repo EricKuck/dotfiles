@@ -38,6 +38,7 @@ in
         jq
         zip
         unzip
+        yazi
         git
         git-lfs
         lazygit
