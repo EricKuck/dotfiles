@@ -99,7 +99,7 @@
   };
 
   sops = {
-    defaultSopsFile = ../../../secrets/kuckynas.yaml;
+    defaultSopsFile = lib.snowfall.fs.get-file "secrets/kuckynas.yaml";
     age.sshKeyPaths = [ "${config.users.users.eric.home}/.ssh/id_ed25519_sops" ];
     secrets = {
       upsmon_user_pw.neededForUsers = true;

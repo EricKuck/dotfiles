@@ -11,7 +11,7 @@
       (lib.filterAttrs (_: lib.isType "flake")) inputs
     );
 
-    package = pkgs.nixUnstable;
+    package = pkgs.nixVersions.latest;
 
     settings = {
       experimental-features = "nix-command flakes";
