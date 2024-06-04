@@ -46,6 +46,11 @@ in
         gh
       ];
 
+      sessionVariables = {
+        EDITOR = "hx";
+        VISUAL = "hx";
+      };
+
       shellAliases = {
         lg = "lazygit";
         vi = "nvim";
