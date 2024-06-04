@@ -54,7 +54,7 @@ in
       shellAliases = {
         lg = "lazygit";
         vi = "nvim";
-        cat = "bat --style=plain";
+        cat = "bat --style=plain --no-pager";
       };
     };
 
