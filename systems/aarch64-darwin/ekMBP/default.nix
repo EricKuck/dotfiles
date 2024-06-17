@@ -10,6 +10,7 @@ with lib.custom;
     environments = {
       common.enable = true;
       android.enable = true;
+      golang.enable = true;
       ios.enable = true;
       backups.enable = true;
     };
