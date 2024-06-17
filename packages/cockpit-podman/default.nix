@@ -7,7 +7,7 @@
 
 stdenv.mkDerivation rec {
   pname = "cockpit-podman";
-  version = "86";
+  version = "89";
 
   src = fetchzip {
     url = "https://github.com/cockpit-project/${pname}/releases/download/${version}/${pname}-${version}.tar.xz";

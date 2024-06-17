@@ -44,17 +44,20 @@ in
         lazygit
         delta
         gh
+        eza
       ];
 
       sessionVariables = {
         EDITOR = "hx";
         VISUAL = "hx";
+        EZA_COLORS = "ur=32:uw=32:ux=32:ue=32:gr=33:gw=33:gx=33:tr=31:tw=31:tx=31";
       };
 
       shellAliases = {
         lg = "lazygit";
         vi = "nvim";
         cat = "bat --style=plain --no-pager";
+        ls = "eza -g";
       };
     };
 
