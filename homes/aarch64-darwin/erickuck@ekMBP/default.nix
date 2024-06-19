@@ -13,8 +13,9 @@ with lib.custom;
     };
 
     environments = {
-      android-darwin.enable = true;
-      ios-darwin.enable = true;
+      android.enable = true;
+      ios.enable = true;
+      golang.enable = true;
     };
   };
 

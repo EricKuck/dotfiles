@@ -16,5 +16,9 @@ in
     enable = mkEnableOption "golang";
   };
 
-  config = mkIf cfg.enable { environment.systemPackages = with pkgs; [ go ]; };
+  config = mkIf cfg.enable {
+    home = {
+      packages = with pkgs; [ go ];
+    };
+  };
 }

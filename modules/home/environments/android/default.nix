@@ -2,22 +2,27 @@
   lib,
   config,
   pkgs,
+  format,
   ...
 }:
 
 let
   inherit (lib) mkEnableOption mkIf;
-  cfg = config.custom.environments.android-darwin;
+  cfg = config.custom.environments.android;
 
-  android_home = "/Users/${config.snowfallorg.user.name}/Library/Android/sdk";
+  android_home =
+    if format == "darwin" then
+      "/Users/${config.snowfallorg.user.name}/Library/Android/sdk"
+    else
+      "${config.snowfallorg.user.home}/Android/Sdk";
   java_home =
     version:
     "${pkgs."zulu${builtins.toString version}"}/zulu-${builtins.toString version}.jdk/Contents/Home";
   set_java_home = version: "set -x JAVA_HOME ${java_home version}";
 in
 {
-  options.custom.environments.android-darwin = {
-    enable = mkEnableOption "android-darwin";
+  options.custom.environments.android = {
+    enable = mkEnableOption "android";
   };
 
   config = mkIf cfg.enable {
