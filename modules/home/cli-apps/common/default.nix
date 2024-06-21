@@ -45,6 +45,7 @@ in
         delta
         gh
         eza
+        figlet
       ];
 
       sessionVariables = {
