@@ -12,11 +12,8 @@
 
     gc = {
       automatic = true;
-      interval = {
-        Day = 7;
-      };
+      dates = "weekly";
       options = "--delete-older-than 30d";
-      user = "root";
     };
   };
 }

@@ -15,9 +15,11 @@ in
     enable = mkEnableOption "ios";
   };
 
-  config.home.packages =
-    if format == "darwin" then
-      [ pkgs.cocoapods ]
-    else
-      throw "iOS environment only available for darwin targets";
+  config = mkIf cfg.enable {
+    home.packages =
+      if format == "darwin" then
+        [ pkgs.cocoapods ]
+      else
+        throw "iOS environment only available for darwin targets";
+  };
 }
