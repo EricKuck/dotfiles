@@ -46,6 +46,8 @@ in
         gh
         eza
         figlet
+        lolcat
+        ffmpeg
       ];
 
       sessionVariables = {
