@@ -19,6 +19,7 @@ with lib.custom;
     casks = [
       "orcaslicer"
       "nrlquaker-winbox"
+      "autodesk-fusion"
     ];
 
     masApps = {
