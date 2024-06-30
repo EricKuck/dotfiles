@@ -151,6 +151,6 @@ in
       };
     };
 
-    fonts.fonts = [ (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
+    fonts.packages = [ (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; }) ];
   };
 }
