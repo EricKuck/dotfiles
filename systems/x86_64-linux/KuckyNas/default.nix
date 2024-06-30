@@ -197,6 +197,37 @@
         monthly = lib.mkDefault 0;
       };
     };
+
+    samba = {
+      enable = true;
+      securityType = "user";
+      extraConfig = ''
+        workgroup = WORKGROUP
+        server string = KuckyNas
+        netbios name = KuckyNas
+        security = user
+        hosts allow = 192.168.1. 127.0.0.1 localhost
+        hosts deny = 0.0.0.0/0
+        guest account = nobody
+        map to guest = bad user
+      '';
+      shares = {
+        public = {
+          path = "/kuckyjar/shares/public";
+          public = "yes";
+          "read only" = "true";
+          writeable = "no";
+          browseable = "yes";
+          "guest ok" = "yes";
+          "force user" = "eric";
+          "force group" = "users";
+        };
+      };
+    };
+
+    samba-wsdd = {
+      enable = true;
+    };
   };
 
   power.ups = rec {
