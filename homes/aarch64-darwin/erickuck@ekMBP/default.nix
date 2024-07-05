@@ -16,6 +16,7 @@ with lib.custom;
       android.enable = true;
       ios.enable = true;
       golang.enable = true;
+      rust.enable = true;
     };
   };
 

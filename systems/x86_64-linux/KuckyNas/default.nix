@@ -6,7 +6,21 @@
   modulesPath,
   ...
 }:
+with lib.custom;
 {
+  custom = {
+    programs = {
+      nh = {
+        enable = true;
+        flake = "path:/home/eric/.config/nixos";
+        clean = {
+          enable = true;
+          extraArgs = "--keep-since 4d --keep 3";
+        };
+      };
+    };
+  };
+
   disabledModules = [ "services/monitoring/ups.nix" ];
   imports = [
     "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/ups.nix"

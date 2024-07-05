@@ -11,7 +11,19 @@ with lib.custom;
       common.enable = true;
       android.enable = true;
       ios.enable = true;
+      rust.enable = true;
       backups.enable = true;
+    };
+
+    programs = {
+      nh = {
+        enable = true;
+        flake = "path:/Users/erickuck/.config/nix";
+        clean = {
+          enable = true;
+          extraArgs = "--keep-since 4d --keep 3";
+        };
+      };
     };
   };
 

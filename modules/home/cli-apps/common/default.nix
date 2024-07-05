@@ -22,6 +22,9 @@ in
         inputs.nix-inspect.packages.${system}.default
         inputs.nixpkgs-unstable.legacyPackages.${system}.nixfmt-rfc-style
         nix-search-cli
+        nvd
+        nix-output-monitor
+        nix-prefetch-git
         helix
         neovim
         nnn
@@ -54,6 +57,7 @@ in
         EDITOR = "hx";
         VISUAL = "hx";
         EZA_COLORS = "ur=32:uw=32:ux=32:ue=32:gr=33:gw=33:gx=33:tr=31:tw=31:tx=31";
+        grc_plugin_ignore_execs = "lolcat";
       };
 
       shellAliases = {

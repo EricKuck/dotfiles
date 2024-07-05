@@ -24,6 +24,7 @@ in
   config = mkIf cfg.enable {
     system = {
       activationScripts.userScript.text = ''
+        #!${lib.getExe pkgs.bash}
         echo >&2 "wallpaper..."
         osascript -e 'tell application "Finder" to set desktop picture to POSIX file "${wallpaper}"'
       '';
