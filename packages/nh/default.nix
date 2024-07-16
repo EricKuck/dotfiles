@@ -26,8 +26,8 @@ rustPlatform.buildRustPackage {
   src = fetchFromGitHub {
     owner = "EricKuck";
     repo = "nh";
-    rev = "9927f24e237369212b39240893343467c08cc2ff";
-    hash = "sha256-mANnnRXF8WQhHmq5bxMThUj24Il6c0pssewh6U7LrH0=";
+    rev = "727cc49c2fb560189c089e9bcfb31919e82ada6f";
+    hash = "sha256-b6QlXVtshgWStEKX4ULJi9bWoXX8xB86LNBRe4XQQtc=";
   };
 
   strictDeps = true;
@@ -55,7 +55,7 @@ rustPlatform.buildRustPackage {
       --prefix PATH : ${lib.makeBinPath runtimeDeps}
   '';
 
-  cargoHash = "sha256-aNB2SMjj2ErrFPNeIozl9AB8645QQ1xed9e+8aRz8I0=";
+  cargoHash = "sha256-WpvcuCJNL40hOe7WI0rUOE2S8BdZDNGx7SaTWyw9++c=";
 
   meta = {
     description = "Yet another nix cli helper";

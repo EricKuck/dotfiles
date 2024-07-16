@@ -36,12 +36,14 @@ in
         htop
         bat
         grc
+        killall
         curl
         wget
         jq
         zip
         unzip
         yazi
+        zellij
         git
         git-lfs
         lazygit
