@@ -1,16 +1,54 @@
 # Personal fish prompt. Inspiration for Async git operation taken from https://github.com/mattgreen/lucid.fish
 
-set -g __prompt_color_fg fbf1c7
-set -g __prompt_color_section_1 d65d0e
-set -g __prompt_color_section_2 d79921
-set -g __prompt_color_section_3 689d6a
-set -g __prompt_color_section_4 458588
-set -g __prompt_color_section_5 665c54
-set -g __prompt_color_section_6 3c3836
-set -g __prompt_color_section_7 98971a
-set -g __prompt_color_section_8 b16286
-set -g __prompt_color_success 689d6a
-set -g __prompt_color_error cc241d
+# Rose Pine Moon
+# set -g __prompt_color_fg e0def4
+# set -g __prompt_color_section_1 eb6f92
+# set -g __prompt_color_section_2 3e8fb0
+# set -g __prompt_color_section_3 f6c177
+# set -g __prompt_color_section_4 9ccfd8
+# set -g __prompt_color_section_5 c4a7e7
+# set -g __prompt_color_section_6 56526e
+# set -g __prompt_color_success 4caf50
+# set -g __prompt_color_error d32f2f
+# set -g __prompt_arrow_color_success e0def4
+
+# Snazzy
+# set -g __prompt_color_fg fbf1c7
+# set -g __prompt_color_section_1 d65d0e
+# set -g __prompt_color_section_2 d79921
+# set -g __prompt_color_section_3 689d6a
+# set -g __prompt_color_section_4 458588
+# set -g __prompt_color_section_5 665c54
+# set -g __prompt_color_section_6 3c3836
+# set -g __prompt_color_success 689d6a
+# set -g __prompt_color_error cc241d
+# set -g __prompt_arrow_color_success fbf1c7
+
+# Frappe
+set -g __prompt_color_fg 303446
+set -g __prompt_color_text c6d0f5
+set -g __prompt_color_section_1 ea999c
+set -g __prompt_color_section_2 e5c890
+set -g __prompt_color_section_3 a6d189
+set -g __prompt_color_section_4 81c8be
+set -g __prompt_color_section_5 8caaee
+set -g __prompt_color_section_6 babbf1
+set -g __prompt_color_success a6d189
+set -g __prompt_color_error e78284
+set -g __prompt_arrow_color_success a6d189
+
+# One Dark
+# set -g __prompt_color_fg cccccc
+# set -g __prompt_color_text cccccc
+# set -g __prompt_color_section_1 be5046
+# set -g __prompt_color_section_2 d19a66
+# set -g __prompt_color_section_3 98c379
+# set -g __prompt_color_section_4 61afef
+# set -g __prompt_color_section_5 979eab
+# set -g __prompt_color_section_6 393e48
+# set -g __prompt_color_success 98c379
+# set -g __prompt_color_error be5046
+# set -g __prompt_arrow_color_success cccccc
 
 set -g __prompt_sections 'host|pwd|git|||time'
 set -g __prompt_right_sections status-runtime
@@ -456,7 +494,7 @@ function fish_prompt
     if test "$__prompt_last_status" -ne 0
         set_color $__prompt_color_error
     else
-        set_color $__prompt_color_fg
+        set_color $__prompt_arrow_color_success
     end
 
     printf '\n\uF432 '

@@ -25,12 +25,10 @@ in
         nvd
         nix-output-monitor
         nix-prefetch-git
-        helix
         neovim
         nnn
         fd
         ripgrep
-        fzf
         btop
         iftop
         htop
@@ -42,8 +40,8 @@ in
         jq
         zip
         unzip
-        yazi
         zellij
+        (lib.custom.scripts.zellij pkgs)
         git
         git-lfs
         lazygit
@@ -100,6 +98,49 @@ in
             src = ./fish-prompt;
           }
         ];
+      };
+
+      helix = {
+        enable = true;
+        settings = builtins.fromTOML (builtins.readFile ./configs/helix/config.toml);
+
+        languages.language = [
+          {
+            name = "nix";
+            auto-format = true;
+            formatter.command = "${pkgs.nixfmt}/bin/nixfmt";
+          }
+        ];
+      };
+
+      yazi = {
+        enable = true;
+        theme = {
+          flavor = {
+            use = "catppuccin-frappe";
+          };
+        };
+      };
+
+      fzf = {
+        enable = true;
+        colors = builtins.fromTOML (builtins.readFile ./configs/fzf/colors.toml);
+      };
+    };
+
+    xdg.configFile = {
+      "helix/yazi-picker.sh".source = ./configs/helix/yazi-picker.sh;
+      "lazygit/config.yml".source = ./configs/lazygit/config.yml;
+      "bat".source = ./configs/bat;
+      "kitty".source = ./configs/kitty;
+      "zellij/config.kdl".source = ./configs/zellij/config.kdl;
+
+      # The main branch has a flavors attribute for yazi, but it's not in the release yet. Revisit if this is needed.
+      "yazi/flavors".source = pkgs.fetchFromGitHub {
+        owner = "yazi-rs";
+        repo = "flavors";
+        rev = "2d7dd2afe253c30943e9cd05158b1560a285eeab";
+        hash = "sha256-566RFL1Wng7yr5OS3UtKEy+ZLrgwfCdX9FAtwRQK2oM=";
       };
     };
   };
