@@ -99,6 +99,18 @@ in
           "com.apple.TextEdit" = {
             RichText = 0;
           };
+          "com.apple.symbolichotkeys" = {
+            AppleSymbolicHotKeys = {
+              "7".enabled = 0;
+              "8".enabled = 0;
+              "9".enabled = 0;
+              "10".enabled = 0;
+              "11".enabled = 0;
+              "12".enabled = 0;
+              "13".enabled = 0;
+              "57".enabled = 0;
+            };
+          };
         };
       };
     };

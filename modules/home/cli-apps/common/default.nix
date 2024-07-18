@@ -40,8 +40,6 @@ in
         jq
         zip
         unzip
-        zellij
-        (lib.custom.scripts.zellij pkgs)
         git
         git-lfs
         lazygit
@@ -54,8 +52,8 @@ in
       ];
 
       sessionVariables = {
-        EDITOR = "hx";
-        VISUAL = "hx";
+        EDITOR = "${lib.getExe pkgs.helix}";
+        VISUAL = "${lib.getExe pkgs.helix}";
         EZA_COLORS = "ur=32:uw=32:ux=32:ue=32:gr=33:gw=33:gx=33:tr=31:tw=31:tx=31";
         grc_plugin_ignore_execs = "lolcat";
       };
@@ -102,7 +100,7 @@ in
 
       helix = {
         enable = true;
-        settings = builtins.fromTOML (builtins.readFile ./configs/helix/config.toml);
+        settings = builtins.fromTOML (builtins.readFile ../configs/helix/config.toml);
 
         languages.language = [
           {
@@ -124,16 +122,15 @@ in
 
       fzf = {
         enable = true;
-        colors = builtins.fromTOML (builtins.readFile ./configs/fzf/colors.toml);
+        colors = builtins.fromTOML (builtins.readFile ../configs/fzf/colors.toml);
       };
     };
 
     xdg.configFile = {
-      "helix/yazi-picker.sh".source = ./configs/helix/yazi-picker.sh;
-      "lazygit/config.yml".source = ./configs/lazygit/config.yml;
-      "bat".source = ./configs/bat;
-      "kitty".source = ./configs/kitty;
-      "zellij/config.kdl".source = ./configs/zellij/config.kdl;
+      "helix/yazi-picker.sh".source = ../configs/helix/yazi-picker.sh;
+      "lazygit/config.yml".source = ../configs/lazygit/config.yml;
+      "bat".source = ../configs/bat;
+      "kitty".source = ../configs/kitty;
 
       # The main branch has a flavors attribute for yazi, but it's not in the release yet. Revisit if this is needed.
       "yazi/flavors".source = pkgs.fetchFromGitHub {

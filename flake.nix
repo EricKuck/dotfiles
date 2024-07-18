@@ -74,8 +74,8 @@
           programs.nixfmt-rfc-style.enable = true; # *.nix
           programs.black.enable = true; # *.py
           settings.formatter.black.excludes = [
-            "modules/home/cli-apps/common/configs/kitty/kitty-smart-scroll/*.py"
-            "modules/home/cli-apps/common/configs/kitty/kitty_search/*.py"
+            "modules/home/cli-apps/configs/kitty/kitty-smart-scroll/*.py"
+            "modules/home/cli-apps/configs/kitty/kitty_search/*.py"
           ];
         })
       );
