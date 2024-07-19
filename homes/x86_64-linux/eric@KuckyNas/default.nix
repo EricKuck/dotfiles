@@ -15,7 +15,7 @@ with lib.custom;
   };
 
   home.packages = with pkgs; [
-    kitty # Needed for compat with kitty when sshing in
+    kitty.terminfo # Needed for compat with kitty when sshing in
     custom.podman-compose
     kopia
     podman-tui

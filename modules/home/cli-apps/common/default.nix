@@ -106,7 +106,9 @@ in
           {
             name = "nix";
             auto-format = true;
-            formatter.command = "${pkgs.nixfmt}/bin/nixfmt";
+            formatter.command = "${lib.getExe
+              inputs.nixpkgs-unstable.legacyPackages.${system}.nixfmt-rfc-style
+            }";
           }
         ];
       };
