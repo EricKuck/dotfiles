@@ -71,6 +71,11 @@ in
         enable = true;
         interactiveShellInit = ''
           set fish_greeting
+
+          if test "$COLORTERM" = truecolor || test "$TERM" = xterm-kitty
+            set -g fish_term24bit 1
+          end
+
         '';
 
         plugins = [
