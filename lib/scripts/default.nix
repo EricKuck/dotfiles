@@ -55,9 +55,14 @@ rec {
     zellij-env =
       pkgs:
       pkgs.writeShellScriptBin "zellij-env" ''
-        kitty @ --password="a" set-user-vars ZELLIJ=1
+        #!/usr/bin/env bash
+        if [ -z "$ZELLIJ" ]; then
+          kitty @ --password="a" set-user-vars ZELLIJ=1
+        fi
         ${lib.getExe pkgs.zellij} "$@"
-        kitty @ --password="a" set-user-vars ZELLIJ=0
+        if [ -z "$ZELLIJ" ]; then
+          kitty @ --password="a" set-user-vars ZELLIJ=0
+        fi
       '';
   };
 }

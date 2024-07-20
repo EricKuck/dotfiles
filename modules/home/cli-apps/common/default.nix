@@ -74,6 +74,7 @@ in
 
           if test "$COLORTERM" = truecolor || test "$TERM" = xterm-kitty
             set -g fish_term24bit 1
+            set -g COLORTERM truecolor
           end
 
         '';
