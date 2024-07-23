@@ -73,6 +73,7 @@ with lib.custom;
           Type = "forking";
           Environment = "PATH=/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin";
           ExecStart = "${lib.getExe pkgs.custom.podman-compose} start-all --dir='/kuckyjar/container/stacks/'";
+          ExecStop = "${lib.getExe pkgs.podman} stop $(${lib.getExe pkgs.podman} ps -a -q)";
         };
         Install = {
           WantedBy = [ "default.target" ];

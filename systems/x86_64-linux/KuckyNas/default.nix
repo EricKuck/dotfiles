@@ -118,6 +118,7 @@ with lib.custom;
     secrets = {
       upsmon_user_pw.neededForUsers = true;
       upsmon_user_hashed_pw.neededForUsers = true;
+      tailscale_auth.neededForUsers = true;
     };
   };
 
@@ -158,6 +159,7 @@ with lib.custom;
     eternal-terminal
     lm_sensors
     zfs
+    sops
   ];
 
   programs = {
@@ -241,6 +243,13 @@ with lib.custom;
 
     samba-wsdd = {
       enable = true;
+    };
+
+    tailscale = {
+      enable = true;
+      authKeyFile = config.sops.secrets.tailscale_auth.path;
+      useRoutingFeatures = "server";
+      extraUpFlags = [ "--advertise-routes=192.168.1.0/24" ];
     };
   };
 
