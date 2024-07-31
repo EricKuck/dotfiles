@@ -50,7 +50,7 @@ set -g __prompt_arrow_color_success a6d189
 # set -g __prompt_color_error be5046
 # set -g __prompt_arrow_color_success cccccc
 
-set -g __prompt_sections 'host|pwd|git|||time'
+set -g __prompt_sections 'host|pwd|git|nixshell||time'
 set -g __prompt_right_sections status-runtime
 
 set -g __prompt_colors \
@@ -340,6 +340,8 @@ function __prompt_print_prompt --description "prints an entire prompt given <sec
                     set item_output (__prompt_print_pwd)
                 case git
                     set item_output (__prompt_print_git)
+                case nixshell
+                    set item_output (__prompt_print_nixshell)
                 case time
                     set item_output (__prompt_print_time)
                 case status
@@ -436,6 +438,12 @@ function __prompt_print_git
     set -l git_state (__prompt_git_status)
     if test $status -eq 0
         echo -sn $git_state
+    end
+end
+
+function __prompt_print_nixshell
+    if test -n "$IN_NIX_SHELL"
+        echo -sn nix-shell
     end
 end
 

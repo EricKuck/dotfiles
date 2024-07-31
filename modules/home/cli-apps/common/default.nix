@@ -63,6 +63,7 @@ in
         vi = "nvim";
         cat = "bat --style=plain --no-pager";
         ls = "eza -g";
+        nix-shell = "nix-shell --run fish";
       };
     };
 
