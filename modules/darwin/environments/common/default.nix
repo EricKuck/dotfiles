@@ -145,6 +145,7 @@ in
         "spotify"
         "lulu"
         "intellij-idea-ce"
+        "fleet"
         "kaleidoscope"
         "force-paste"
         "kitty"
