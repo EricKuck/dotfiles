@@ -19,6 +19,7 @@ with lib.custom;
       nh = {
         enable = true;
         flake = "path:/Users/erickuck/.config/nix";
+        hostname = "ekMBP";
         clean = {
           enable = true;
           extraArgs = "--keep-since 4d --keep 3";

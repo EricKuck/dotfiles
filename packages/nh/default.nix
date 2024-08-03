@@ -26,8 +26,8 @@ rustPlatform.buildRustPackage {
   src = fetchFromGitHub {
     owner = "EricKuck";
     repo = "nh";
-    rev = "727cc49c2fb560189c089e9bcfb31919e82ada6f";
-    hash = "sha256-b6QlXVtshgWStEKX4ULJi9bWoXX8xB86LNBRe4XQQtc=";
+    rev = "b64cc4d88f3a";
+    hash = "sha256-pFxUCxjNlpyrvlFw55a8PPAvnlw8tkAIEW4kPToqbw8=";
   };
 
   strictDeps = true;

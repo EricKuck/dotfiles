@@ -20,6 +20,13 @@ in
       '';
     };
 
+    hostname = lib.mkOption {
+      type = lib.types.str;
+      description = ''
+        The hostname that will be used for `nh os` operations. Sets the FLAKE_HOST env var.
+      '';
+    };
+
     clean = {
       enable = lib.mkEnableOption "periodic garbage collection with nh clean all";
 
@@ -62,6 +69,7 @@ in
       systemPackages = with pkgs; [ custom.nh ];
       variables = {
         FLAKE = cfg.flake;
+        FLAKE_HOST = cfg.hostname;
       };
     };
 

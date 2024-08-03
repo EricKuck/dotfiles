@@ -17,7 +17,8 @@ with lib.custom;
     programs = {
       nh = {
         enable = true;
-        flake = "path:/Users/erickuck/.config/nix";
+        flake = "path:/Users/eric.kuck/.config/nix";
+        hostname = "rddt";
         clean = {
           enable = true;
           extraArgs = "--keep-since 4d --keep 3";
