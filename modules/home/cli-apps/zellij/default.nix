@@ -30,7 +30,7 @@ in
     };
 
     programs.fish.interactiveShellInit = ''
-      if ! test $ZELLIJ
+      if ! test $ZELLIJ && test $KITTY_WINDOW_ID
         # Select or start a zellij session
         zj --from-init
 
