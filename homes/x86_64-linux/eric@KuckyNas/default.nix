@@ -64,16 +64,38 @@ with lib.custom;
         };
       };
 
-      podman-start-all = {
+      podman-stop-all = {
         Unit = {
-          Description = "Start all podman-compose stacks marked as autostart";
+          Description = "Stop all podman containers";
           After = [ "network-online.target" ];
         };
         Service = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = "/run/current-system/sw/bin/true";
+          ExecStop = pkgs.writeShellScript "_podman-stop-all" ''
+            set -x
+            ${lib.getExe pkgs.podman} stop $(${lib.getExe pkgs.podman} ps -a -q);
+          '';
+        };
+        Install = {
+          WantedBy = [ "default.target" ];
+        };
+      };
+
+      podman-start-all = {
+        Unit = {
+          Description = "Start all podman-compose stacks marked as autostart";
+          After = [
+            "podman-stop-all.service"
+            "network-online.target"
+          ];
+        };
+        Service = {
           Type = "forking";
+          TimeoutSec = 300;
           Environment = "PATH=/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin";
           ExecStart = "${lib.getExe pkgs.custom.podman-compose} start-all --dir='/kuckyjar/container/stacks/'";
-          ExecStop = "${lib.getExe pkgs.podman} stop $(${lib.getExe pkgs.podman} ps -a -q)";
         };
         Install = {
           WantedBy = [ "default.target" ];
