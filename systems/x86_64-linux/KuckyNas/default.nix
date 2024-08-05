@@ -20,6 +20,10 @@ with lib.custom;
         };
       };
     };
+
+    hardware = {
+      coral.enable = true;
+    };
   };
 
   disabledModules = [ "services/monitoring/ups.nix" ];
