@@ -49,6 +49,7 @@ in
         figlet
         lolcat
         ffmpeg
+        poetry
       ];
 
       sessionVariables = {
