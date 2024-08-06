@@ -65,6 +65,7 @@ in
         cat = "bat --style=plain --no-pager";
         ls = "eza -g";
         nix-shell = "nix-shell --run fish";
+        flake-repl = "nix repl --expr \"builtins.getFlake $FLAKE\"";
       };
     };
 
