@@ -90,5 +90,8 @@
       checks = eachSystem (pkgs: {
         formatting = treefmtEval.${pkgs.system}.config.build.check self;
       });
+
+      systems.modules.nixos = lib.snowfall.fs.get-files-recursive ./modules/system-common;
+      systems.modules.darwin = lib.snowfall.fs.get-files-recursive ./modules/system-common;
     };
 }
