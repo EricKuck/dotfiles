@@ -16,6 +16,7 @@ with lib.custom;
 
   home.packages = with pkgs; [
     kitty.terminfo # Needed for compat with kitty when sshing in
+    wezterm
     custom.podman-compose
     kopia
     podman-tui

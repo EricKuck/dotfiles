@@ -149,6 +149,7 @@ in
         "kaleidoscope"
         "force-paste"
         "kitty"
+        "wezterm"
         "raycast"
         "jordanbaird-ice"
         "visual-studio-code"

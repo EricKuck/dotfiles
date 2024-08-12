@@ -142,6 +142,7 @@ in
       "lazygit/config.yml".source = ../configs/lazygit/config.yml;
       "bat".source = ../configs/bat;
       "kitty".source = ../configs/kitty;
+      "wezterm".source = ../configs/wezterm;
 
       # The main branch has a flavors attribute for yazi, but it's not in the release yet. Revisit if this is needed.
       "yazi/flavors".source = pkgs.fetchFromGitHub {
