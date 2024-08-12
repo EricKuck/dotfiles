@@ -18,11 +18,15 @@ in
 
   config = mkIf cfg.enable {
     homebrew = {
-      taps = [ "pbreault/gww" ];
+      taps = [
+        "pbreault/gww"
+        "borneygit/brew"
+      ];
 
       brews = [
         "gradle-profiler"
         "pbreault/gww/gww"
+        "borneygit/brew/pidcat"
       ];
 
       casks = [ "android-studio" ];
