@@ -1,13 +1,25 @@
 local wezterm = require 'wezterm'
+local act = wezterm.action
 local theme_name = 'Catppuccin Frappe'
 local theme = wezterm.color.get_builtin_schemes()[theme_name]
+local tab_max_width = 20
+local search_mode = nil
+if wezterm.gui then
+  search_mode = wezterm.gui.default_key_tables().search_mode
+  table.insert(
+    search_mode,
+    { key = 'f', mods = 'CMD', action = act.CopyMode 'ClearPattern' }
+  )
+end
 
 local config = {
   color_scheme = theme_name,
+  colors = { split = theme.ansi[3] },
   font = wezterm.font 'JetBrains Mono',
   font_size = 13,
   tab_bar_at_bottom = true,
   use_fancy_tab_bar = false,
+  tab_max_width = tab_max_width,
   hide_tab_bar_if_only_one_tab = true,
   show_new_tab_button_in_tab_bar = false,
   window_decorations = "INTEGRATED_BUTTONS|RESIZE",
@@ -15,6 +27,7 @@ local config = {
   initial_cols = 196,
   initial_rows = 55,
   scrollback_lines = 4500,
+
   window_padding = {
     top = 60,
     left = 0,
@@ -22,81 +35,95 @@ local config = {
     right = 0,
   },
 
+  key_tables = {
+    search_mode = search_mode,
+  },
+
   keys = {
+    {
+      key = 'f',
+      mods = 'CMD|SHIFT',
+      action = act.TogglePaneZoomState,
+    },
+    {
+      key = 'f',
+      mods = 'CMD',
+      action = act.Search { CaseInSensitiveString = '' },
+    },
     {
       key = 'k',
       mods = 'CMD',
-      action = wezterm.action.ClearScrollback("ScrollbackAndViewport"),
+      action = act.ClearScrollback("ScrollbackAndViewport"),
     },
     {
       key = 'p',
       mods = 'CMD',
-      action = wezterm.action.SplitHorizontal { domain = 'CurrentPaneDomain' },
+      action = act.SplitHorizontal { domain = 'CurrentPaneDomain' },
     },
     {
       key = 'p',
       mods = 'CMD|SHIFT',
-      action = wezterm.action.SplitVertical { domain = 'CurrentPaneDomain' },
+      action = act.SplitVertical { domain = 'CurrentPaneDomain' },
     },
     {
       key = 'w',
       mods = 'CMD',
-      action = wezterm.action.CloseCurrentPane { confirm = false },
+      action = act.CloseCurrentPane { confirm = false },
     },
     {
       key = 'LeftArrow',
       mods = 'CMD',
-      action = wezterm.action.ActivatePaneDirection 'Left',
+      action = act.ActivatePaneDirection 'Left',
     },
     {
       key = 'RightArrow',
       mods = 'CMD',
-      action = wezterm.action.ActivatePaneDirection 'Right',
+      action = act.ActivatePaneDirection 'Right',
     },
     {
       key = 'UpArrow',
       mods = 'CMD',
-      action = wezterm.action.ActivatePaneDirection 'Up',
+      action = act.ActivatePaneDirection 'Up',
     },
     {
       key = 'DownArrow',
       mods = 'CMD',
-      action = wezterm.action.ActivatePaneDirection 'Down',
+      action = act.ActivatePaneDirection 'Down',
     },
     {
       key = 'LeftArrow',
       mods = 'ALT',
-      action = wezterm.action.AdjustPaneSize { 'Left', 5 },
+      action = act.AdjustPaneSize { 'Left', 5 },
     },
     {
       key = 'RightArrow',
       mods = 'ALT',
-      action = wezterm.action.AdjustPaneSize { 'Right', 5 },
+      action = act.AdjustPaneSize { 'Right', 5 },
     },
     {
       key = 'UpArrow',
       mods = 'ALT',
-      action = wezterm.action.AdjustPaneSize { 'Up', 5 },
+      action = act.AdjustPaneSize { 'Up', 5 },
     },
     {
       key = 'DownArrow',
       mods = 'ALT',
-      action = wezterm.action.AdjustPaneSize { 'Down', 5 },
+      action = act.AdjustPaneSize { 'Down', 5 },
     },
     {
       key = 'UpArrow',
       mods = 'CMD|SHIFT',
-      action = wezterm.action.ScrollToBottom,
+      action = act.ScrollToBottom,
     },
     {
       key = 'DownArrow',
       mods = 'CMD|SHIFT',
-      action = wezterm.action.ScrollToTop,
+      action = act.ScrollToTop,
     },
     {
       key = 't',
       mods = 'CTRL',
-      action = wezterm.action.PromptInputLine {
+      action = act.PromptInputLine {
         description = 'Enter new name for tab',
         action = wezterm.action_callback(
           function(window, pane, line)
@@ -133,7 +160,7 @@ function tab_title(tab_info)
   if title and #title > 0 then
     return title
   end
-  return 'Tab #' .. tab_info.tab_id
+  return 'Tab #' .. (tab_info.tab_index + 1)
 end
 
 wezterm.on(
@@ -152,15 +179,29 @@ wezterm.on(
     end
 
     local title = tab_title(tab)
-    title = wezterm.truncate_right(title, max_width - 4)
+    if tab.active_pane.is_zoomed then
+      title = '[Z] ' .. title
+    end
+
+    local title_extra_width = 4 -- 2 spaces + 2 arrows
+    local spacer = ''
+    if tab.tab_index == 0 then
+      spacer = '    '
+      title_extra_width = title_extra_width + string.len(spacer)
+    end
+
+    title = ' ' .. wezterm.truncate_right(title, tab_max_width - title_extra_width) .. ' '
 
     return {
+      { Background = { Color = edge_background } },
+      { Foreground = { Color = theme.ansi[8] } },
+      { Text = spacer },
       { Background = { Color = background } },
       { Foreground = { Color = edge_background } },
       { Text = SOLID_RIGHT_ARROW },
       { Background = { Color = background } },
       { Foreground = { Color = foreground } },
-      { Text = " " .. title .. " " },
+      { Text = title },
       { Background = { Color = edge_background } },
       { Foreground = { Color = background } },
       { Text = SOLID_RIGHT_ARROW },
