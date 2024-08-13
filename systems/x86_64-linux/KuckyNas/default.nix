@@ -158,8 +158,6 @@ with lib.custom;
   };
 
   environment.systemPackages = with pkgs; [
-    cockpit
-    custom.cockpit-podman
     wireguard-go
     eternal-terminal
     lm_sensors
@@ -182,16 +180,6 @@ with lib.custom;
     };
 
     eternal-terminal.enable = true;
-
-    cockpit = {
-      enable = true;
-      port = 5000;
-      settings = {
-        WebService = {
-          AllowUnencrypted = true;
-        };
-      };
-    };
 
     zfs = {
       autoScrub = {
