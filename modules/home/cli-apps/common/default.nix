@@ -50,6 +50,7 @@ in
         lolcat
         ffmpeg
         poetry
+        unstable.serpl
       ];
 
       sessionVariables = {
