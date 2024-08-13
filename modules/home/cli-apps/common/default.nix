@@ -67,6 +67,7 @@ in
         ls = "eza -g";
         nix-shell = "nix-shell --run fish";
         flake-repl = "nix repl --expr \"builtins.getFlake $FLAKE\"";
+        wssh = "wezterm cli spawn --domain-name";
       };
     };
 
