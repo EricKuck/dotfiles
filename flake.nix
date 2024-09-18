@@ -7,7 +7,9 @@
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     darwin = {
-      url = "github:lnl7/nix-darwin/master";
+      # TODO: revert when https://github.com/LnL7/nix-darwin/pull/1083 is merged
+      # url = "github:lnl7/nix-darwin/master";
+      url = "github:emilazy/nix-darwin/push-zovpmlzlzvvm";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
 

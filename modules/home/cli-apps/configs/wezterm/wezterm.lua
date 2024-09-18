@@ -92,22 +92,22 @@ local config = {
     },
     {
       key = 'LeftArrow',
-      mods = 'ALT',
+      mods = 'CTRL',
       action = act.AdjustPaneSize { 'Left', 5 },
     },
     {
       key = 'RightArrow',
-      mods = 'ALT',
+      mods = 'CTRL',
       action = act.AdjustPaneSize { 'Right', 5 },
     },
     {
       key = 'UpArrow',
-      mods = 'ALT',
+      mods = 'CTRL',
       action = act.AdjustPaneSize { 'Up', 5 },
     },
     {
       key = 'DownArrow',
-      mods = 'ALT',
+      mods = 'CTRL',
       action = act.AdjustPaneSize { 'Down', 5 },
     },
     {

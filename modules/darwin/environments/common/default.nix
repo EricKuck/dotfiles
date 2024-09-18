@@ -108,7 +108,11 @@ in
               "11".enabled = 0;
               "12".enabled = 0;
               "13".enabled = 0;
+              "32".enabled = 0;
+              "33".enabled = 0;
               "57".enabled = 0;
+              "79".enabled = 0;
+              "81".enabled = 0;
             };
           };
         };
