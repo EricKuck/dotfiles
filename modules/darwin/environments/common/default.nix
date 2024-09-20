@@ -161,6 +161,7 @@ in
         "docker"
         "mullvadvpn"
         "maccy"
+        "soduto"
         # Specific version of btt i have a license for. Continually zaps itself, so commented out until fixed.
         # "https://raw.githubusercontent.com/Homebrew/homebrew-cask/81a82057d48abd085fb4769dd2e7ebcb20e6a36c/Casks/bettertouchtool.rb"
       ];
