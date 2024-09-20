@@ -16,6 +16,6 @@ in
   config = mkIf cfg.enable {
     services.udev.packages = [ pkgs.custom.libedgetpu ];
     users.groups.plugdev = { };
-    boot.extraModulePackages = [ pkgs.unstable.linuxKernel.packages.linux_6_8.gasket ];
+    boot.extraModulePackages = [ pkgs.unstable.linuxKernel.packages.linux_6_10.gasket ];
   };
 }

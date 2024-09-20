@@ -124,6 +124,7 @@ with lib.custom;
       upsmon_user_pw.neededForUsers = true;
       upsmon_user_hashed_pw.neededForUsers = true;
       tailscale_auth.neededForUsers = true;
+      eric_icloud_username.owner = "eric";
     };
   };
 
@@ -163,6 +164,9 @@ with lib.custom;
     lm_sensors
     zfs
     sops
+    unstable.gphotos-sync
+    unstable.icloudpd
+    unstable.immich-go
   ];
 
   programs = {

@@ -39,6 +39,24 @@ with lib.custom;
         };
       };
 
+      sync-cloud-photos = {
+        Unit = {
+          Description = "Sync photos from iCloud & Google Photos, sync with Immich";
+          After = [ "network.target" ];
+        };
+        Service = {
+          Type = "oneshot";
+          TimeoutSec = 1200;
+          ExecStart = pkgs.writeShellScript "sync-cloud-photos" ''
+            set -eou pipefail
+
+            ${lib.getExe pkgs.unstable.icloudpd} --directory /kuckyjar/media/Photos/eric/icloud --username $(${pkgs.coreutils}/bin/cat ${osConfig.sops.secrets.eric_icloud_username.path}) --until-found 20
+            ${lib.getExe pkgs.unstable.gphotos-sync} --port 9482 /kuckyjar/media/Photos/eric/gphotos/
+            ${lib.getExe pkgs.unstable.immich-go} -no-ui upload /kuckyjar/media/Photos/eric
+          '';
+        };
+      };
+
       kopia-backup-all = {
         Unit = {
           Description = "Kopia backup";
@@ -105,10 +123,20 @@ with lib.custom;
     };
 
     timers = {
+      sync-cloud-photos = {
+        Unit.Description = "Sync photos from iCloud & Google Photos, sync with Immich";
+        Timer = {
+          Unit = "sync-cloud-photos.service";
+          OnBootSec = "1h";
+          OnUnitActiveSec = "1h";
+        };
+        Install.WantedBy = [ "timers.target" ];
+      };
+
       kopia-backup-all = {
         Unit.Description = "Kopia backup schedule";
         Timer = {
-          Unit = "oneshot";
+          Unit = "kopia-backup-all.service";
           OnBootSec = "1h";
           OnUnitActiveSec = "1h";
         };
