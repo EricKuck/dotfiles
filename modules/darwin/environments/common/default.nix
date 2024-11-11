@@ -45,6 +45,7 @@ in
           NSAutomaticCapitalizationEnabled = false;
           NSAutomaticDashSubstitutionEnabled = false;
           ApplePressAndHoldEnabled = false;
+          "com.apple.trackpad.forceClick" = false;
         };
 
         finder = {
@@ -85,6 +86,7 @@ in
             TrackpadFourFingerVertSwipeGesture = 0;
             TrackpadFourFingerHorizSwipeGesture = 0;
             TrackpadFiveFingerPinchGesture = 0;
+            ForceSuppressed = true;
           };
           "com.apple.driver.AppleBluetoothMultitouch.trackpad" = {
             TrackpadTwoFingerFromRightEdgeSwipeGesture = 0;
@@ -95,6 +97,7 @@ in
             TrackpadFourFingerVertSwipeGesture = 0;
             TrackpadFourFingerHorizSwipeGesture = 0;
             TrackpadFiveFingerPinchGesture = 0;
+            ForceSuppressed = true;
           };
           "com.apple.TextEdit" = {
             RichText = 0;
@@ -114,6 +117,9 @@ in
               "79".enabled = 0;
               "81".enabled = 0;
             };
+          };
+          "com.apple.menuextra.battery" = {
+            ShowPercent = true;
           };
         };
       };

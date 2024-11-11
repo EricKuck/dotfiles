@@ -18,7 +18,7 @@ with lib.custom;
     programs = {
       nh = {
         enable = true;
-        flake = "path:/Users/erickuck/.config/nix";
+        flake = "path:/Users/eric/.config/nix";
         hostname = "ekMBP";
         clean = {
           enable = true;
@@ -33,10 +33,11 @@ with lib.custom;
       "orcaslicer"
       "nrlquaker-winbox"
       "autodesk-fusion"
+      "thunderbird"
+      "flotato"
     ];
 
     masApps = {
-      Spark = 6445813049;
       Tailscale = 1475387142;
       WireGuard = 1451685025;
       Infuse = 1136220934;

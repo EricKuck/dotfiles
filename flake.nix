@@ -3,14 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     darwin = {
-      # TODO: revert when https://github.com/LnL7/nix-darwin/pull/1083 is merged
-      # url = "github:lnl7/nix-darwin/master";
-      url = "github:emilazy/nix-darwin/push-zovpmlzlzvvm";
-      inputs.nixpkgs.follows = "nixpkgs-darwin";
+      url = "github:lnl7/nix-darwin/master";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     snowfall-lib = {

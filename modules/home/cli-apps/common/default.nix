@@ -49,7 +49,6 @@ in
         figlet
         lolcat
         ffmpeg
-        poetry
         unstable.serpl
       ];
 
