@@ -15,6 +15,21 @@ let
     path = ./StarrySur_Mac.png;
     name = "StarrySur_Mac.png";
   };
+
+  codeIcon = builtins.path {
+    path = ./Code.icns;
+    name = "Code.icns";
+  };
+
+  fileicon = builtins.path {
+    path = ./fileicon;
+    name = "fileicon";
+  };
+
+  codeVolume = "Code";
+  codeMountPoint = "/Users/eric/Code";
+  codeMountOptions = "rw,noauto,nobrowse,suid,owners";
+  codeKeychainEntry = "CodeVolume";
 in
 {
   options.custom.environments.common = {
@@ -27,7 +42,17 @@ in
         #!${lib.getExe pkgs.bash}
         echo >&2 "wallpaper..."
         osascript -e 'tell application "Finder" to set desktop picture to POSIX file "${wallpaper}"'
+
+        echo >&2 "code dir..."
+        FILEICON=${fileicon}
+        CODE_ICNS=${codeIcon}
+        VOLUME=${codeVolume}
+        MOUNT_POINT="${codeMountPoint}"
+        MOUNT_OPTIONS=${codeMountOptions}
+        KEYCHAIN_ENTRY="${codeKeychainEntry}"
+        ${builtins.readFile ./mk_code_volume.sh}
       '';
+      
 
       defaults = {
         dock = {
@@ -125,6 +150,19 @@ in
       };
     };
 
+    launchd = {
+      user = {
+        agents = {
+          mount-code-volume = {
+            command = "/usr/bin/security find-generic-password -s \"${codeKeychainEntry}\" -w | /usr/sbin/diskutil apfs unlockVolume ${codeVolume} -nomount -stdinpassphrase && /usr/sbin/diskutil mount -mountOptions ${codeMountOptions} -mountPoint ${codeMountPoint} ${codeVolume}";
+            serviceConfig = {
+              RunAtLoad = true;
+            };
+          };
+        };
+      };
+    };
+
     programs.fish.enable = true;
 
     environment = {
@@ -150,6 +188,7 @@ in
       casks = [
         "1password"
         "arc"
+        "battery"
         "obsidian"
         "macmediakeyforwarder"
         "spotify"
