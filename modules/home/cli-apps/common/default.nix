@@ -50,6 +50,7 @@ in
         lolcat
         ffmpeg
         unstable.serpl
+        unstable.nix-init
       ];
 
       sessionVariables = {
