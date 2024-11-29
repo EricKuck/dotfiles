@@ -4,8 +4,7 @@
   ...
 }:
 
-_final: prev:
-{
+_final: prev: {
   kopia = prev.buildGoModule rec {
     pname = "kopia";
     version = "0.18.2";
@@ -26,8 +25,8 @@ _final: prev:
       "-X=github.com/kopia/kopia/repo.BuildInfo=${src.rev}"
     ];
 
-    doCheck = false; 
-    doInstallCheck = false; 
+    doCheck = false;
+    doInstallCheck = false;
 
     meta = {
       description = "Cross-platform backup tool for Windows, macOS & Linux with fast, incremental backups, client-side end-to-end encryption, compression and data deduplication. CLI and GUI included";

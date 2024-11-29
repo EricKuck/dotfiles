@@ -52,7 +52,6 @@ in
         KEYCHAIN_ENTRY="${codeKeychainEntry}"
         ${builtins.readFile ./mk_code_volume.sh}
       '';
-      
 
       defaults = {
         dock = {
@@ -168,6 +167,7 @@ in
     environment = {
       shells = [ pkgs.fish ];
       systemPath = [ "/opt/homebrew/bin" ];
+      systemPackages = [ pkgs.custom.micswitch ];
     };
 
     homebrew = {
@@ -207,8 +207,7 @@ in
         "mullvadvpn"
         "maccy"
         "soduto"
-        # Specific version of btt i have a license for. Continually zaps itself, so commented out until fixed.
-        # "https://raw.githubusercontent.com/Homebrew/homebrew-cask/81a82057d48abd085fb4769dd2e7ebcb20e6a36c/Casks/bettertouchtool.rb"
+        "bettertouchtool"
       ];
 
       masApps = {
