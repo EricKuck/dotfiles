@@ -144,6 +144,8 @@ in
               "57".enabled = 0;
               "79".enabled = 0;
               "81".enabled = 0;
+              # Disable dictation
+              "164".enabled = 0;
               # opt-space for spotlight
               "64" = {
                 enabled = 1;
