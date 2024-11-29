@@ -1,0 +1,197 @@
+*.sock
+*.noindex
+*.download
+.DocumentRevisions-V100
+.MobileBackups
+.MobileBackups.trash
+.Spotlight-V100
+.TemporaryItems
+.Trash
+.Trashes
+.dbfseventsd
+.dropbox
+.dropbox.cache
+.fseventsd
+.hotfiles.btree
+.vol
+.localized
+.tart
+Backups.backupdb
+Cache
+Caches
+.cache
+.vscode
+.gem
+.npm
+.docker
+DerivedData
+node_modules
+Logs
+logs
+log
+**/CocoaPods/Pods
+*.log
+*.step
+*.stl
+*.3mf
+*.gcode
+/Desktop/*.mov
+/Downloads/*.mov
+/.konan
+/.config/github-copilot
+/go/pkg/mod
+/traces
+/Code/Android/**/coverage
+/Code/Android/**/snapshots
+/Code/iOS/**/Snapshots
+/Library/Assistant
+/Library/Thunderbird
+/Library/thunderbird
+/Library/Intents
+/Library/Accounts
+/Library/IntelligencePlatform
+/Library/IdentityServices
+/Library/Biome
+/Library/UnifiedAssetFramework
+/Library/Metadata
+/Library/DataDeliveryServices
+/Library/Translation
+/Library/Spelling
+/Library/Metadata/CoreSpotlight
+/Library/Calendars
+/Library/Keychains
+/Library/Java/JavaVirtualMachines
+/Library/Photos
+/Library/Reminders
+/Library/LanguageModeling
+/Library/Finance
+/Library/Cookies
+/Library/Weather
+/Library/StatusKit
+/Library/DoNotDisturb
+/Library/PersonalizationPortrait
+/Library/Suggestions
+/Library/HomeKit
+/Library/Sharing
+/Library/Mail
+/Library/Messages
+/Library/Autosave\ Information
+/Library/Printers
+/Library/studentd
+/Library/Application\ Support/balena-etcher
+/Library/Application\ Support/virtualenv
+/Library/Application\ Support/Knowledge
+/Library/Application\ Support/kotlin/daemon
+/Library/Application\ Support/com.bugsnag.Bugsnag
+/Library/Application\ Support/Spotify
+/Library/Application\ Support/JetBrains/Toolbox
+/Library/Application\ Support/Autodesk
+/Library/Application\ Support/com.raycast.macos
+/Library/Application\ Support/App\ Store
+/Library/Application\ Support/zoom.us
+/Library/Application\ Support/firestore
+/Library/Application\ Support/com.cloudflare.1dot1dot1dot1.macos
+/Library/Application\ Support/SoundSource
+/Library/Application\ Support/iStat\ Menus
+/Library/Application\ Support/MobileSync
+/Library/Application\ Support/FaceTime
+/Library/Application\ Support/CallHistoryDB
+/Library/Application\ Support/iCloud
+/Library/Application\ Support/kopia-ui
+/Library/Application\ Support/Animoji
+/Library/Application\ Support/1Password
+/Library/Application\ Support/google-heartbeat-storage
+/Library/Application\ Support/CloudDocs
+/Library/Application\ Support/Code
+/Library/Application\ Support/CrashReporter
+/Library/Application\ Support/Dropbox
+/Library/Application\ Support/Google
+/Library/Application\ Support/AddressBook
+/Library/Application\ Support/com.apple.*
+/Library/Application\ Support/MobileSync/Backup
+/Library/Application\ Support/Vivaldi
+/Library/Application\ Support/Signal
+/Library/Containers/com.apple.*
+/Library/Containers/com.firecore.infuse
+/Library/Containers/com.tinyspeck.slackmacgap
+/Library/Containers/com.readdle.smartemail-Mac
+/Library/Containers/com.readdle.SparkDesktop.appstore
+/Library/Containers/com.atlassian.jira.mac
+/Library/Containers/com.docker.docker
+/Library/Containers/de.janbolz.silicio
+/Library/Group\ Containers/group.com.apple.*
+/Library/Group\ Containers/BJ4HAAB9B3.ZoomClient3rd
+/Library/Group\ Containers/3L68KQB4HG.group.com.readdle.smartemail
+/Library/Group\ Containers/2BUA8C4S2C.com.1password
+/Library/Group\ Containers/group.com.atlassian.jira.app
+/Library/Group\ Containers/group.com.docker
+/Library/Group\ Containers/5BD75267VR.group.de.janbolz.silicio.shared
+/Library/Saved\ Application\ State
+/Library/com.apple.*
+/Library/Developer
+/Library/Google/GoogleSoftwareUpdate
+/Library/Metadata/CoreSpotlight
+/Library/Mobile\ Documents
+/Library/Safari
+/Library/VoiceTrigger
+/Library/Passes
+/Library/HTTPStorages
+/Library/Fonts
+/Library/WebKit
+/Library/Preferences/com.apple.*
+/Library/Preferences/ByHost/com.apple.*
+/Library/SyncedPreferences/com.apple.*
+MailData
+.DS_Store
+.VolumeIcon.icns
+.fseventsd
+.vol
+.file
+build
+.build
+moduleBuildDirs
+caches
+.android
+Library/Application\ Support/Arc
+Library/Application\ Support/Firefox
+Library/Application\ Support/Figma
+com.apple.Safari
+.cocoapods
+.tmp
+/temp
+.rustup
+.gradle
+!/.gradle
+.gradle/build-cache-tmp
+.gradle/daemon
+.gradle/build-scan-data
+.gradle/kotlin-profile
+.gradle/native
+.gradle/notifications
+.gradle/workers
+.gradle/wrapper
+.git
+/.m2
+*.ipa
+*.apk
+*.hprof
+*.hprof.*
+Library/Android/sdk
+.lldb
+.rbenv
+__pycache__
+iCloud\ Drive
+/Pictures
+/Music
+/Movies
+cache
+/Applications
+Library/Application\ Support/Docker\ Desktop
+/Volumes
+*.part
+*.hwcache
+nobackup
+mapping.txt
+out
+Library/Intents/Image
+/jdk
