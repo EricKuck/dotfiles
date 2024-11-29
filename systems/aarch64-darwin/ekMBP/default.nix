@@ -31,10 +31,11 @@ with lib.custom;
   homebrew = {
     casks = [
       "orcaslicer"
-      "nrlquaker-winbox"
+      "winbox"
       "autodesk-fusion"
       "thunderbird"
       "flotato"
+      "signal"
     ];
 
     masApps = {
