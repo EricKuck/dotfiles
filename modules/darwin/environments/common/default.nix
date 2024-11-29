@@ -51,6 +51,9 @@ in
         MOUNT_OPTIONS=${codeMountOptions}
         KEYCHAIN_ENTRY="${codeKeychainEntry}"
         ${builtins.readFile ./mk_code_volume.sh}
+
+        echo >&2 "disabling text replacements..."
+        defaults write -g NSUserDictionaryReplacementItems -array
       '';
 
       defaults = {
@@ -69,6 +72,7 @@ in
           NSAutomaticCapitalizationEnabled = false;
           NSAutomaticDashSubstitutionEnabled = false;
           ApplePressAndHoldEnabled = false;
+          AppleEnableSwipeNavigateWithScrolls = false;
           "com.apple.trackpad.forceClick" = false;
         };
 
