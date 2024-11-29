@@ -140,10 +140,19 @@ in
               "57".enabled = 0;
               "79".enabled = 0;
               "81".enabled = 0;
+              # opt-space for spotlight
+              "64" = {
+                enabled = 1;
+                value = {
+                  parameters = [
+                    32
+                    49
+                    524288
+                  ];
+                  type = "standard";
+                };
+              };
             };
-          };
-          "com.apple.menuextra.battery" = {
-            ShowPercent = true;
           };
         };
       };
