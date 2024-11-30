@@ -20,11 +20,9 @@ with lib.custom;
         };
       };
     };
-
-    hardware = {
-      coral.enable = true;
-    };
   };
+
+  hardware.coral.pcie.enable = true;
 
   disabledModules = [ "services/monitoring/ups.nix" ];
   imports = [
