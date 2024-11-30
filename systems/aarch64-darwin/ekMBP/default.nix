@@ -1,11 +1,14 @@
 {
   lib,
   pkgs,
+  inputs,
   config,
   ...
 }:
 with lib.custom;
 {
+  imports = [ inputs.sops-nix.darwinModules.sops ];
+
   custom = {
     environments = {
       common.enable = true;
@@ -27,6 +30,21 @@ with lib.custom;
       };
     };
   };
+
+  sops = {
+    defaultSopsFile = lib.snowfall.fs.get-file "secrets/ekmbp.yaml";
+    age.sshKeyPaths = [ "${config.users.users.eric.home}/.ssh/id_ed25519_sops" ];
+    secrets = {
+      btt_license = { };
+      istat_menus_license = { };
+    };
+  };
+
+  environment.systemPackages = with pkgs; [
+    sops
+    (lib.custom.scripts.activate-btt pkgs)
+    (lib.custom.scripts.activate-istat pkgs)
+  ];
 
   homebrew = {
     casks = [

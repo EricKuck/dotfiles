@@ -8,6 +8,13 @@
 }:
 with lib.custom;
 {
+  disabledModules = [ "services/monitoring/ups.nix" ];
+  imports = [
+    "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/ups.nix"
+    inputs.sops-nix.nixosModules.sops
+    (modulesPath + "/installer/scan/not-detected.nix")
+  ];
+
   custom = {
     programs = {
       nh = {
@@ -23,13 +30,6 @@ with lib.custom;
   };
 
   hardware.coral.pcie.enable = true;
-
-  disabledModules = [ "services/monitoring/ups.nix" ];
-  imports = [
-    "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/ups.nix"
-    inputs.sops-nix.nixosModules.sops
-    (modulesPath + "/installer/scan/not-detected.nix")
-  ];
 
   boot = {
     initrd = {
