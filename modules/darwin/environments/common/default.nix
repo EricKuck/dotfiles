@@ -89,6 +89,8 @@ in
             showDesktopGestureEnabled = false;
             showMissionControlGestureEnabled = false;
             showLaunchpadGestureEnabled = false;
+            "wvous-br-corner" = 1;
+            "wvous-br-modifier" = 0;
           };
           "com.apple.finder" = {
             ShowExternalHardDrivesOnDesktop = true;
@@ -209,8 +211,6 @@ in
         "spotify"
         "lulu"
         "intellij-idea-ce"
-        "fleet"
-        "kaleidoscope"
         "force-paste"
         "kitty"
         "wezterm"
