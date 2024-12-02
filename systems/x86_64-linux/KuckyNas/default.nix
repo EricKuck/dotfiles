@@ -43,7 +43,19 @@ with lib.custom;
     };
 
     kernelModules = [ "kvm-intel" ];
-    kernelPackages = lib.mkDefault pkgs.zfs.latestCompatibleLinuxPackages;
+    # Pinning to 6.10, using the 6_11 definition as the 6_10 was removed because of being EOL
+    kernelPackages = pkgs.linuxPackagesFor (
+      pkgs.linuxKernel.kernels.linux_6_11.override {
+        argsOverride = rec {
+          src = pkgs.fetchurl {
+            url = "mirror://kernel/linux/kernel/v${lib.versions.major version}.x/linux-${version}.tar.xz";
+            sha256 = "sha256-VeW8vGjWZ3b8RolikfCiSES+tXgXNFqFTWXj0FX6Qj4=";
+          };
+          version = "6.10.14";
+          modDirVersion = "6.10.14";
+        };
+      }
+    );
 
     extraModulePackages = [ ];
 
@@ -211,18 +223,21 @@ with lib.custom;
 
     samba = {
       enable = true;
-      securityType = "user";
-      extraConfig = ''
-        workgroup = WORKGROUP
-        server string = KuckyNas
-        netbios name = KuckyNas
-        security = user
-        hosts allow = 192.168.1. 127.0.0.1 localhost
-        hosts deny = 0.0.0.0/0
-        guest account = nobody
-        map to guest = bad user
-      '';
-      shares = {
+      settings = {
+        global = {
+          workgroup = "WORKGROUP";
+          "server string" = "KuckyNas";
+          "netbios name" = "KuckyNas";
+          security = "user";
+          "hosts allow" = [
+            "192.168.1."
+            "127.0.0.1"
+            "localhost"
+          ];
+          "hosts deny" = "0.0.0.0/0";
+          "guest account" = "nobody";
+          "map to guest" = "bad user";
+        };
         public = {
           path = "/kuckyjar/shares/public";
           public = "yes";
