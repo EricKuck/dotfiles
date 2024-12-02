@@ -17,7 +17,7 @@ with lib.custom;
     programs = {
       nh = {
         enable = true;
-        flake = "path:/Users/erickuck/.config/nix";
+        flake = "path:/Users/eric/.config/nix";
         hostname = "rddt";
         clean = {
           enable = true;
