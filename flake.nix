@@ -76,6 +76,7 @@
             "modules/home/cli-apps/configs/kitty/kitty-smart-scroll/*.py"
             "modules/home/cli-apps/configs/kitty/kitty_search/*.py"
           ];
+          programs.shellcheck.enable = true;
           settings.formatter.shellcheck.excludes = [
             "modules/darwin/environments/common/fileicon"
           ];
