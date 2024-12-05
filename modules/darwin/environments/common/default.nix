@@ -223,6 +223,7 @@ in
         "maccy"
         "soduto"
         "bettertouchtool"
+        "karabiner-elements"
       ];
 
       masApps = {

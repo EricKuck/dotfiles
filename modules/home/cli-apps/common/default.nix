@@ -142,6 +142,7 @@ in
     xdg.configFile = {
       "helix/yazi-picker.sh".source = ../configs/helix/yazi-picker.sh;
       "lazygit/config.yml".source = ../configs/lazygit/config.yml;
+      "karabiner/karabiner.json".source = ../configs/karabiner/karabiner.json;
       "bat".source = ../configs/bat;
       "kitty".source = ../configs/kitty;
       "wezterm".source = ../configs/wezterm;
