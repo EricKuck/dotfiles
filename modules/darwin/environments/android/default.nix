@@ -29,7 +29,12 @@ in
         "borneygit/brew/pidcat"
       ];
 
-      casks = [ "android-studio" ];
+      casks = [
+        {
+          name = "android-studio";
+          greedy = true;
+        }
+      ];
     };
 
     environment = {
