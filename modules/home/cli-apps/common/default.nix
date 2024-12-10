@@ -69,6 +69,10 @@ in
         flake-repl = "nix repl --expr \"builtins.getFlake $FLAKE\"";
         wssh = "wezterm cli spawn --domain-name";
       };
+
+      file = {
+        ".hammerspoon".source = ../configs/hammerspoon;
+      };
     };
 
     programs = {

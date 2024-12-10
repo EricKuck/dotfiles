@@ -12,17 +12,17 @@ let
   cfg = config.custom.environments.common;
 
   wallpaper = builtins.path {
-    path = ./StarrySur_Mac.png;
+    path = ./configs/wallpaper/StarrySur_Mac.png;
     name = "StarrySur_Mac.png";
   };
 
   codeIcon = builtins.path {
-    path = ./Code.icns;
+    path = ./configs/codedir/Code.icns;
     name = "Code.icns";
   };
 
   fileicon = builtins.path {
-    path = ./fileicon;
+    path = ./configs/codedir/fileicon;
     name = "fileicon";
   };
 
@@ -50,7 +50,7 @@ in
         MOUNT_POINT="${codeMountPoint}"
         MOUNT_OPTIONS=${codeMountOptions}
         KEYCHAIN_ENTRY="${codeKeychainEntry}"
-        ${builtins.readFile ./mk_code_volume.sh}
+        ${builtins.readFile ./configs/codedir/mk_code_volume.sh}
 
         echo >&2 "disabling text replacements..."
         defaults write -g NSUserDictionaryReplacementItems -array
@@ -220,10 +220,10 @@ in
         "istat-menus"
         "docker"
         "mullvadvpn"
-        "maccy"
         "soduto"
         "bettertouchtool"
         "karabiner-elements"
+        "hammerspoon"
       ];
 
       masApps = {
