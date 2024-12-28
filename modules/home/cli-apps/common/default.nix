@@ -84,6 +84,14 @@ in
             set -g fish_term24bit 1
             set -g COLORTERM truecolor
           end
+
+          function fish_title
+            if [ $_ = 'fish' ]
+              echo (prompt_pwd --full-length-dirs=3)
+            else
+              echo $_
+            end
+          end
         '';
 
         plugins = [

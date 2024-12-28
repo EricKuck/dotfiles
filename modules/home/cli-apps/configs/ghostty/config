@@ -41,3 +41,4 @@ keybind = ctrl+left=resize_split:left,10
 keybind = ctrl+right=resize_split:right,10
 macos-titlebar-style = tabs
 shell-integration-features = no-cursor
+window-padding-balance = true

@@ -393,6 +393,7 @@ function __prompt_print_closing_semicircle
     set_color normal
     set_color $__prompt_section_color
     printf '\uE0B4'
+    printf '\u200B'
 end
 
 function __prompt_begin_section --description "prints the dividing arrow"
