@@ -15,16 +15,16 @@ hs.hotkey.bind(hyper, 'a', function() launch('Android Studio', 'com.google.andro
 hs.hotkey.bind(hyper, 'b', function() launch('Arc', 'company.thebrowser.Browser') end)
 hs.hotkey.bind(hyper, 'm', function() launch('Spotify', 'com.spotify.client') end)
 hs.hotkey.bind(hyper, 's', function() launch('Slack', 'com.tinyspeck.slackmacgap') end)
-hs.hotkey.bind(hyper, 't', function() launch('WezTerm', 'com.github.wez.wezterm') end)
+hs.hotkey.bind(hyper, 't', function() launch('Ghostty', 'com.mitchellh.ghostty') end)
 
 -- Force paste
 hs.hotkey.bind(hyper, "v", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
 
--- Pasteboard manager
-ClipboardTool = hs.loadSpoon("ClipboardTool")
-ClipboardTool.hist_size = 10
-ClipboardTool.paste_on_select = true
-ClipboardTool:start()
-ClipboardTool:bindHotkeys({
-    toggle_clipboard = {{'cmd', 'shift'}, "v"}
-})
+-- -- Pasteboard manager
+-- ClipboardTool = hs.loadSpoon("ClipboardTool")
+-- ClipboardTool.hist_size = 10
+-- ClipboardTool.paste_on_select = true
+-- ClipboardTool:start()
+-- ClipboardTool:bindHotkeys({
+--     toggle_clipboard = {{'cmd', 'shift'}, "v"}
+-- })

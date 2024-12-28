@@ -185,6 +185,8 @@ in
       shells = [ pkgs.fish ];
       systemPath = [ "/opt/homebrew/bin" ];
       systemPackages = [ pkgs.custom.micswitch ];
+      # Hack: https://github.com/ghostty-org/ghostty/discussions/2832
+      variables.XDG_DATA_DIRS = [ "$GHOSTTY_SHELL_INTEGRATION_XDG_DIR" ];
     };
 
     homebrew = {
@@ -211,9 +213,6 @@ in
         "spotify"
         "lulu"
         "intellij-idea-ce"
-        "force-paste"
-        "kitty"
-        "wezterm"
         "raycast"
         "jordanbaird-ice"
         "visual-studio-code"
@@ -224,6 +223,7 @@ in
         "bettertouchtool"
         "karabiner-elements"
         "hammerspoon"
+        "ghostty"
       ];
 
       masApps = {

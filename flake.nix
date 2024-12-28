@@ -31,6 +31,8 @@
     };
 
     nix-inspect.url = "github:bluskript/nix-inspect";
+
+    ghostty.url = "github:ghostty-org/ghostty";
   };
 
   outputs =
@@ -39,6 +41,7 @@
       snowfall-lib,
       treefmt-nix,
       sops-nix,
+      ghostty,
       nixpkgs-unstable,
       systems,
       ...
@@ -72,10 +75,6 @@
 
           programs.nixfmt-rfc-style.enable = true; # *.nix
           programs.black.enable = true; # *.py
-          settings.formatter.black.excludes = [
-            "modules/home/cli-apps/configs/kitty/kitty-smart-scroll/*.py"
-            "modules/home/cli-apps/configs/kitty/kitty_search/*.py"
-          ];
           programs.shellcheck.enable = true;
           settings.formatter.shellcheck.excludes = [
             "modules/darwin/environments/common/fileicon"

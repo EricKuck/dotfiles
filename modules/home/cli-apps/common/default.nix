@@ -67,7 +67,6 @@ in
         ls = "eza -g";
         nix-shell = "nix-shell --run fish";
         flake-repl = "nix repl --expr \"builtins.getFlake $FLAKE\"";
-        wssh = "wezterm cli spawn --domain-name";
       };
 
       file = {
@@ -81,11 +80,10 @@ in
         interactiveShellInit = ''
           set fish_greeting
 
-          if test "$COLORTERM" = truecolor || test "$TERM" = xterm-kitty
+          if test "$COLORTERM" = truecolor || test "$TERM" = xterm-ghostty
             set -g fish_term24bit 1
             set -g COLORTERM truecolor
           end
-
         '';
 
         plugins = [
@@ -148,8 +146,7 @@ in
       "lazygit/config.yml".source = ../configs/lazygit/config.yml;
       "karabiner/karabiner.json".source = ../configs/karabiner/karabiner.json;
       "bat".source = ../configs/bat;
-      "kitty".source = ../configs/kitty;
-      "wezterm".source = ../configs/wezterm;
+      "ghostty".source = ../configs/ghostty;
 
       # The main branch has a flavors attribute for yazi, but it's not in the release yet. Revisit if this is needed.
       "yazi/flavors".source = pkgs.fetchFromGitHub {
