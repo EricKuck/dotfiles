@@ -77,6 +77,54 @@ in
     programs = {
       fish = {
         enable = true;
+
+        functions = {
+          set_fish_title = {
+            body = ''
+              read -p 'set_color green; echo -n "Enter tab title: "; set_color normal' -g FISH_TITLE
+              commandline -f repaint
+            '';
+          };
+
+          fish_title = {
+            body = ''
+              if test $FISH_TITLE
+                if test $argv
+                  echo -sn "[$FISH_TITLE] $argv"
+                else
+                  echo -sn $FISH_TITLE
+                end
+                return
+              end
+
+              if test $SSH_CONNECTION
+                echo -sn "🌐 "
+              end
+
+              if test $argv
+                echo -sn $argv
+                return
+              end
+
+              set -l dir (pwd | string replace "$HOME" '~')
+              set -l parts (string split '/' $dir)
+              set -l shortened_path false
+
+              while test (string length $dir) -gt 25; and test (count $parts) -gt 2
+                set shortened_path true
+                set dir (string join '/' $parts[2..-1])
+                set parts (string split '/' $dir)
+              end
+
+              if $shortened_path
+                set dir '…/'$dir
+              end
+
+              echo -sn $dir
+            '';
+          };
+        };
+
         interactiveShellInit = ''
           set fish_greeting
 
@@ -85,13 +133,7 @@ in
             set -g COLORTERM truecolor
           end
 
-          function fish_title
-            if [ $_ = 'fish' ]
-              echo (prompt_pwd --full-length-dirs=3)
-            else
-              echo $_
-            end
-          end
+          bind \ct set_fish_title
         '';
 
         plugins = [
