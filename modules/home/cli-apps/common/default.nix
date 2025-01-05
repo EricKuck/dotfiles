@@ -49,6 +49,7 @@ in
         figlet
         lolcat
         ffmpeg
+        nodejs_23
         unstable.serpl
         unstable.nix-init
       ];
