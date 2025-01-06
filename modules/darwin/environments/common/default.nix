@@ -204,6 +204,7 @@ in
         lockfiles = true;
       };
 
+      # TODO: add autostart entries?
       casks = [
         "1password"
         "arc"
@@ -219,11 +220,11 @@ in
         "istat-menus"
         "docker"
         "mullvadvpn"
-        "soduto"
         "bettertouchtool"
         "karabiner-elements"
         "hammerspoon"
         "ghostty"
+        "figma"
       ];
 
       masApps = {
