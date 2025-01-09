@@ -10,7 +10,6 @@ with lib.custom;
   custom = {
     cli-apps = {
       common.enable = true;
-      zellij.enable = true;
     };
 
     environments = {
