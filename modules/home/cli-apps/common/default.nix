@@ -55,8 +55,8 @@ in
       ];
 
       sessionVariables = {
-        EDITOR = "${lib.getExe pkgs.helix}";
-        VISUAL = "${lib.getExe pkgs.helix}";
+        EDITOR = "${lib.getExe pkgs.unstable.helix}";
+        VISUAL = "${lib.getExe pkgs.unstable.helix}";
         EZA_COLORS = "ur=32:uw=32:ux=32:ue=32:gr=33:gw=33:gx=33:tr=31:tw=31:tx=31";
         grc_plugin_ignore_execs = "lolcat";
       };
@@ -164,6 +164,7 @@ in
 
       helix = {
         enable = true;
+        package = pkgs.unstable.helix;
         settings = builtins.fromTOML (builtins.readFile ../configs/helix/config.toml);
 
         languages.language = [

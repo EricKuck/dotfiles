@@ -5,3 +5,6 @@ lsp.enable = true
 
 [editor.soft-wrap]
 enable = true
+
+[keys.normal]
+Cmd-c = ":clipboard-yank"

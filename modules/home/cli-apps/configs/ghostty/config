@@ -39,6 +39,7 @@ keybind = ctrl+down=resize_split:down,10
 keybind = ctrl+up=resize_split:up,10
 keybind = ctrl+left=resize_split:left,10
 keybind = ctrl+right=resize_split:right,10
+keybind = performable:cmd+c=copy_to_clipboard
 macos-titlebar-style = tabs
 shell-integration-features = no-cursor
 window-padding-balance = true
