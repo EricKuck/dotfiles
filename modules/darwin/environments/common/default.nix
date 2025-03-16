@@ -225,10 +225,10 @@ in
         "hammerspoon"
         "ghostty"
         "figma"
+        "slack"
       ];
 
       masApps = {
-        Slack = 803453959;
         Gifski = 1351639930;
       };
     };

@@ -52,8 +52,8 @@ with lib.custom;
       "winbox"
       "autodesk-fusion"
       "thunderbird"
-      "flotato"
       "signal"
+      "inkscape"
     ];
 
     masApps = {
