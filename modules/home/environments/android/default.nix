@@ -50,7 +50,7 @@ in
       };
 
       activation = {
-        link_jvm = "/usr/bin/sudo rm /Library/Java/JavaVirtualMachines/zulu-* && /usr/bin/sudo ln -s ${jdk_dir 23} /Library/Java/JavaVirtualMachines/";
+        link_jvm = "/usr/bin/sudo ln -sfn ${jdk_dir 23} /Library/Java/JavaVirtualMachines/";
       };
     };
 

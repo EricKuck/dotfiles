@@ -111,6 +111,13 @@ log
 /Library/Application\ Support/MobileSync/Backup
 /Library/Application\ Support/Vivaldi
 /Library/Application\ Support/Signal
+/Library/Application\ Support/Orion
+/Library/Application\ Support/Arc
+/Library/Application\ Support/Firefox
+/Library/Application\ Support/Figma
+/Library/Application\ Support/Blender
+/Library/Application\ Support/Slack
+/Library/Application\ Support/FileProvider
 /Library/Containers/com.apple.*
 /Library/Containers/com.firecore.infuse
 /Library/Containers/com.tinyspeck.slackmacgap
@@ -126,6 +133,7 @@ log
 /Library/Group\ Containers/group.com.atlassian.jira.app
 /Library/Group\ Containers/group.com.docker
 /Library/Group\ Containers/5BD75267VR.group.de.janbolz.silicio.shared
+/Library/Group\ Containers/com.apple.*
 /Library/Saved\ Application\ State
 /Library/com.apple.*
 /Library/Developer
@@ -141,6 +149,11 @@ log
 /Library/Preferences/com.apple.*
 /Library/Preferences/ByHost/com.apple.*
 /Library/SyncedPreferences/com.apple.*
+/Library/AppleMediaServices
+/Library/Daemon\ Containers
+/Library/DuetExpertCenter
+/Library/Trial
+/Library/CoreFollowUp
 MailData
 .DS_Store
 .VolumeIcon.icns
@@ -152,9 +165,6 @@ build
 moduleBuildDirs
 caches
 .android
-Library/Application\ Support/Arc
-Library/Application\ Support/Firefox
-Library/Application\ Support/Figma
 com.apple.Safari
 .cocoapods
 .tmp
@@ -195,3 +205,6 @@ mapping.txt
 out
 Library/Intents/Image
 /jdk
+/blenderkit_data
+/.thumbnails
+/.local/state
