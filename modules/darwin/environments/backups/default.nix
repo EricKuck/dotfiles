@@ -32,9 +32,8 @@ in
     system.activationScripts.postUserActivation.text = ''
       for dir in ${lib.strings.concatStringsSep " " backups}; do
         KOPIAIGNORE="$dir/.kopiaignore"
-        if [ ! -f "$KOPIAIGNORE" ]; then
-          ln -s ${kopiaignore} $KOPIAIGNORE
-        fi
+        rm $KOPIAIGNORE
+        ln -s ${kopiaignore} $KOPIAIGNORE
       done
     '';
 
