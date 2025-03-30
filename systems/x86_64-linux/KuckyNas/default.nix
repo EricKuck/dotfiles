@@ -43,20 +43,7 @@ with lib.custom;
     };
 
     kernelModules = [ "kvm-intel" ];
-    # Pinning to 6.10, using the 6_11 definition as the 6_10 was removed because of being EOL
-    kernelPackages = pkgs.linuxPackagesFor (
-      pkgs.linuxKernel.kernels.linux_6_11.override {
-        argsOverride = rec {
-          src = pkgs.fetchurl {
-            url = "mirror://kernel/linux/kernel/v${lib.versions.major version}.x/linux-${version}.tar.xz";
-            sha256 = "sha256-VeW8vGjWZ3b8RolikfCiSES+tXgXNFqFTWXj0FX6Qj4=";
-          };
-          version = "6.10.14";
-          modDirVersion = "6.10.14";
-        };
-      }
-    );
-
+    kernelPackages = pkgs.linuxPackages_6_13;
     extraModulePackages = [ ];
 
     loader = {
@@ -72,6 +59,7 @@ with lib.custom;
         "kuckyjar"
         "backups"
       ];
+      package = pkgs.unstable.zfs; # TODO: re-evaluate when back on an LTS kernel
     };
   };
 
@@ -165,6 +153,9 @@ with lib.custom;
 
     groups = {
       upsmon = { };
+      podman = {
+        name = "podman";
+      };
     };
   };
 
@@ -172,7 +163,7 @@ with lib.custom;
     wireguard-go
     eternal-terminal
     lm_sensors
-    zfs
+    unstable.zfs # TODO: re-evaluate using unstable once back on LTS kernel
     sops
     unstable.gphotos-sync
     unstable.icloudpd
@@ -262,6 +253,8 @@ with lib.custom;
       extraUpFlags = [ "--advertise-routes=192.168.1.0/24" ];
     };
   };
+
+  systemd.services.tailscaled.after = [ "systemd-networkd-wait-online.service" ];
 
   power.ups = rec {
     enable = true;
