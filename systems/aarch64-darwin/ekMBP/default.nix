@@ -54,6 +54,7 @@ with lib.custom;
       "thunderbird"
       "signal"
       "inkscape"
+      "vial"
     ];
 
     masApps = {
