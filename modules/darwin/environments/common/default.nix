@@ -175,6 +175,12 @@ in
               RunAtLoad = true;
             };
           };
+          litra-autotoggle = {
+            command = "${lib.getExe pkgs.custom.litra-rs} autotoggle";
+            serviceConfig = {
+              RunAtLoad = true;
+            };
+          };
         };
       };
     };
@@ -184,7 +190,10 @@ in
     environment = {
       shells = [ pkgs.fish ];
       systemPath = [ "/opt/homebrew/bin" ];
-      systemPackages = [ pkgs.custom.micswitch ];
+      systemPackages = [
+        pkgs.custom.micswitch
+        pkgs.custom.litra-rs
+      ];
       # Hack: https://github.com/ghostty-org/ghostty/discussions/2832
       variables.XDG_DATA_DIRS = [ "$GHOSTTY_SHELL_INTEGRATION_XDG_DIR" ];
     };
@@ -226,6 +235,7 @@ in
         "ghostty"
         "figma"
         "slack"
+        "cameracontroller"
       ];
 
       masApps = {

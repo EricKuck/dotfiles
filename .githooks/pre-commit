@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-format_check_passed=`nix fmt | grep "0 files changed\|formatted 0 files\|files (0 changed)"`
+format_check_passed=`nix fmt 2>&1 | grep "0 files changed\|formatted 0 files\|files (0 changed)"`
 
 if [ -z "$format_check_passed" ]; then
     echo "nixfmt changes were added. Please commit and push again."
