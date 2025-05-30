@@ -6,9 +6,9 @@
   ...
 }:
 {
-  services.nix-daemon.enable = true;
-
   nix = {
+    enable = true;
+
     registry = (lib.mapAttrs (_: flake: { inherit flake; })) (
       (lib.filterAttrs (_: lib.isType "flake")) inputs
     );
@@ -23,6 +23,5 @@
     generateRegistryFromInputs = true;
     generateNixPathFromInputs = true;
     linkInputs = true;
-    useDaemon = true;
   };
 }

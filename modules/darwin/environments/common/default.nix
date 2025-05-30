@@ -38,6 +38,8 @@ in
 
   config = mkIf cfg.enable {
     system = {
+      primaryUser = "eric";
+
       activationScripts.userScript.text = ''
         #!${lib.getExe pkgs.bash}
         echo >&2 "wallpaper..."
@@ -228,7 +230,7 @@ in
         "visual-studio-code"
         "istat-menus"
         "docker"
-        "mullvadvpn"
+        "mullvad-vpn"
         "bettertouchtool"
         "karabiner-elements"
         "hammerspoon"
@@ -243,6 +245,6 @@ in
       };
     };
 
-    fonts.packages = [ (pkgs.nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
+    fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
   };
 }

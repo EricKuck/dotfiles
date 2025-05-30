@@ -30,7 +30,7 @@ rustPlatform.buildRustPackage {
 
   doCheck = false;
 
-  cargoHash = "sha256-ycWLwJjnXmpnhrD2k9z4Uk/rZvHM0Lmk7G8IlbwZVRk=";
+  cargoHash = "sha256-8g6YhwBgclNawnL8c0GDTT73TOS/+9UB1m2BOkz2ynU=";
 
   meta = {
     description = "Control your Logitech Litra light from the command line";

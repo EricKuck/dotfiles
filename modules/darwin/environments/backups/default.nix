@@ -29,11 +29,10 @@ in
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [ kopia ];
 
-    system.activationScripts.postUserActivation.text = ''
+    system.activationScripts.postActivation.text = ''
       for dir in ${lib.strings.concatStringsSep " " backups}; do
         KOPIAIGNORE="$dir/.kopiaignore"
-        rm $KOPIAIGNORE
-        ln -s ${kopiaignore} $KOPIAIGNORE
+        ln -sfn ${kopiaignore} $KOPIAIGNORE
       done
     '';
 
