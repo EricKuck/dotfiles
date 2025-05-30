@@ -238,6 +238,7 @@ in
         "figma"
         "slack"
         "cameracontroller"
+        "discord"
       ];
 
       masApps = {
