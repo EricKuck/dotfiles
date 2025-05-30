@@ -75,8 +75,8 @@ set -g __prompt_cmd_duration_str 0ms
 
 set -g __prompt_dirty_indicator '•'
 set -g __prompt_clean_indicator '✓'
-set -g __prompt_git_symbol \uF418
-set -g __prompt_error_symbol \uf530
+set -g __prompt_git_symbol \uf418
+set -g __prompt_error_symbol \uea87
 
 # State used for memoization and async calls.
 set -g __prompt_cmd_id 0

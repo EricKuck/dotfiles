@@ -55,7 +55,7 @@ rustPlatform.buildRustPackage {
       --prefix PATH : ${lib.makeBinPath runtimeDeps}
   '';
 
-  cargoHash = "sha256-WpvcuCJNL40hOe7WI0rUOE2S8BdZDNGx7SaTWyw9++c=";
+  cargoHash = "sha256-hrPKIaDJ76fsRChtHnPhE9iLdc3jsurLOHvmZ19uOjE=";
 
   meta = {
     description = "Yet another nix cli helper";
