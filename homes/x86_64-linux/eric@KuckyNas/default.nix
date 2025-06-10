@@ -8,6 +8,10 @@
 }:
 with lib.custom;
 {
+  imports = [
+    ./containers
+  ];
+
   custom = {
     cli-apps = {
       common.enable = true;
@@ -15,14 +19,16 @@ with lib.custom;
   };
 
   home.packages = with pkgs; [
-    custom.podman-compose
+    podman-compose
     kopia
-    podman-tui
     iotop
     inputs.ghostty.packages.x86_64-linux.default
   ];
 
   systemd.user = {
+    # Ensure the systemd services are (re)started on config change
+    startServices = "sd-switch";
+
     services = {
       dns-ready = {
         Unit = {
@@ -81,44 +87,6 @@ with lib.custom;
           WantedBy = [ "default.target" ];
         };
       };
-
-      podman-stop-all = {
-        Unit = {
-          Description = "Stop all podman containers";
-          After = [ "network-online.target" ];
-        };
-        Service = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          ExecStart = "/run/current-system/sw/bin/true";
-          ExecStop = pkgs.writeShellScript "_podman-stop-all" ''
-            set -x
-            ${lib.getExe pkgs.podman} stop $(${lib.getExe pkgs.podman} ps -a -q);
-          '';
-        };
-        Install = {
-          WantedBy = [ "default.target" ];
-        };
-      };
-
-      podman-start-all = {
-        Unit = {
-          Description = "Start all podman-compose stacks marked as autostart";
-          After = [
-            "podman-stop-all.service"
-            "network-online.target"
-          ];
-        };
-        Service = {
-          Type = "forking";
-          TimeoutSec = 300;
-          Environment = "PATH=/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin";
-          ExecStart = "${lib.getExe pkgs.custom.podman-compose} start-all --dir='/kuckyjar/container/stacks/'";
-        };
-        Install = {
-          WantedBy = [ "default.target" ];
-        };
-      };
     };
 
     timers = {
@@ -143,4 +111,14 @@ with lib.custom;
       };
     };
   };
+
+  services.podman = {
+    enable = true;
+    autoUpdate = {
+      enable = true;
+      onCalendar = "*-*-* 03:00:00";
+    };
+  };
+
+  virtualisation.quadlet.autoEscape = true;
 }

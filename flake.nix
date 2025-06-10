@@ -33,6 +33,8 @@
     nix-inspect.url = "github:bluskript/nix-inspect";
 
     ghostty.url = "github:ghostty-org/ghostty";
+
+    quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
   };
 
   outputs =
@@ -93,7 +95,11 @@
         formatting = treefmtEval.${pkgs.system}.config.build.check self;
       });
 
-      systems.modules.nixos = lib.snowfall.fs.get-files-recursive ./modules/system-common;
+      systems.modules.nixos = lib.snowfall.fs.get-files-recursive ./modules/system-common ++ [
+        inputs.quadlet-nix.nixosModules.quadlet
+      ];
       systems.modules.darwin = lib.snowfall.fs.get-files-recursive ./modules/system-common;
+
+      homes.modules = [ inputs.quadlet-nix.homeManagerModules.quadlet ];
     };
 }

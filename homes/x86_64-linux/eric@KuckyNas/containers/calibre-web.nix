@@ -1,0 +1,104 @@
+{ config, ... }:
+let
+  CONTAINER_PATH = "/kuckyjar/container/calibre-web";
+  M_CONTAINER_PATH = "/kuckyjar/container/calibre-web-m";
+  inherit (config.virtualisation.quadlet) networks;
+in
+{
+  virtualisation.quadlet = {
+    networks.calibre.networkConfig.driver = "bridge";
+    containers = {
+      calibre = {
+        containerConfig = {
+          image = "docker.io/crocodilestick/calibre-web-automated:latest";
+          name = "calibre-web-automated";
+          autoUpdate = "registry";
+          environments = {
+            TZ = "America/New_York";
+            PUID = "1072";
+            PGID = "1072";
+          };
+          volumes = [
+            "${CONTAINER_PATH}/config:/config"
+            "${CONTAINER_PATH}/library:/calibre-library"
+            "${CONTAINER_PATH}/ingest:/cwa-book-ingest"
+          ];
+          publishPorts = [
+            "8083:8083"
+          ];
+          networks = [ networks.calibre.ref ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
+      calibre-m = {
+        containerConfig = {
+          image = "docker.io/crocodilestick/calibre-web-automated:latest";
+          name = "calibre-web-automated-m";
+          autoUpdate = "registry";
+          environments = {
+            TZ = "America/New_York";
+            PUID = "1072";
+            PGID = "1072";
+          };
+          volumes = [
+            "${M_CONTAINER_PATH}/config:/config"
+            "${M_CONTAINER_PATH}/library:/calibre-library"
+            "${M_CONTAINER_PATH}/ingest:/cwa-book-ingest"
+          ];
+          publishPorts = [
+            "9083:8083"
+          ];
+          networks = [ networks.calibre.ref ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
+      calibre-downloader = {
+        containerConfig = {
+          image = "ghcr.io/calibrain/calibre-web-automated-book-downloader:latest";
+          name = "calibre-web-downloader";
+          autoUpdate = "registry";
+          environments = {
+            USE_BOOK_TITLE = "true";
+          };
+          volumes = [
+            "${CONTAINER_PATH}/ingest:/cwa-book-ingest"
+          ];
+          publishPorts = [
+            "8084:8084"
+          ];
+          networks = [ networks.calibre.ref ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
+      calibre-downloader-m = {
+        containerConfig = {
+          image = "ghcr.io/calibrain/calibre-web-automated-book-downloader:latest";
+          name = "calibre-web-downloader-m";
+          autoUpdate = "registry";
+          environments = {
+            USE_BOOK_TITLE = "true";
+          };
+          volumes = [
+            "${M_CONTAINER_PATH}/ingest:/cwa-book-ingest"
+          ];
+          publishPorts = [
+            "9084:8084"
+          ];
+          networks = [ networks.calibre.ref ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+    };
+  };
+}
