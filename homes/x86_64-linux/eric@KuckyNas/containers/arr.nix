@@ -42,6 +42,10 @@ in
             "9696:9696"
           ];
           networks = [ networks.wireguard.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=prowlarr.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -71,6 +75,10 @@ in
             "8989:8989"
           ];
           networks = [ networks.wireguard.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=sonarr.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -106,6 +114,10 @@ in
             "7878:7878"
           ];
           networks = [ networks.wireguard.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=radarr.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -141,6 +153,10 @@ in
             "6767:6767"
           ];
           networks = [ networks.wireguard.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=bazarr.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -166,6 +182,10 @@ in
             "8090:8090"
           ];
           networks = [ networks.wireguard.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=mylar3.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

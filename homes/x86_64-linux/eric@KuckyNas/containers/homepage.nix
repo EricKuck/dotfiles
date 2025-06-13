@@ -12,7 +12,7 @@ in
           autoUpdate = "registry";
           environments = {
             PORT = "3010";
-            HOMEPAGE_ALLOWED_HOSTS = "192.168.1.2:3010";
+            HOMEPAGE_ALLOWED_HOSTS = "192.168.1.2:3010,homepage.kuck.ing";
           };
           volumes = [
             "${CONTAINER_PATH}/config:/app/config"
@@ -20,6 +20,10 @@ in
           ];
           publishPorts = [
             "3010:3010"
+          ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=homepage.kuck.ing"
           ];
         };
         serviceConfig = {

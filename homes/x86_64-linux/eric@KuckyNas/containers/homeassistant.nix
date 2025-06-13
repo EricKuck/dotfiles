@@ -18,6 +18,11 @@ in
           volumes = [
             "${HA_CONTAINER_PATH}/config:/config"
           ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.upstream.port=8123"
+            "com.caddyserver.http.matchers.host=ha.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -37,6 +42,11 @@ in
           };
           volumes = [
             "${MUSIC_CONTAINER_PATH}/data:/data"
+          ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.upstream.port=8095"
+            "com.caddyserver.http.matchers.host=music.kuck.ing"
           ];
         };
         serviceConfig = {

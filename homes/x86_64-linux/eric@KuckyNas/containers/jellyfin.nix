@@ -30,6 +30,11 @@ in
             "8920:8920"
           ];
           devices = [ "/dev/dri:/dev/dri" ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.upstream.port=8096"
+            "com.caddyserver.http.matchers.host=jellyfin.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -49,6 +54,10 @@ in
           ];
           publishPorts = [
             "5055:5055"
+          ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=jellyseerr.kuck.ing"
           ];
         };
         serviceConfig = {

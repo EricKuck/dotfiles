@@ -25,6 +25,11 @@ in
             "22000:22000/udp"
             "8384:8384/tcp"
           ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.upstream.port=8384"
+            "com.caddyserver.http.matchers.host=syncthing.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

@@ -17,6 +17,7 @@ in
             TZ = "America/New_York";
             UMASK = "022";
             WEBUI_PORT = "9090";
+            TORRENTING_PORT = "6881";
           };
           volumes = [
             "${CONTAINER_PATH}/config:/config"
@@ -24,11 +25,17 @@ in
             "${CONTAINER_PATH}/vuetorrent:/vuetorrent"
           ];
           publishPorts = [
-            "1883:1883"
-            "9001:9001"
+            "9090:9090"
+            "6881:6881"
+            "6881:6881/udp"
           ];
           networks = [
             containers.wireguard.ref
+          ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.upstream.port=9090"
+            "com.caddyserver.http.matchers.host=qbittorrent.kuck.ing"
           ];
         };
         serviceConfig = {

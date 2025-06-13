@@ -59,6 +59,10 @@ in
           ];
           networks = [ networks.paperless.ref ];
           pod = pods.paperless.ref;
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=paperless.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

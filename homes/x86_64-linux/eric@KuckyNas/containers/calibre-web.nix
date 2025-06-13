@@ -27,6 +27,10 @@ in
             "8083:8083"
           ];
           networks = [ networks.calibre.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=calibre.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -52,6 +56,10 @@ in
             "9083:8083"
           ];
           networks = [ networks.calibre.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=calibre-m.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -73,6 +81,10 @@ in
             "8084:8084"
           ];
           networks = [ networks.calibre.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=calibre-downloader.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";
@@ -94,6 +106,10 @@ in
             "9084:8084"
           ];
           networks = [ networks.calibre.ref ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=calibre-downloader-m.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

@@ -25,6 +25,10 @@ in
           devices = [ "/dev/dri:/dev/dri" ];
           networks = [ networks.immich.ref ];
           pod = pods.immich.ref;
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=immich.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

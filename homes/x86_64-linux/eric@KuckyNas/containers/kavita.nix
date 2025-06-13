@@ -21,6 +21,10 @@ in
           publishPorts = [
             "8345:5000/tcp"
           ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=kavita.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

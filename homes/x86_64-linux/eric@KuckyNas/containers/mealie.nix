@@ -26,6 +26,10 @@ in
           publishPorts = [
             "9925:9000"
           ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=mealie.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

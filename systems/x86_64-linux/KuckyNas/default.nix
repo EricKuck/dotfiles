@@ -123,6 +123,7 @@ with lib.custom;
       upsmon_user_hashed_pw.neededForUsers = true;
       tailscale_auth.neededForUsers = true;
       eric_icloud_username.owner = "eric";
+      caddy_env = { };
       karakeep_env.owner = "eric";
       immich_server_env.owner = "eric";
       immich_db_env.owner = "eric";
@@ -155,6 +156,10 @@ with lib.custom;
         isSystemUser = true;
         hashedPasswordFile = config.sops.secrets.upsmon_user_hashed_pw.path;
         group = "upsmon";
+      };
+
+      caddy = {
+        extraGroups = [ "podman" ];
       };
     };
 
@@ -259,9 +264,92 @@ with lib.custom;
       useRoutingFeatures = "server";
       extraUpFlags = [ "--advertise-routes=192.168.1.0/24" ];
     };
+
+    caddy = {
+      enable = true;
+      package = pkgs.caddy.withPlugins {
+        plugins = [
+          "github.com/caddy-dns/cloudflare@v0.2.1"
+          "github.com/EricKuck/caddy-docker-upstreams@v0.0.0-20250613135403-e99fbc77f7f4"
+        ];
+        hash = "sha256-cNdSjC7/8cWDfjmWoqWLEBaucnp7O033SnziqBOf8tU=";
+      };
+      environmentFile = config.sops.secrets.caddy_env.path;
+      globalConfig = ''
+        debug
+        skip_install_trust
+        email {$ACME_EMAIL}
+        acme_dns cloudflare {$CF_DNS_TOKEN}
+      '';
+      virtualHosts = {
+        "adguard.kuck.ing".extraConfig = ''
+          reverse_proxy http://192.168.1.1
+        '';
+        "z2m.kuck.ing".extraConfig = ''
+          reverse_proxy http://192.168.1.3:8080
+        '';
+        "unifi.kuck.ing".extraConfig = ''
+          reverse_proxy https://192.168.1.2:8443 {
+            transport http {
+              tls_insecure_skip_verify
+            }
+          }
+        '';
+        "scrypted.kuck.ing".extraConfig = ''
+          reverse_proxy https://192.168.1.2:10443 {
+            transport http {
+              tls_insecure_skip_verify
+            }
+          }
+        '';
+        "*.kuck.ing".extraConfig = ''
+          reverse_proxy {
+            dynamic docker
+          }
+        '';
+      };
+    };
   };
 
-  systemd.services.tailscaled.after = [ "systemd-networkd-wait-online.service" ];
+  systemd = {
+    sockets = {
+      podman-rootless-proxy = {
+        enable = true;
+        description = "Socket for proxy to user podman socket";
+        socketConfig = {
+          ListenStream = "/run/podman-rootless-proxy/podman.sock";
+          SocketMode = 660;
+          SocketGroup = "podman";
+          Service = "podman-rootless-proxy.service";
+        };
+        requires = [ "podman-rootless-proxy.service" ];
+        wantedBy = [ "sockets.target" ];
+      };
+    };
+
+    services = {
+      caddy = {
+        environment = {
+          DOCKER_HOST = "unix:///run/podman-rootless-proxy/podman.sock";
+        };
+      };
+      tailscaled = {
+        after = [ "systemd-networkd-wait-online.service" ];
+      };
+      podman-rootless-proxy = {
+        enable = true;
+        description = "Proxy to rootless podman socket";
+        serviceConfig = {
+          ExecStart = "${pkgs.systemd}/lib/systemd/systemd-socket-proxyd /run/user/1000/podman/podman.sock";
+          User = "eric";
+          Group = "users";
+          Restart = "on-failure";
+        };
+        requires = [ "podman.socket" ];
+        after = [ "default.target" ];
+      };
+    };
+  };
 
   power.ups = rec {
     enable = true;
