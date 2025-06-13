@@ -26,6 +26,10 @@ in
           publishPorts = [
             "3000:3000"
           ];
+          labels = [
+            "com.caddyserver.http.enable=true"
+            "com.caddyserver.http.matchers.host=rmfakecloud.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

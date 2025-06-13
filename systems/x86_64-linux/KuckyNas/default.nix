@@ -288,6 +288,9 @@ with lib.custom;
         "z2m.kuck.ing".extraConfig = ''
           reverse_proxy http://192.168.1.3:8080
         '';
+        "kopia.kuck.ing".extraConfig = ''
+          reverse_proxy http://localhost:51515
+        '';
         "unifi.kuck.ing".extraConfig = ''
           reverse_proxy https://192.168.1.2:8443 {
             transport http {
