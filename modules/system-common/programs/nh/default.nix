@@ -15,16 +15,9 @@ in
     flake = lib.mkOption {
       type = lib.types.str;
       description = ''
-        The path that will be used for the `FLAKE` environment variable.
+        The path that will be used for the `NH_FLAKE` environment variable.
 
-        `FLAKE` is used by nh as the default flake for performing actions, like `nh os switch`.
-      '';
-    };
-
-    hostname = lib.mkOption {
-      type = lib.types.str;
-      description = ''
-        The hostname that will be used for `nh os` operations. Sets the FLAKE_HOST env var.
+        `NH_FLAKE` is used by nh as the default flake for performing actions, like `nh os switch`.
       '';
     };
 
@@ -68,10 +61,9 @@ in
       ];
 
       environment = lib.mkIf cfg.enable {
-        systemPackages = with pkgs; [ custom.nh ];
+        systemPackages = with pkgs; [ nh ];
         variables = {
-          FLAKE = cfg.flake;
-          FLAKE_HOST = cfg.hostname;
+          NH_FLAKE = cfg.flake;
         };
       };
     }
@@ -81,7 +73,7 @@ in
           launchd = lib.mkIf cfg.clean.enable {
             agents = {
               nh-clean = {
-                command = "exec ${lib.getExe pkgs.custom.nh} clean all ${cfg.clean.extraArgs}";
+                command = "exec ${lib.getExe pkgs.nh} clean all ${cfg.clean.extraArgs}";
                 serviceConfig = {
                   StartInterval = 604800; # Weekly
                 };
@@ -94,7 +86,7 @@ in
           systemd = lib.mkIf cfg.clean.enable {
             services.nh-clean = {
               description = "nh clean";
-              script = "exec ${lib.getExe pkgs.custom.nh} clean all ${cfg.clean.extraArgs}";
+              script = "exec ${lib.getExe pkgs.nh} clean all ${cfg.clean.extraArgs}";
               startAt = "weekly";
               path = [ config.nix.package ];
               serviceConfig.Type = "oneshot";
