@@ -27,8 +27,8 @@ in
             "3000:3000"
           ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=rmfakecloud.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=rmfakecloud.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -64,8 +64,8 @@ in
           networks = [ networks.paperless.ref ];
           pod = pods.paperless.ref;
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=paperless.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=paperless.kuck.ing"
           ];
         };
         serviceConfig = {

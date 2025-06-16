@@ -30,8 +30,10 @@ in
           networks = [ networks.karakeep.ref ];
           pod = pods.karakeep.ref;
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=karakeep.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=karakeep.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=karakeep.kuck.ing"
           ];
         };
         serviceConfig = {

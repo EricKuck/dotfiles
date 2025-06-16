@@ -43,8 +43,8 @@ in
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=prowlarr.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=prowlarr.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -76,8 +76,8 @@ in
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=sonarr.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=sonarr.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -115,8 +115,8 @@ in
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=radarr.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=radarr.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -154,8 +154,8 @@ in
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=bazarr.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=bazarr.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -183,8 +183,8 @@ in
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=mylar3.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=mylar3.kuck.ing"
           ];
         };
         serviceConfig = {

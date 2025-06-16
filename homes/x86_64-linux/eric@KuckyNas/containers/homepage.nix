@@ -22,8 +22,8 @@ in
             "3010:3010"
           ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=homepage.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=homepage.kuck.ing"
           ];
         };
         serviceConfig = {

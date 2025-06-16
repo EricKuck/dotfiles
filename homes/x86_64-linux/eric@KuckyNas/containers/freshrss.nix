@@ -23,8 +23,8 @@ in
             "8487:80"
           ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=freshrss.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=freshrss.kuck.ing"
           ];
         };
         serviceConfig = {

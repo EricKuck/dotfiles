@@ -28,8 +28,8 @@ in
           ];
           networks = [ networks.calibre.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=calibre.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=calibre.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -57,8 +57,8 @@ in
           ];
           networks = [ networks.calibre.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=calibre-m.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=calibre-m.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -82,8 +82,8 @@ in
           ];
           networks = [ networks.calibre.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=calibre-downloader.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=calibre-downloader.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -107,8 +107,8 @@ in
           ];
           networks = [ networks.calibre.ref ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=calibre-downloader-m.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=calibre-downloader-m.kuck.ing"
           ];
         };
         serviceConfig = {

@@ -130,6 +130,7 @@ with lib.custom;
       rmfakecloud_env.owner = "eric";
       paperless_env.owner = "eric";
       paperless_postgres_env.owner = "eric";
+      autokuma_env.owner = "eric";
     };
   };
 
@@ -270,9 +271,9 @@ with lib.custom;
       package = pkgs.caddy.withPlugins {
         plugins = [
           "github.com/caddy-dns/cloudflare@v0.2.1"
-          "github.com/EricKuck/caddy-docker-upstreams@v0.0.0-20250613135403-e99fbc77f7f4"
+          "github.com/EricKuck/caddy-docker-upstreams@v0.0.0-20250616194924-027669749ea0"
         ];
-        hash = "sha256-cNdSjC7/8cWDfjmWoqWLEBaucnp7O033SnziqBOf8tU=";
+        hash = "sha256-Rt8xFp5yvBLsFQILPCX+RPT/nfcR++D1gWelSuuuVBA=";
       };
       environmentFile = config.sops.secrets.caddy_env.path;
       globalConfig = ''
@@ -291,15 +292,18 @@ with lib.custom;
         "kopia.kuck.ing".extraConfig = ''
           reverse_proxy http://localhost:51515
         '';
+        "uptime.kuck.ing".extraConfig = ''
+          reverse_proxy http://localhost:3001
+        '';
         "unifi.kuck.ing".extraConfig = ''
-          reverse_proxy https://192.168.1.2:8443 {
+          reverse_proxy https://localhost:8443 {
             transport http {
               tls_insecure_skip_verify
             }
           }
         '';
         "scrypted.kuck.ing".extraConfig = ''
-          reverse_proxy https://192.168.1.2:10443 {
+          reverse_proxy https://localhost:10443 {
             transport http {
               tls_insecure_skip_verify
             }
@@ -312,6 +316,8 @@ with lib.custom;
         '';
       };
     };
+
+    uptime-kuma.enable = true;
   };
 
   systemd = {

@@ -2,6 +2,8 @@
 let
   FIN_CONTAINER_PATH = "/kuckyjar/container/jellyfin";
   SEER_CONTAINER_PATH = "/kuckyjar/container/jellyseer";
+  RECOMMEND_CONTAINER_PATH = "/kuckyjar/container/recommendarr";
+  SUGGEST_CONTAINER_PATH = "/kuckyjar/container/suggestarr";
 in
 {
   virtualisation.quadlet = {
@@ -31,9 +33,9 @@ in
           ];
           devices = [ "/dev/dri:/dev/dri" ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.upstream.port=8096"
-            "com.caddyserver.http.matchers.host=jellyfin.kuck.ing"
+            "caddy.enable=true"
+            "caddy.port=8096"
+            "caddy.host=jellyfin.kuck.ing"
           ];
         };
         serviceConfig = {
@@ -56,8 +58,56 @@ in
             "5055:5055"
           ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=jellyseerr.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=jellyseerr.kuck.ing"
+          ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
+      recommendarr = {
+        containerConfig = {
+          image = "docker.io/tannermiddleton/recommendarr:latest";
+          name = "recommendarr";
+          autoUpdate = "registry";
+          environments = {
+            TZ = "America/New_York";
+          };
+          volumes = [
+            "${RECOMMEND_CONTAINER_PATH}/data:/app/server/data"
+          ];
+          publishPorts = [
+            "3033:3000"
+          ];
+          labels = [
+            "caddy.enable=true"
+            "caddy.host=recommendarr.kuck.ing"
+          ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
+      suggestarr = {
+        containerConfig = {
+          image = "docker.io/ciuse99/suggestarr:latest";
+          name = "suggestarr";
+          autoUpdate = "registry";
+          environments = {
+            TZ = "America/New_York";
+          };
+          volumes = [
+            "${SUGGEST_CONTAINER_PATH}/config:/app/config/config_files"
+          ];
+          publishPorts = [
+            "3034:5000"
+          ];
+          labels = [
+            "caddy.enable=true"
+            "caddy.host=suggestarr.kuck.ing"
           ];
         };
         serviceConfig = {

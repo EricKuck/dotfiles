@@ -33,9 +33,9 @@ in
             containers.wireguard.ref
           ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.upstream.port=9090"
-            "com.caddyserver.http.matchers.host=qbittorrent.kuck.ing"
+            "caddy.enable=true"
+            "caddy.port=9090"
+            "caddy.host=qbittorrent.kuck.ing"
           ];
         };
         serviceConfig = {

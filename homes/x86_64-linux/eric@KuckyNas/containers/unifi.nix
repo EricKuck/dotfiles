@@ -22,6 +22,10 @@ in
             "3478:3478/udp"
           ];
           user = "999:999";
+          labels = [
+            "kuma.unifi.http.name=Unifi"
+            "kuma.unifi.http.url=https://unifi.kuck.ing"
+          ];
         };
         serviceConfig = {
           Restart = "always";

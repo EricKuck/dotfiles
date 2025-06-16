@@ -27,8 +27,8 @@ in
             "9925:9000"
           ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=mealie.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=mealie.kuck.ing"
           ];
         };
         serviceConfig = {

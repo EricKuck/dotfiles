@@ -22,8 +22,8 @@ in
             "8345:5000/tcp"
           ];
           labels = [
-            "com.caddyserver.http.enable=true"
-            "com.caddyserver.http.matchers.host=kavita.kuck.ing"
+            "caddy.enable=true"
+            "caddy.host=kavita.kuck.ing"
           ];
         };
         serviceConfig = {

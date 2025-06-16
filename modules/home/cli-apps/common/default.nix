@@ -50,7 +50,7 @@ in
         lolcat
         ffmpeg
         nodejs_24
-        unstable.serpl
+        sd
         unstable.nix-init
       ];
 
