@@ -51,6 +51,8 @@ in
         ffmpeg
         nodejs_24
         sd
+        dua
+        usbutils
         unstable.nix-init
       ];
 
