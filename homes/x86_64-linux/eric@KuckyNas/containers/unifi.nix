@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/unifi";
 in
@@ -17,13 +17,14 @@ in
             "${CONTAINER_PATH}:/unifi"
           ];
           publishPorts = [
-            "8080:8080"
-            "8443:8443"
-            "3478:3478/udp"
+            "${toString osConfig.ports.unifi_stun}:3478/udp"
+            "${toString osConfig.ports.unifi_comm}:8080"
+            "${toString osConfig.ports.unifi}:8443"
           ];
           user = "999:999";
           labels = [
             "kuma.unifi.http.name=Unifi"
+            "caddy.port=${toString osConfig.ports.unifi}"
             "kuma.unifi.http.url=https://unifi.kuck.ing"
           ];
         };

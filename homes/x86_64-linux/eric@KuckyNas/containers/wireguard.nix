@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/wireguard";
   inherit (config.virtualisation.quadlet) networks;
@@ -23,10 +23,8 @@ in
             "${CONTAINER_PATH}/init:/custom-cont-init.d:ro"
           ];
           publishPorts = [
-            "51820:51820/udp"
-            "9090:9090"
-            "9117:9117"
-            "8137:8137"
+            "${toString osConfig.ports.wireguard}:51820/udp"
+            "${toString osConfig.ports.qbittorrent}:${toString osConfig.ports.qbittorrent}"
           ];
           networks = [ networks.wireguard.ref ];
           addCapabilities = [ "NET_ADMIN" ];

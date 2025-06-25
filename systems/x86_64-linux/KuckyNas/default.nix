@@ -10,6 +10,8 @@ with lib.custom;
 {
   disabledModules = [ "services/monitoring/ups.nix" ];
   imports = [
+    ./ports.nix
+    ./observability
     "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/ups.nix"
     inputs.sops-nix.nixosModules.sops
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -118,9 +120,13 @@ with lib.custom;
     defaultSopsFile = lib.snowfall.fs.get-file "secrets/kuckynas.yaml";
     age.sshKeyPaths = [ "${config.users.users.eric.home}/.ssh/id_ed25519_sops" ];
     secrets = {
-      upsmon_user_pw.neededForUsers = true;
+      upsmon_user_pw = {
+        mode = "0440";
+        group = config.users.groups.upsmon.name;
+      };
       upsmon_user_hashed_pw.neededForUsers = true;
       tailscale_auth.neededForUsers = true;
+      immich_api_key.owner = "eric";
       eric_icloud_username.owner = "eric";
       caddy_env = { };
       karakeep_env.owner = "eric";
@@ -177,7 +183,6 @@ with lib.custom;
     lm_sensors
     unstable.zfs # TODO: re-evaluate using unstable once back on LTS kernel
     sops
-    unstable.gphotos-sync
     unstable.icloudpd
     unstable.immich-go
   ];
@@ -276,7 +281,6 @@ with lib.custom;
       };
       environmentFile = config.sops.secrets.caddy_env.path;
       globalConfig = ''
-        debug
         skip_install_trust
         email {$ACME_EMAIL}
         acme_dns cloudflare {$CF_DNS_TOKEN}
@@ -292,21 +296,27 @@ with lib.custom;
           reverse_proxy http://localhost:51515
         '';
         "uptime.kuck.ing".extraConfig = ''
-          reverse_proxy http://localhost:3001
+          reverse_proxy http://localhost:${toString config.ports.uptime-kuma}
         '';
         "unifi.kuck.ing".extraConfig = ''
-          reverse_proxy https://localhost:8443 {
+          reverse_proxy https://localhost:${toString config.ports.unifi} {
             transport http {
               tls_insecure_skip_verify
             }
           }
         '';
         "scrypted.kuck.ing".extraConfig = ''
-          reverse_proxy https://localhost:10443 {
+          reverse_proxy https://localhost:${toString config.ports.scrypted} {
             transport http {
               tls_insecure_skip_verify
             }
           }
+        '';
+        "prom.kuck.ing".extraConfig = ''
+          reverse_proxy http://localhost:${toString config.ports.prometheus}
+        '';
+        "grafana.kuck.ing".extraConfig = ''
+          reverse_proxy http://localhost:${toString config.ports.grafana}
         '';
         "*.kuck.ing".extraConfig = ''
           reverse_proxy {
@@ -384,7 +394,14 @@ with lib.custom;
   };
 
   virtualisation = {
-    containers.enable = true;
+    containers = {
+      enable = true;
+      containersConf.settings.engine.helper_binaries_dir = [
+        "${pkgs.netavark}/bin"
+        "${pkgs.aardvark-dns}/bin"
+        "${pkgs.podman}/libexec/podman"
+      ];
+    };
     podman = {
       enable = true;
       dockerCompat = true;

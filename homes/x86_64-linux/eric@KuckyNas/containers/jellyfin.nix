@@ -28,13 +28,12 @@ in
             "/kuckyjar/media:/media:ro"
           ];
           publishPorts = [
-            "8096:8096"
-            "8920:8920"
+            "${toString osConfig.ports.jellyfin}:8096"
           ];
           devices = [ "/dev/dri:/dev/dri" ];
           labels = [
             "caddy.enable=true"
-            "caddy.port=8096"
+            "caddy.port=${toString osConfig.ports.jellyfin}"
             "caddy.host=jellyfin.kuck.ing"
           ];
         };
@@ -55,7 +54,7 @@ in
             "${SEER_CONTAINER_PATH}/config:/app/config"
           ];
           publishPorts = [
-            "5055:5055"
+            "${toString osConfig.ports.jellyseerr}:5055"
           ];
           labels = [
             "caddy.enable=true"
@@ -79,7 +78,7 @@ in
             "${RECOMMEND_CONTAINER_PATH}/data:/app/server/data"
           ];
           publishPorts = [
-            "3033:3000"
+            "${toString osConfig.ports.recommendarr}:3000"
           ];
           labels = [
             "caddy.enable=true"
@@ -103,7 +102,7 @@ in
             "${SUGGEST_CONTAINER_PATH}/config:/app/config/config_files"
           ];
           publishPorts = [
-            "3034:5000"
+            "${toString osConfig.ports.suggestarr}:5000"
           ];
           labels = [
             "caddy.enable=true"

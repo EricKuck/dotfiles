@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/syncthing";
 in
@@ -20,14 +20,14 @@ in
             "${CONTAINER_PATH}/data:/data"
           ];
           publishPorts = [
-            "21027:21027/udp"
-            "22000:22000/tcp"
-            "22000:22000/udp"
-            "8384:8384/tcp"
+            "${toString osConfig.ports.syncthing}:8384/tcp"
+            "${toString osConfig.ports.syncthing_discovery}:21027/udp"
+            "${toString osConfig.ports.syncthing_sync}:22000/tcp"
+            "${toString osConfig.ports.syncthing_sync}:22000/udp"
           ];
           labels = [
             "caddy.enable=true"
-            "caddy.port=8384"
+            "caddy.port=${toString osConfig.ports.syncthing}"
             "caddy.host=syncthing.kuck.ing"
           ];
         };

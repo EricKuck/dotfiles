@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prometheus-quadlet-exporter"
+version = "0.0.0"
+description = "Export information about quadlet containers"
+dependencies = [
+  "packaging",
+  "prometheus-client",
+  "systemdunitparser",
+  "pystemd",
+]
+
+[project.scripts]
+prometheus-quadlet-exporter = "exporter:main"

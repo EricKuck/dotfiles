@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/mealie";
 in
@@ -24,7 +24,7 @@ in
             "${CONTAINER_PATH}/data:/app/data"
           ];
           publishPorts = [
-            "9925:9000"
+            "${toString osConfig.ports.mealie}:9000"
           ];
           labels = [
             "caddy.enable=true"

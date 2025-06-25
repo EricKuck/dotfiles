@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/qbittorrent";
   inherit (config.virtualisation.quadlet) containers networks;
@@ -25,16 +25,16 @@ in
             "${CONTAINER_PATH}/vuetorrent:/vuetorrent"
           ];
           publishPorts = [
-            "9090:9090"
-            "6881:6881"
-            "6881:6881/udp"
+            "${toString osConfig.ports.qbittorrent}:9090"
+            "${toString osConfig.ports.qbittorrent_torrent}:6881"
+            "${toString osConfig.ports.qbittorrent_torrent}:6881/udp"
           ];
           networks = [
             containers.wireguard.ref
           ];
           labels = [
             "caddy.enable=true"
-            "caddy.port=9090"
+            "caddy.port=${toString osConfig.ports.qbittorrent}"
             "caddy.host=qbittorrent.kuck.ing"
           ];
         };

@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   HA_CONTAINER_PATH = "/kuckyjar/container/homeassistant";
   MUSIC_CONTAINER_PATH = "/kuckyjar/container/music-assistant";
@@ -20,7 +20,7 @@ in
           ];
           labels = [
             "caddy.enable=true"
-            "caddy.port=8123"
+            "caddy.port=${toString osConfig.ports.homeassistant}"
             "caddy.host=ha.kuck.ing"
           ];
         };
@@ -45,7 +45,7 @@ in
           ];
           labels = [
             "caddy.enable=true"
-            "caddy.port=8095"
+            "caddy.port=${toString osConfig.ports.music-assistant}"
             "caddy.host=music.kuck.ing"
           ];
         };
@@ -60,7 +60,7 @@ in
           name = "wyoming-piper";
           autoUpdate = "registry";
           publishPorts = [
-            "10200:10200"
+            "${toString osConfig.ports.wyoming-piper}:10200"
           ];
           volumes = [
             "${PIPER_CONTAINER_PATH}/data:/data"
@@ -78,7 +78,7 @@ in
           name = "wyoming-whisper";
           autoUpdate = "registry";
           publishPorts = [
-            "10300:10300"
+            "${toString osConfig.ports.wyoming-whisper}:10300"
           ];
           volumes = [
             "${WHISPER_CONTAINER_PATH}/data:/data"
@@ -96,7 +96,7 @@ in
           name = "wyoming-openwakeword";
           autoUpdate = "registry";
           publishPorts = [
-            "10400:10400"
+            "${toString osConfig.ports.wyoming-openwakeword}:10400"
           ];
           volumes = [
             "${WAKEWORD_CONTAINER_PATH}/data:/data"

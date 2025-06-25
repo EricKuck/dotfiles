@@ -17,14 +17,14 @@ in
           name = "rmfakecloud";
           autoUpdate = "registry";
           environments = {
-            STORAGE_URL = "http://192.168.1.2:3000";
+            STORAGE_URL = "http://192.168.1.2:${toString osConfig.ports.rmfakecloud}";
           };
           environmentFiles = [ osConfig.sops.secrets.rmfakecloud_env.path ];
           volumes = [
             "${RMCLOUD_CONTAINER_PATH}/data:/data"
           ];
           publishPorts = [
-            "3000:3000"
+            "${toString osConfig.ports.rmfakecloud}:3000"
           ];
           labels = [
             "caddy.enable=true"
@@ -59,7 +59,7 @@ in
             "/kuckyjar/media/paperless/consume:/usr/src/paperless/consume"
           ];
           publishPorts = [
-            "8010:8000"
+            "${toString osConfig.ports.paperless}:8000"
           ];
           networks = [ networks.paperless.ref ];
           pod = pods.paperless.ref;

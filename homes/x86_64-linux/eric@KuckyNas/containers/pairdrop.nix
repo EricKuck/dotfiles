@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/pairdrop";
 in
@@ -11,7 +11,7 @@ in
           name = "pairdrop";
           autoUpdate = "registry";
           publishPorts = [
-            "3002:3000"
+            "${toString osConfig.ports.pairdrop}:3000"
           ];
           labels = [
             "caddy.enable=true"

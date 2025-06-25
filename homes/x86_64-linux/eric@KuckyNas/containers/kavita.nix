@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/kavita";
 in
@@ -19,7 +19,7 @@ in
             "/kuckyjar/media/Comics:/comics"
           ];
           publishPorts = [
-            "8345:5000/tcp"
+            "${toString osConfig.ports.kavita}:5000/tcp"
           ];
           labels = [
             "caddy.enable=true"

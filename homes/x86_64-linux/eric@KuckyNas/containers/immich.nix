@@ -20,7 +20,7 @@ in
             "/etc/localtime:/etc/localtime:ro"
           ];
           publishPorts = [
-            "2283:2283"
+            "${toString osConfig.ports.immich}:2283"
           ];
           devices = [ "/dev/dri:/dev/dri" ];
           networks = [ networks.immich.ref ];
@@ -54,7 +54,7 @@ in
             "${CONTAINER_PATH}/cache:/cache"
           ];
           publishPorts = [
-            "2284:3003"
+            "${toString osConfig.ports.immich-ml}:3003"
           ];
           networks = [ networks.immich.ref ];
           pod = pods.immich.ref;

@@ -46,7 +46,7 @@ with lib.custom;
 
       sync-cloud-photos = {
         Unit = {
-          Description = "Sync photos from iCloud & Google Photos, sync with Immich";
+          Description = "Sync photos from iCloud, sync with Immich";
           After = [ "network.target" ];
         };
         Service = {
@@ -56,8 +56,7 @@ with lib.custom;
             set -eou pipefail
 
             ${lib.getExe pkgs.unstable.icloudpd} --directory /kuckyjar/media/Photos/eric/icloud --username $(${pkgs.coreutils}/bin/cat ${osConfig.sops.secrets.eric_icloud_username.path}) --until-found 20
-            ${lib.getExe pkgs.unstable.gphotos-sync} --port 9482 /kuckyjar/media/Photos/eric/gphotos/
-            ${lib.getExe pkgs.unstable.immich-go} -no-ui upload /kuckyjar/media/Photos/eric
+            ${lib.getExe pkgs.unstable.immich-go} upload from-folder /kuckyjar/media/Photos/eric --no-ui --server http://localhost:${toString osConfig.ports.immich} --api-key $(${pkgs.coreutils}/bin/cat ${osConfig.sops.secrets.immich_api_key.path})
           '';
         };
       };

@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/homepage";
 in
@@ -19,7 +19,7 @@ in
             "/run/user/1000/podman/podman.sock:/var/run/podman.sock"
           ];
           publishPorts = [
-            "3010:3010"
+            "${toString osConfig.ports.homepage}:3010"
           ];
           labels = [
             "caddy.enable=true"

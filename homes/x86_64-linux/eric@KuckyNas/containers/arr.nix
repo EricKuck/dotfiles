@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   PROWLARR_CONTAINER_PATH = "/kuckyjar/container/prowlarr";
   SONARR_CONTAINER_PATH = "/kuckyjar/container/sonarr";
@@ -17,7 +17,7 @@ in
           name = "flaresolverr";
           autoUpdate = "registry";
           publishPorts = [
-            "8191:8191"
+            "${toString osConfig.ports.flaresolverr}:8191"
           ];
         };
         serviceConfig = {
@@ -39,7 +39,7 @@ in
             "${PROWLARR_CONTAINER_PATH}/config:/config"
           ];
           publishPorts = [
-            "9696:9696"
+            "${toString osConfig.ports.prowlarr}:9696"
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
@@ -72,7 +72,7 @@ in
             "${TORRENT_DL_PATH}:/downloads"
           ];
           publishPorts = [
-            "8989:8989"
+            "${toString osConfig.ports.sonarr}:8989"
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
@@ -111,7 +111,7 @@ in
             "${TORRENT_DL_PATH}:/downloads"
           ];
           publishPorts = [
-            "7878:7878"
+            "${toString osConfig.ports.radarr}:7878"
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
@@ -150,7 +150,7 @@ in
             "/kuckyjar/media/Movies:/movies"
           ];
           publishPorts = [
-            "6767:6767"
+            "${toString osConfig.ports.bazarr}:6767"
           ];
           networks = [ networks.wireguard.ref ];
           labels = [
@@ -179,7 +179,7 @@ in
             "${TORRENT_DL_PATH}:/downloads"
           ];
           publishPorts = [
-            "8090:8090"
+            "${toString osConfig.ports.mylar3}:8090"
           ];
           networks = [ networks.wireguard.ref ];
           labels = [

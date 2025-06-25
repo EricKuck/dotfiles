@@ -25,7 +25,7 @@ in
             "${CONTAINER_PATH}/data:/data"
           ];
           publishPorts = [
-            "3091:3000"
+            "${toString osConfig.ports.karakeep}:3000"
           ];
           networks = [ networks.karakeep.ref ];
           pod = pods.karakeep.ref;

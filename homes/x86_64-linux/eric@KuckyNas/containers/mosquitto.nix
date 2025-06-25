@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/mosquitto";
 in
@@ -17,8 +17,8 @@ in
             "${CONTAINER_PATH}/config/mosquitto.conf:/mosquitto/config/mosquitto.conf"
           ];
           publishPorts = [
-            "1883:1883"
-            "9001:9001"
+            "${toString osConfig.ports.mosquitto_mqtt}:1883"
+            "${toString osConfig.ports.mosquitto_mqtt-websockets}:9001"
           ];
         };
         serviceConfig = {

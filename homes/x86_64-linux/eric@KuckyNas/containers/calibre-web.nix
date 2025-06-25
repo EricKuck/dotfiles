@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/calibre-web";
   M_CONTAINER_PATH = "/kuckyjar/container/calibre-web-m";
@@ -24,7 +24,7 @@ in
             "${CONTAINER_PATH}/ingest:/cwa-book-ingest"
           ];
           publishPorts = [
-            "8083:8083"
+            "${toString osConfig.ports.calibre}:8083"
           ];
           networks = [ networks.calibre.ref ];
           labels = [
@@ -53,7 +53,7 @@ in
             "${M_CONTAINER_PATH}/ingest:/cwa-book-ingest"
           ];
           publishPorts = [
-            "9083:8083"
+            "${toString osConfig.ports.calibre-m}:8083"
           ];
           networks = [ networks.calibre.ref ];
           labels = [
@@ -78,7 +78,7 @@ in
             "${CONTAINER_PATH}/ingest:/cwa-book-ingest"
           ];
           publishPorts = [
-            "8084:8084"
+            "${toString osConfig.ports.calibre-downloader}:8084"
           ];
           networks = [ networks.calibre.ref ];
           labels = [
@@ -103,7 +103,7 @@ in
             "${M_CONTAINER_PATH}/ingest:/cwa-book-ingest"
           ];
           publishPorts = [
-            "9084:8084"
+            "${toString osConfig.ports.calibre-downloader-m}:8084"
           ];
           networks = [ networks.calibre.ref ];
           labels = [

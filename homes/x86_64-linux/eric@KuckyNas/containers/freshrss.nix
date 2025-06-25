@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, osConfig, ... }:
 let
   CONTAINER_PATH = "/kuckyjar/container/freshrss";
 in
@@ -20,7 +20,7 @@ in
             "${CONTAINER_PATH}/config:/config"
           ];
           publishPorts = [
-            "8487:80"
+            "${toString osConfig.ports.freshrss}:80"
           ];
           labels = [
             "caddy.enable=true"
