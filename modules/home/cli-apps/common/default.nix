@@ -53,6 +53,7 @@ in
         sd
         dua
         usbutils
+        speedtest-cli
         unstable.nix-init
       ];
 
