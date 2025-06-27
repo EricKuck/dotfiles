@@ -36,6 +36,8 @@
     freshrss = 8487;
     sonarr = 8989;
     mosquitto_mqtt-websockets = 9001;
+    qbittorrent = 9090;
+    qbittorrent_torrent = 9091;
     prometheus-node-exporter = 9100;
     prometheus-zfs-exporter = 9101;
     prometheus-podman-exporter = 9102;
@@ -45,8 +47,9 @@
     prometheus-user-systemd-exporter = 9106;
     prometheus-quadlet-exporter = 9107;
     prometheus-blackbox-exporter = 9108;
-    qbittorrent = 9090;
-    qbittorrent_torrent = 9091;
+    prometheus-mikrotik-exporter = 9109;
+    prometheus-unifi-exporter = 9110;
+    prometheus-jellyfin-exporter = 9111;
     prowlarr = 9696;
     mealie = 9925;
     prometheus = 9998;

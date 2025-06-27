@@ -171,9 +171,7 @@ with lib.custom;
 
     groups = {
       upsmon = { };
-      podman = {
-        name = "podman";
-      };
+      podman = { };
     };
   };
 
