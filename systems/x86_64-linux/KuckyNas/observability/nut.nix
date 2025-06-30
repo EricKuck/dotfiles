@@ -1,6 +1,6 @@
 { config, ... }:
 let
-  PORT = config.ports.prometheus-nut-exporter;
+  port = config.ports.prometheus-nut-exporter;
 in
 {
   services.prometheus = {
@@ -11,7 +11,7 @@ in
         group = "upsmon";
         nutUser = config.users.users.upsmon.name;
         passwordPath = config.sops.secrets.upsmon_user_pw.path;
-        port = PORT;
+        port = port;
       };
     };
 
@@ -22,7 +22,7 @@ in
         metrics_path = "/ups_metrics";
         static_configs = [
           {
-            targets = [ "localhost:${toString PORT}" ];
+            targets = [ "localhost:${toString port}" ];
           }
         ];
       }

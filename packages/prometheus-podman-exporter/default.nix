@@ -51,7 +51,7 @@ buildGoModule rec {
 
   postInstall = ''
     wrapProgram $out/bin/prometheus-podman-exporter \
-      --run "export CONTAINER_HOST=\"unix:///run/podman-rootless-proxy/podman.sock\"" \
+      --run "export XDG_CONFIG_HOME=\"/home\" CONTAINER_HOST=\"unix:///run/podman-rootless-proxy/podman.sock\"" \
       --prefix PATH : ${
         lib.makeBinPath [
           runc

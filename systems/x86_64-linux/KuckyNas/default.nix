@@ -277,6 +277,12 @@ with lib.custom;
         ];
         hash = "sha256-Rt8xFp5yvBLsFQILPCX+RPT/nfcR++D1gWelSuuuVBA=";
       };
+      logFormat = ''
+        output file /var/log/caddy/access.log {
+          mode 640
+        }
+        level INFO
+      '';
       environmentFile = config.sops.secrets.caddy_env.path;
       globalConfig = ''
         skip_install_trust
@@ -309,6 +315,9 @@ with lib.custom;
               tls_insecure_skip_verify
             }
           }
+        '';
+        "alloy.kuck.ing".extraConfig = ''
+          reverse_proxy http://localhost:${toString config.ports.alloy}
         '';
         "prom.kuck.ing".extraConfig = ''
           reverse_proxy http://localhost:${toString config.ports.prometheus}

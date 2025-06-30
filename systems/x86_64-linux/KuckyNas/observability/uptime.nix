@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 let
-  PORT = config.ports.prometheus-blackbox-exporter;
+  port = config.ports.prometheus-blackbox-exporter;
 
   blackboxConfig = {
     modules = {
@@ -44,7 +44,7 @@ let
         module = modules;
       };
       static_configs = map (t: {
-        targets = [ "localhost:${toString PORT}" ];
+        targets = [ "localhost:${toString port}" ];
         labels.target = t;
       }) targets;
       relabel_configs = [
@@ -96,7 +96,7 @@ in
     exporters = {
       blackbox = {
         enable = true;
-        port = PORT;
+        port = port;
         configFile = pkgs.writeText "blackbox.yml" (builtins.toJSON blackboxConfig);
       };
     };

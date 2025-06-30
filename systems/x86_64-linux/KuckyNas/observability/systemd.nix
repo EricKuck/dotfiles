@@ -1,13 +1,13 @@
 { config, ... }:
 let
-  PORT = config.ports.prometheus-systemd-exporter;
+  port = config.ports.prometheus-systemd-exporter;
 in
 {
   services.prometheus = {
     exporters = {
       systemd = {
         enable = true;
-        port = PORT;
+        port = port;
       };
     };
 
@@ -17,7 +17,7 @@ in
         scrape_interval = "10s";
         static_configs = [
           {
-            targets = [ "localhost:${toString PORT}" ];
+            targets = [ "localhost:${toString port}" ];
           }
         ];
       }

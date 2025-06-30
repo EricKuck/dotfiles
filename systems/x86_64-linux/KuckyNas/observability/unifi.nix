@@ -1,28 +1,30 @@
 { config, ... }:
 let
-  PORT = config.ports.prometheus-unifi-exporter;
+  port = config.ports.prometheus-unifi-exporter;
+  name = "unifi-exporter";
 in
 {
   users = {
-    users.unifi = {
+    users."${name}" = {
       isSystemUser = true;
-      group = "unifi";
+      group = name;
     };
 
-    groups.unifi = { };
+    groups."${name}" = { };
   };
 
-  sops.secrets.unifi_pw.owner = "unifi";
+  sops.secrets.unifi_pw.owner = name;
 
   services.prometheus = {
     exporters = {
       unpoller = {
         enable = true;
-        port = PORT;
-        user = "unifi";
+        port = port;
+        user = name;
+        loki.url = "localhost:${toString config.ports.loki}";
         controllers = [
           {
-            url = "https://localhost:8443";
+            url = "https://localhost:${toString config.ports.unifi}";
             user = "prometheus";
             pass = config.sops.secrets.unifi_pw.path;
             verify_ssl = false;
@@ -41,7 +43,7 @@ in
         scrape_interval = "10s";
         static_configs = [
           {
-            targets = [ "localhost:${toString PORT}" ];
+            targets = [ "localhost:${toString port}" ];
           }
         ];
       }

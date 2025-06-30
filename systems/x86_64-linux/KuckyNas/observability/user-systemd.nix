@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 let
-  PORT = config.ports.prometheus-user-systemd-exporter;
+  port = config.ports.prometheus-user-systemd-exporter;
 in
 {
   services.prometheus.scrapeConfigs = [
@@ -9,7 +9,7 @@ in
       scrape_interval = "10s";
       static_configs = [
         {
-          targets = [ "localhost:${toString PORT}" ];
+          targets = [ "localhost:${toString port}" ];
         }
       ];
     }
@@ -20,7 +20,7 @@ in
       Unit.After = [ "network.target" ];
       Service.ExecStart = ''
         ${pkgs.prometheus-systemd-exporter}/bin/systemd_exporter \
-          --web.listen-address localhost:${toString PORT} --systemd.collector.user
+          --web.listen-address localhost:${toString port} --systemd.collector.user
       '';
       Install.WantedBy = [ "default.target" ];
     };

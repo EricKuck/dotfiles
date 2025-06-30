@@ -5,19 +5,20 @@
   ...
 }:
 let
-  PORT = config.ports.prometheus-jellyfin-exporter;
+  port = config.ports.prometheus-jellyfin-exporter;
+  name = "jellyfin-exporter";
 in
 {
   users = {
-    users.jellyfin = {
+    users."${name}" = {
       isSystemUser = true;
-      group = "jellyfin";
+      group = name;
     };
 
-    groups.jellyfin = { };
+    groups."${name}" = { };
   };
 
-  sops.secrets.jellyfin_token.owner = "jellyfin";
+  sops.secrets.jellyfin_token.owner = name;
 
   services.prometheus.scrapeConfigs = [
     {
@@ -25,7 +26,7 @@ in
       scrape_interval = "10s";
       static_configs = [
         {
-          targets = [ "localhost:${toString PORT}" ];
+          targets = [ "localhost:${toString port}" ];
         }
       ];
     }
@@ -36,10 +37,10 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       serviceConfig = {
-        User = "jellyfin";
+        User = name;
         Restart = "always";
         RestartSec = "60s";
-        ExecStart = "${lib.getExe pkgs.bash} -c '${lib.getExe pkgs.custom.prometheus-jellyfin-exporter} --jellyfin.address=http://localhost:${toString config.ports.jellyfin} --jellyfin.token=$(${pkgs.coreutils}/bin/cat ${config.sops.secrets.jellyfin_token.path}) --web.listen-address=:${toString PORT} --collector.activity'";
+        ExecStart = "${lib.getExe pkgs.bash} -c '${lib.getExe pkgs.custom.prometheus-jellyfin-exporter} --jellyfin.address=http://localhost:${toString config.ports.jellyfin} --jellyfin.token=$(${pkgs.coreutils}/bin/cat ${config.sops.secrets.jellyfin_token.path}) --web.listen-address=:${toString port} --collector.activity'";
       };
     };
   };

@@ -5,7 +5,8 @@
   ...
 }:
 let
-  PORT = config.ports.prometheus-mikrotik-exporter;
+  port = config.ports.prometheus-mikrotik-exporter;
+  name = "mikrotik-exporter";
 
   mktxpConfig = pkgs.lib.generators.toINI { } {
     router = {
@@ -72,7 +73,7 @@ let
 
   mktxpSystemConfig = pkgs.lib.generators.toINI { } {
     MKTXP = {
-      listen = "0.0.0.0:${toString PORT}";
+      listen = "0.0.0.0:${toString port}";
       socket_timeout = 5;
       initial_delay_on_failure = 120;
       max_delay_on_failure = 900;
@@ -97,7 +98,16 @@ let
   configFile = pkgs.writeText "mktxp.conf" mktxpConfig;
 in
 {
-  sops.secrets.mikrotik_pw = { };
+  users = {
+    users."${name}" = {
+      isSystemUser = true;
+      group = name;
+    };
+
+    groups."${name}" = { };
+  };
+
+  sops.secrets.mikrotik_pw.owner = name;
 
   services.prometheus.scrapeConfigs = [
     {
@@ -105,7 +115,7 @@ in
       scrape_interval = "10s";
       static_configs = [
         {
-          targets = [ "localhost:${toString PORT}" ];
+          targets = [ "localhost:${toString port}" ];
         }
       ];
     }
@@ -115,12 +125,11 @@ in
     prometheus-mikrotik-exporter = {
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-      path = [
-        pkgs.which
-      ];
+      path = [ pkgs.which ];
       serviceConfig = {
         Restart = "always";
         RestartSec = "60s";
+        User = name;
         ExecStart = "${lib.getExe pkgs.mktxp} --cfg-dir ${configFileDir} export";
       };
     };
