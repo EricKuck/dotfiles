@@ -4,6 +4,7 @@ let
   SONARR_CONTAINER_PATH = "/kuckyjar/container/sonarr";
   RADARR_CONTAINER_PATH = "/kuckyjar/container/radarr";
   BAZARR_CONTAINER_PATH = "/kuckyjar/container/bazarr";
+  RECYCLARR_CONTAINER_PATH = "/kuckyjar/container/recyclarr";
   MYLAR3_CONTAINER_PATH = "/kuckyjar/container/mylar3";
   TORRENT_DL_PATH = "/kuckyjar/container/qbittorrent/downloads";
   inherit (config.virtualisation.quadlet) containers networks;
@@ -157,6 +158,24 @@ in
             "caddy.enable=true"
             "caddy.host=bazarr.kuck.ing"
           ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
+      recyclarr = {
+        containerConfig = {
+          image = "ghcr.io/recyclarr/recyclarr:latest";
+          name = "recyclarr";
+          autoUpdate = "registry";
+          environments = {
+            TZ = "America/New_York";
+          };
+          volumes = [
+            "${RECYCLARR_CONTAINER_PATH}/config:/config"
+          ];
+          user = "3992:3992";
         };
         serviceConfig = {
           Restart = "always";

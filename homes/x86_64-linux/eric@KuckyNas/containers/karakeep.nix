@@ -64,7 +64,7 @@ in
 
       karakeep-meilisearch = {
         containerConfig = {
-          image = "getmeili/meilisearch:v1.13.3";
+          image = "docker.io/getmeili/meilisearch:v1.13.3";
           name = "karakeep-meilisearch";
           environmentFiles = [ osConfig.sops.secrets.karakeep_env.path ];
           volumes = [
