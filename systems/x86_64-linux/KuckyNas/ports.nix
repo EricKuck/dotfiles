@@ -18,6 +18,7 @@
     unifi_stun = 3478;
     jellyseerr = 5055;
     bazarr = 6767;
+    profilarr = 6868;
     radarr = 7878;
     paperless = 8010;
     unifi_comm = 8080;

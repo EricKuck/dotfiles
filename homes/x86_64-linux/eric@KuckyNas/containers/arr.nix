@@ -4,7 +4,7 @@ let
   SONARR_CONTAINER_PATH = "/kuckyjar/container/sonarr";
   RADARR_CONTAINER_PATH = "/kuckyjar/container/radarr";
   BAZARR_CONTAINER_PATH = "/kuckyjar/container/bazarr";
-  RECYCLARR_CONTAINER_PATH = "/kuckyjar/container/recyclarr";
+  PROFILARR_CONTAINER_PATH = "/kuckyjar/container/profilarr";
   MYLAR3_CONTAINER_PATH = "/kuckyjar/container/mylar3";
   TORRENT_DL_PATH = "/kuckyjar/container/qbittorrent/downloads";
   inherit (config.virtualisation.quadlet) containers networks;
@@ -164,16 +164,23 @@ in
         };
       };
 
-      recyclarr = {
+      profilarr = {
         containerConfig = {
-          image = "ghcr.io/recyclarr/recyclarr:latest";
-          name = "recyclarr";
+          image = "docker.io/santiagosayshey/profilarr:latest";
+          name = "profilarr";
           autoUpdate = "registry";
           environments = {
             TZ = "America/New_York";
           };
           volumes = [
-            "${RECYCLARR_CONTAINER_PATH}/config:/config"
+            "${PROFILARR_CONTAINER_PATH}/config:/config"
+          ];
+          publishPorts = [
+            "${toString osConfig.ports.profilarr}:6868"
+          ];
+          labels = [
+            "caddy.enable=true"
+            "caddy.host=profilarr.kuck.ing"
           ];
           user = "3992:3992";
         };
