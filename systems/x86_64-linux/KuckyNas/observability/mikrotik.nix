@@ -12,7 +12,7 @@ let
     router = {
       hostname = "192.168.1.1";
       username = "prometheus";
-      password_file = config.sops.secrets.mikrotik_pw.path;
+      credentials_file = config.sops.secrets.mikrotik_creds.path;
     };
     default = {
       enabled = true;
@@ -20,7 +20,7 @@ let
       hostname = "localhost";
       username = "mktxp";
       password = "changeme";
-      password_file = "";
+      credentials_file = "";
       health = true;
       use_ssl = false;
       no_ssl_certificate = false;
@@ -107,7 +107,7 @@ in
     groups."${name}" = { };
   };
 
-  sops.secrets.mikrotik_pw.owner = name;
+  sops.secrets.mikrotik_creds.owner = name;
 
   services.prometheus.scrapeConfigs = [
     {

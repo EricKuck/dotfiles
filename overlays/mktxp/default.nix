@@ -1,12 +1,16 @@
 { ... }:
 
 _final: prev: {
-  mktxp = prev.mktxp.overrideAttrs (old: {
+  mktxp = prev.mktxp.overridePythonAttrs (old: {
     src = prev.fetchFromGitHub {
       owner = "EricKuck";
       repo = "mktxp";
-      rev = "e103a6729dffe92137ee13c4af585249fbb140e3";
-      hash = "sha256-iswP0p+a4OTqv0oUjH8slHjG/RlzOLzJvA6SgcrcRXs=";
+      rev = "a7c1a14371de971e61355f063e3f81f4856b6eb3";
+      hash = "sha256-tnYEsfjGCDTZCH3AwSWNrFBgG77ms0O6ZPJN0yUfPhI=";
     };
+
+    dependencies = old.dependencies ++ [
+      prev.python3Packages.pyyaml
+    ];
   });
 }
