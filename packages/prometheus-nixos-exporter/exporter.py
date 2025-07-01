@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 from collections.abc import Iterator
+from datetime import datetime
 
 from packaging.version import Version
 from prometheus_client import CollectorRegistry, start_http_server
@@ -68,6 +69,15 @@ class NixosSystemCollector:
         current_system_kernel_booted.add_metric([], booted_kernel == current_kernel)
         yield current_system_kernel_booted
 
+        current_system_update_time = GaugeMetricFamily(
+            "nixos_current_system_update_time_seconds",
+            "Build time for the current system",
+            labels=[],
+        )
+
+        current_system_update_time.add_metric([], self.get_update_time())
+        yield current_system_update_time
+
     def get_version_id(self, path: str) -> str:
         result = subprocess.run(
             ["bash", "-c", f"source {path}/etc/os-release; echo $VERSION_ID"],
@@ -98,6 +108,16 @@ class NixosSystemCollector:
                 return parsed[0]["registrationTime"]
 
         return 0
+
+    def get_update_time(self) -> int:
+        with open("/run/current-system/nixos-version", "r") as file:
+            version = file.read().rstrip()
+
+        split = version.split(".")
+        if len(split) < 3:
+            return 0
+
+        return int(datetime.strptime(split[2], "%Y%m%d").timestamp())
 
 
 def main() -> None:
