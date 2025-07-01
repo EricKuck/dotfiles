@@ -200,6 +200,7 @@ with lib.custom;
     };
 
     eternal-terminal.enable = true;
+    glances.enable = true;
 
     zfs = {
       autoScrub = {
@@ -324,6 +325,9 @@ with lib.custom;
         '';
         "grafana.kuck.ing".extraConfig = ''
           reverse_proxy http://localhost:${toString config.ports.grafana}
+        '';
+        "glances.kuck.ing".extraConfig = ''
+          reverse_proxy http://localhost:${toString config.ports.glances}
         '';
         "*.kuck.ing".extraConfig = ''
           reverse_proxy {

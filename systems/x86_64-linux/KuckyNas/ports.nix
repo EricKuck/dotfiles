@@ -64,5 +64,6 @@
     syncthing_discovery = 21027;
     syncthing_sync = 22000;
     wireguard = 51820;
+    glances = 61208;
   };
 }
