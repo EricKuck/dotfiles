@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   port = config.ports.prometheus-blackbox-exporter;
 
@@ -90,6 +95,44 @@ let
     );
 
   caddyUrls = builtins.map (item: "https://${item}") (directCaddyUrls ++ containerUrls);
+
+  rules = [
+    {
+      groups = [
+        {
+          name = "uptime";
+          rules = [
+            {
+              alert = "ServiceOutage";
+              expr = "probe_success == 0";
+              annotations = {
+                summary = "Service probe failed";
+                description = ''Failed on {{ $labels.target }}'';
+              };
+            }
+          ];
+        }
+        {
+          name = "certs";
+          rules = [
+            {
+              alert = "CertExpiration";
+              expr = "0 <= round((last_over_time(probe_ssl_earliest_cert_expiry[10m]) - time()) / 86400, 0.1) < 3";
+              annotations = {
+                summary = "SSL cert will expire soon";
+                description = ''Will expire for {{ $labels.target }}'';
+              };
+            }
+          ];
+        }
+      ];
+    }
+  ];
+
+  ruleFile = pkgs.writeTextFile {
+    name = "uptime-rules.yaml";
+    text = lib.generators.toYAML { } (builtins.head rules);
+  };
 in
 {
   services.prometheus = {
@@ -127,5 +170,7 @@ in
         ];
       })
     ];
+
+    ruleFiles = [ ruleFile ];
   };
 }

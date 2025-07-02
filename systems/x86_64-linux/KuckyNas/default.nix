@@ -323,6 +323,9 @@ with lib.custom;
         "prom.kuck.ing".extraConfig = ''
           reverse_proxy http://localhost:${toString config.ports.prometheus}
         '';
+        "alerts.kuck.ing".extraConfig = ''
+          reverse_proxy http://localhost:${toString config.ports.prometheus-alertmanager}
+        '';
         "grafana.kuck.ing".extraConfig = ''
           reverse_proxy http://localhost:${toString config.ports.grafana}
         '';

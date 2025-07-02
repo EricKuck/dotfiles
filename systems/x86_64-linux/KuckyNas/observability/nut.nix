@@ -1,6 +1,42 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   port = config.ports.prometheus-nut-exporter;
+
+  rules = [
+    {
+      groups = [
+        {
+          name = "power";
+          rules = [
+            {
+              alert = "PowerOutage";
+              expr = ''network_ups_tools_ups_status{flag="OL"} == 0'';
+              annotations = {
+                summary = "UPS no longer on line";
+              };
+            }
+            {
+              alert = "UPSLowBattery";
+              expr = ''network_ups_tools_ups_status{flag="LB"} == 1'';
+              annotations = {
+                summary = "UPS low battery";
+              };
+            }
+          ];
+        }
+      ];
+    }
+  ];
+
+  ruleFile = pkgs.writeTextFile {
+    name = "nut-rules.yaml";
+    text = lib.generators.toYAML { } (builtins.head rules);
+  };
 in
 {
   services.prometheus = {
@@ -27,5 +63,7 @@ in
         ];
       }
     ];
+
+    ruleFiles = [ ruleFile ];
   };
 }

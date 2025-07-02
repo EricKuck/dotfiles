@@ -4,10 +4,43 @@
   pkgs,
   ...
 }:
+
+let
+  rules = [
+    {
+      groups = [
+        {
+          name = "system";
+          rules = [
+            {
+              alert = "MonitoringDown";
+              expr = "up == 0";
+              annotations = {
+                summary = "Monitoring process is down or unreachable";
+                description = ''{{ $labels.instance }} not reachable.'';
+              };
+            }
+          ];
+        }
+      ];
+    }
+  ];
+
+  ruleFile = pkgs.writeTextFile {
+    name = "prometheus-rules.yaml";
+    text = lib.generators.toYAML { } (builtins.head rules);
+  };
+in
 {
   imports = lib.fileset.toList (lib.fileset.fileFilter (file: file.name != "default.nix") ./.);
 
   users.users.loki.extraGroups = [ "caddy" ];
+
+  sops.secrets.alertmanager_discord_webhook = {
+    owner = "alertmanager";
+    group = "alertmanager";
+    mode = "0400";
+  };
 
   services = {
     prometheus = {
@@ -17,6 +50,48 @@
       globalConfig = {
         scrape_interval = "30s";
         scrape_timeout = "25s";
+      };
+      ruleFiles = [ ruleFile ];
+
+      alertmanagers = [
+        {
+          static_configs = [
+            {
+              targets = [ "localhost:${toString config.ports.prometheus-alertmanager}" ];
+            }
+          ];
+        }
+      ];
+
+      alertmanager = {
+        enable = true;
+        port = config.ports.prometheus-alertmanager;
+
+        configuration = {
+          global.resolve_timeout = "5m";
+
+          route = {
+            receiver = "discord";
+            group_by = [
+              "alertname"
+              "instance"
+            ];
+            group_wait = "0s";
+            group_interval = "1s";
+            repeat_interval = "1h";
+          };
+
+          receivers = [
+            {
+              name = "discord";
+              discord_configs = [
+                {
+                  webhook_url_file = config.sops.secrets.alertmanager_discord_webhook.path;
+                }
+              ];
+            }
+          ];
+        };
       };
     };
 

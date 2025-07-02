@@ -53,6 +53,7 @@
     prometheus-jellyfin-exporter = 9111;
     prowlarr = 9696;
     mealie = 9925;
+    prometheus-alertmanager = 9995;
     loki = 9996;
     alloy = 9997;
     prometheus = 9998;

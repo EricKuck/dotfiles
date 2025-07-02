@@ -1,6 +1,36 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   port = config.ports.prometheus-systemd-exporter;
+
+  rules = [
+    {
+      groups = [
+        {
+          name = "systemd";
+          rules = [
+            {
+              alert = "UnitFailure";
+              expr = ''systemd_unit_state{state="failed"} > 0'';
+              annotations = {
+                summary = "Systemd unit failed";
+                description = ''{{ $labels.name }}'';
+              };
+            }
+          ];
+        }
+      ];
+    }
+  ];
+
+  ruleFile = pkgs.writeTextFile {
+    name = "systemd-rules.yaml";
+    text = lib.generators.toYAML { } (builtins.head rules);
+  };
 in
 {
   services.prometheus = {
@@ -22,5 +52,7 @@ in
         ];
       }
     ];
+
+    ruleFiles = [ ruleFile ];
   };
 }
