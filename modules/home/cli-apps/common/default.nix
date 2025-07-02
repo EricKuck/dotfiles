@@ -129,6 +129,10 @@ in
           };
         };
 
+        shellInit = ''
+          set -x EDITOR ${lib.getExe pkgs.unstable.helix}
+        '';
+
         interactiveShellInit = ''
           set fish_greeting
 
