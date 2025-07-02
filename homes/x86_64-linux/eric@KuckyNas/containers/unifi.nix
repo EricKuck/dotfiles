@@ -23,9 +23,7 @@ in
           ];
           user = "999:999";
           labels = [
-            "kuma.unifi.http.name=Unifi"
             "caddy.port=${toString osConfig.ports.unifi}"
-            "kuma.unifi.http.url=https://unifi.kuck.ing"
           ];
         };
         serviceConfig = {

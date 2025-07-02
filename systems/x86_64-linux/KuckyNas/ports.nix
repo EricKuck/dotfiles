@@ -9,7 +9,6 @@
     immich = 2283;
     immich-ml = 2284;
     rmfakecloud = 3000;
-    uptime-kuma = 3001;
     pairdrop = 3002;
     homepage = 3010;
     recommendarr = 3033;

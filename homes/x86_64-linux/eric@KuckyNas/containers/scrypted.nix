@@ -14,10 +14,6 @@ in
           volumes = [
             "${CONTAINER_PATH}/volume:/server/volume"
           ];
-          labels = [
-            "kuma.unifi.http.name=Scrypted"
-            "kuma.unifi.http.url=https://scrypted.kuck.ing"
-          ];
         };
         serviceConfig = {
           Restart = "always";

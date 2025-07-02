@@ -135,7 +135,6 @@ with lib.custom;
       rmfakecloud_env.owner = "eric";
       paperless_env.owner = "eric";
       paperless_postgres_env.owner = "eric";
-      autokuma_env.owner = "eric";
     };
   };
 
@@ -300,9 +299,6 @@ with lib.custom;
         "kopia.kuck.ing".extraConfig = ''
           reverse_proxy http://localhost:51515
         '';
-        "uptime.kuck.ing".extraConfig = ''
-          reverse_proxy http://localhost:${toString config.ports.uptime-kuma}
-        '';
         "unifi.kuck.ing".extraConfig = ''
           reverse_proxy https://localhost:${toString config.ports.unifi} {
             transport http {
@@ -339,8 +335,6 @@ with lib.custom;
         '';
       };
     };
-
-    uptime-kuma.enable = true;
   };
 
   systemd = {
