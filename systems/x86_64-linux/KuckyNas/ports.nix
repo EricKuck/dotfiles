@@ -50,6 +50,7 @@
     prometheus-mikrotik-exporter = 9109;
     prometheus-unifi-exporter = 9110;
     prometheus-jellyfin-exporter = 9111;
+    prometheus-mqtt-exporter = 9112;
     prowlarr = 9696;
     mealie = 9925;
     prometheus-alertmanager = 9995;

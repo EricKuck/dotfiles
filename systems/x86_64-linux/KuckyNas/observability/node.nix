@@ -44,7 +44,7 @@ let
             }
             {
               alert = "DiskSpaceLow";
-              expr = ''(node_filesystem_avail_bytes{fstype!~"(ramfs|tmpfs)"} / node_filesystem_size_bytes) * 100 < 10'';
+              expr = ''round((node_filesystem_avail_bytes{fstype!~"(ramfs|tmpfs)"} / node_filesystem_size_bytes) * 100, 0.01) < 10'';
               annotations = {
                 summary = "Filesystem space use > 90%";
                 description = ''S{{ $value }}% free on {{ $labels.mountpoint }}'';
@@ -52,7 +52,7 @@ let
             }
             {
               alert = "LowMemory";
-              expr = ''(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 10'';
+              expr = ''round((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100, 0.01) < 10'';
               for = "5m";
               annotations = {
                 summary = "Running out of memory";
@@ -61,7 +61,7 @@ let
             }
             {
               alert = "MemoryPressure";
-              expr = ''rate(node_vmstat_pgmajfault[5m]) > 1000'';
+              expr = ''round(rate(node_vmstat_pgmajfault[5m]), 0.01) > 1000'';
               annotations = {
                 summary = "Under memory pressure";
                 description = ''The node is under heavy memory pressure: {{ $value }}'';
