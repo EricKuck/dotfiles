@@ -78,7 +78,23 @@ in
             ];
             group_wait = "0s";
             group_interval = "1s";
-            repeat_interval = "1h";
+            repeat_interval = "4h";
+
+            routes = [
+              {
+                match = {
+                  no_repeat = "true";
+                };
+                receiver = "discord";
+                group_by = [
+                  "alertname"
+                  "instance"
+                ];
+                group_wait = "0s";
+                group_interval = "1s";
+                repeat_interval = "30d";
+              }
+            ];
           };
 
           receivers = [

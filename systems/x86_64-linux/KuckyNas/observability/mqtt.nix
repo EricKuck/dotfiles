@@ -17,6 +17,10 @@ let
             {
               alert = "ZigbeeDeviceUnavailable";
               expr = ''mqtt_zigbee_availability == 0'';
+              for = "1m";
+              labels = {
+                no_repeat = true;
+              };
               annotations = {
                 summary = "Zigbee device has become unavailable";
                 description = ''Device topic: {{ $labels.topic }}'';

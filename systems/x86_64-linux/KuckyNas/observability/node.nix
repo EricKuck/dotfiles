@@ -52,11 +52,11 @@ let
             }
             {
               alert = "LowMemory";
-              expr = ''round((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100, 0.01) < 10'';
+              expr = ''round(node_memory_MemAvailable_bytes / 1024 / 1024 / 1024, 0.01) < 5'';
               for = "5m";
               annotations = {
                 summary = "Running out of memory";
-                description = ''Node memory is filling up: {{ $value }}% remaining'';
+                description = ''Node memory is filling up: {{ $value }}GB remaining'';
               };
             }
             {
