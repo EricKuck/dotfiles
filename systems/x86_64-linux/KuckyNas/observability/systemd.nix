@@ -4,55 +4,25 @@
   pkgs,
   ...
 }:
-let
-  port = config.ports.prometheus-systemd-exporter;
-
-  rules = [
-    {
-      groups = [
-        {
-          name = "systemd";
-          rules = [
-            {
-              alert = "UnitFailure";
-              expr = ''systemd_unit_state{state="failed"} > 0'';
-              annotations = {
-                summary = "Systemd unit failed";
-                description = ''{{ $labels.name }}'';
-              };
-            }
-          ];
-        }
-      ];
-    }
-  ];
-
-  ruleFile = pkgs.writeTextFile {
-    name = "systemd-rules.yaml";
-    text = lib.generators.toYAML { } (builtins.head rules);
-  };
-in
 {
-  services.prometheus = {
-    exporters = {
-      systemd = {
-        enable = true;
-        port = port;
-      };
-    };
-
-    scrapeConfigs = [
+  services.custom.prometheus-exporters.systemd = {
+    enable = true;
+    port = config.ports.prometheus-systemd-exporter;
+    systemd.execStart = "${lib.getExe pkgs.prometheus-systemd-exporter} --web.listen-address localhost:${toString config.ports.prometheus-systemd-exporter}";
+    rules = [
       {
-        job_name = "systemd";
-        scrape_interval = "10s";
-        static_configs = [
+        name = "systemd";
+        rules = [
           {
-            targets = [ "localhost:${toString port}" ];
+            alert = "UnitFailure";
+            expr = ''systemd_unit_state{state="failed"} > 0'';
+            annotations = {
+              summary = "Systemd unit failed";
+              description = ''{{ $labels.name }}'';
+            };
           }
         ];
       }
     ];
-
-    ruleFiles = [ ruleFile ];
   };
 }
