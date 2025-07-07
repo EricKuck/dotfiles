@@ -229,7 +229,7 @@ in
         "jordanbaird-ice"
         "visual-studio-code"
         "istat-menus"
-        "docker"
+        "docker-desktop"
         "mullvad-vpn"
         "bettertouchtool"
         "karabiner-elements"

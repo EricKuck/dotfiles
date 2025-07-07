@@ -16,7 +16,8 @@ let
     else
       "${config.snowfallorg.user.home}/Android/Sdk";
   jdk_dir =
-    version: "${pkgs."zulu${builtins.toString version}"}/zulu-${builtins.toString version}.jdk";
+    version:
+    "${pkgs."zulu${toString version}"}/Library/Java/JavaVirtualMachines/zulu-${toString version}.jdk";
   java_home = version: "${jdk_dir version}/Contents/Home";
   set_java_home = version: "set -x JAVA_HOME ${java_home version}";
 in

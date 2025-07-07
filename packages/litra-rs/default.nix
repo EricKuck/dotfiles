@@ -26,8 +26,6 @@ rustPlatform.buildRustPackage {
     makeBinaryWrapper
   ];
 
-  buildInputs = lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.SystemConfiguration ];
-
   doCheck = false;
 
   cargoHash = "sha256-8g6YhwBgclNawnL8c0GDTT73TOS/+9UB1m2BOkz2ynU=";
