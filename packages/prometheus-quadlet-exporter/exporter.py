@@ -32,20 +32,22 @@ class QuadletSystemCollector:
 
         with DBus(user_mode=True) as bus:
             for file in os.listdir(quadlet_dir):
+                file_stem = Path(file).stem
+
                 config = SystemdUnitParser()
                 config.read(os.path.join(quadlet_dir, file))
 
                 if file.endswith(".container"):
                     object_name = config.get("Container", "ContainerName")
-                    service_name = f"{Path(file).stem}.service"
+                    service_name = f"{file_stem}.service"
                     metric_family = quadlet_containers
                 elif file.endswith(".network"):
                     object_name = config.get("Network", "NetworkName")
-                    service_name = f"{Path(file).stem}-network.service"
+                    service_name = f"{file_stem}-network.service"
                     metric_family = quadlet_networks
                 elif file.endswith(".pod"):
                     object_name = config.get("Pod", "PodName")
-                    service_name = f"{Path(file).stem}-pod.service"
+                    service_name = f"{file_stem}-pod.service"
                     metric_family = quadlet_pods
                 else:
                     continue
@@ -56,7 +58,9 @@ class QuadletSystemCollector:
                 sub_state = unit.Unit.SubState.decode("utf-8")
                 result = unit.Service.Result.decode("utf-8")
 
-                metric_family.add_metric([object_name, state, sub_state, result], 1)
+                metric_family.add_metric(
+                    [object_name, service_name, state, sub_state, result], 1
+                )
 
         yield quadlet_containers
         yield quadlet_networks
@@ -66,7 +70,7 @@ class QuadletSystemCollector:
         return GaugeMetricFamily(
             name,
             description,
-            labels=["name", "state", "sub_state", "result"],
+            labels=["name", "service_name", "state", "sub_state", "result"],
         )
 
 

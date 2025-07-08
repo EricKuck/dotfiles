@@ -1,6 +1,7 @@
 { config, ... }:
 {
   systemd.services.alloy.serviceConfig.SupplementaryGroups = [ "caddy" ];
+  users.users.loki.extraGroups = [ "caddy" ];
 
   environment.etc."alloy/config.alloy".text = ''
     local.file_match "caddy_access_log" {

@@ -34,8 +34,6 @@ in
 {
   imports = lib.fileset.toList (lib.fileset.fileFilter (file: file.name != "default.nix") ./.);
 
-  users.users.loki.extraGroups = [ "caddy" ];
-
   sops.secrets.alertmanager_discord_webhook = {
     owner = "alertmanager";
     group = "alertmanager";
@@ -189,50 +187,6 @@ in
     loki.write "default" {
       endpoint {
         url = "http://localhost:${toString config.ports.loki}/loki/api/v1/push"
-      }
-    }
-
-    // system journald
-    discovery.relabel "systemd_journal" {
-      targets = []
-
-      rule {
-        action        = "drop"
-        source_labels = ["__journal__systemd_user_unit"]
-        regex         = ".*"
-      }
-
-      rule {
-        source_labels = ["__journal__systemd_unit"]
-        target_label  = "unit"
-      }
-    }
-
-    loki.source.journal "systemd_journal" {
-      max_age       = "48h0m0s"
-      forward_to    = [loki.write.default.receiver]
-      relabel_rules = discovery.relabel.systemd_journal.rules
-      labels        = {
-        component = "systemd_journal",
-      }
-    }
-
-    // user journald
-    discovery.relabel "user_systemd_journal" {
-      targets = []
-
-      rule {
-        source_labels = ["__journal__systemd_user_unit"]
-        target_label  = "unit"
-      }
-    }
-
-    loki.source.journal "user_systemd_journal" {
-      max_age       = "48h0m0s"
-      forward_to    = [loki.write.default.receiver]
-      relabel_rules = discovery.relabel.user_systemd_journal.rules
-      labels        = {
-        component = "user_systemd_journal",
       }
     }
   '';
