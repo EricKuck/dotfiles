@@ -32,7 +32,10 @@ let
 
   mkSystemdUnit = name: exporter: {
     Description = "Prometheus ${name} exporter";
-    After = [ "network.target" ];
+    After = [
+      "network.target"
+      "sops-nix.service"
+    ];
   };
 
   mkSystemdService = name: exporter: {

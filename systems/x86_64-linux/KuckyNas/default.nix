@@ -275,7 +275,7 @@ with lib.custom;
           "github.com/caddy-dns/cloudflare@v0.2.1"
           "github.com/EricKuck/caddy-docker-upstreams@v0.0.0-20250616194924-027669749ea0"
         ];
-        hash = "sha256-Rt8xFp5yvBLsFQILPCX+RPT/nfcR++D1gWelSuuuVBA=";
+        hash = "sha256-sjJJu6wRGMq7qStWHMLTRY36gRZfbp1D+G6vlQ5xc28=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {
@@ -415,6 +415,7 @@ with lib.custom;
       dockerCompat = true;
       defaultNetwork.settings.dns_enabled = true;
     };
+    quadlet.enable = true;
   };
 
   system = {
