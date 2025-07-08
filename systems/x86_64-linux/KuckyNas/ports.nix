@@ -52,6 +52,7 @@
     prometheus-jellyfin-exporter = 9111;
     prometheus-mqtt-exporter = 9112;
     prowlarr = 9696;
+    huntarr = 9705;
     mealie = 9925;
     prometheus-alertmanager = 9995;
     loki = 9996;
@@ -62,6 +63,7 @@
     wyoming-whisper = 10300;
     wyoming-openwakeword = 10400;
     scrypted = 10443;
+    cleanuparr = 11011;
     syncthing_discovery = 21027;
     syncthing_sync = 22000;
     wireguard = 51820;

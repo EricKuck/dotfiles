@@ -5,6 +5,8 @@ let
   RADARR_CONTAINER_PATH = "/kuckyjar/container/radarr";
   BAZARR_CONTAINER_PATH = "/kuckyjar/container/bazarr";
   PROFILARR_CONTAINER_PATH = "/kuckyjar/container/profilarr";
+  CLEANUPARR_CONTAINER_PATH = "/kuckyjar/container/cleanuparr";
+  HUNTARR_CONTAINER_PATH = "/kuckyjar/container/huntarr";
   MYLAR3_CONTAINER_PATH = "/kuckyjar/container/mylar3";
   TORRENT_DL_PATH = "/kuckyjar/container/qbittorrent/downloads";
   inherit (config.virtualisation.quadlet) containers networks;
@@ -183,6 +185,58 @@ in
             "caddy.host=profilarr.kuck.ing"
           ];
           user = "3992:3992";
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
+      cleanuparr = {
+        containerConfig = {
+          image = "ghcr.io/cleanuparr/cleanuparr:latest";
+          name = "cleanuparr";
+          autoUpdate = "registry";
+          environments = {
+            PUID = "0";
+            PGID = "0";
+            TZ = "America/New_York";
+          };
+          volumes = [
+            "${CLEANUPARR_CONTAINER_PATH}/config:/config"
+          ];
+          publishPorts = [
+            "${toString osConfig.ports.cleanuparr}:11011"
+          ];
+          labels = [
+            "caddy.enable=true"
+            "caddy.host=cleanuparr.kuck.ing"
+          ];
+          user = "3993:3993";
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
+      huntarr = {
+        containerConfig = {
+          image = "ghcr.io/plexguide/huntarr:latest";
+          name = "huntarr";
+          autoUpdate = "registry";
+          environments = {
+            TZ = "America/New_York";
+          };
+          volumes = [
+            "${HUNTARR_CONTAINER_PATH}/config:/config"
+          ];
+          publishPorts = [
+            "${toString osConfig.ports.huntarr}:9705"
+          ];
+          labels = [
+            "caddy.enable=true"
+            "caddy.host=huntarr.kuck.ing"
+          ];
+          user = "3994:3994";
         };
         serviceConfig = {
           Restart = "always";
