@@ -34,7 +34,7 @@ in
 {
   imports = lib.fileset.toList (lib.fileset.fileFilter (file: file.name != "default.nix") ./.);
 
-  sops.secrets.alertmanager_discord_webhook = {
+  sops.secrets.alertmanager_pagerduty_key = {
     owner = "alertmanager";
     group = "alertmanager";
     mode = "0400";
@@ -69,7 +69,7 @@ in
           global.resolve_timeout = "5m";
 
           route = {
-            receiver = "discord";
+            receiver = "pagerduty";
             group_by = [
               "alertname"
               "instance"
@@ -83,7 +83,7 @@ in
                 match = {
                   no_repeat = "true";
                 };
-                receiver = "discord";
+                receiver = "pagerduty";
                 group_by = [
                   "alertname"
                   "instance"
@@ -97,10 +97,10 @@ in
 
           receivers = [
             {
-              name = "discord";
-              discord_configs = [
+              name = "pagerduty";
+              pagerduty_configs = [
                 {
-                  webhook_url_file = config.sops.secrets.alertmanager_discord_webhook.path;
+                  service_key_file = config.sops.secrets.alertmanager_pagerduty_key.path;
                 }
               ];
             }
