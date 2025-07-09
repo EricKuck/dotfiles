@@ -164,6 +164,58 @@ in
               };
             };
           };
+          # Disable builtin keyboard shortcuts
+          "pbs" = {
+            "com.apple.ChineseTextConverterService - Convert Text from Simplified to Traditional Chinese - convertTextToTraditionalChinese" =
+              {
+                "enabled_context_menu" = 0;
+                "enabled_services_menu" = 0;
+                "presentation_modes" = {
+                  ContextMenu = 1;
+                  ServicesMenu = 0;
+                };
+              };
+            "com.apple.ChineseTextConverterService - Convert Text from Traditional to Simplified Chinese - convertTextToSimplifiedChinese" =
+              {
+                "enabled_context_menu" = 0;
+                "enabled_services_menu" = 0;
+                "presentation_modes" = {
+                  ContextMenu = 0;
+                  ServicesMenu = 0;
+                };
+              };
+            "com.apple.Safari -   Search With %WebSearchProvider@ - searchWithWebSearchProvider" = {
+              "enabled_context_menu" = 0;
+              "enabled_services_menu" = 0;
+              "presentation_modes" = {
+                ContextMenu = 0;
+                ServicesMenu = 0;
+              };
+            };
+            "com.apple.Stickies - Make Sticky - makeStickyFromTextService" = {
+              "enabled_services_menu" = 0;
+              "presentation_modes" = {
+                ContextMenu = 0;
+                ServicesMenu = 0;
+              };
+            };
+            "com.apple.Terminal - Open man Page in Terminal - openManPage" = {
+              "enabled_context_menu" = 0;
+              "enabled_services_menu" = 0;
+              "presentation_modes" = {
+                ContextMenu = 0;
+                ServicesMenu = 0;
+              };
+            };
+            "com.apple.Terminal - Search man Page Index in Terminal - searchManPages" = {
+              "enabled_context_menu" = 0;
+              "enabled_services_menu" = 0;
+              "presentation_modes" = {
+                ContextMenu = 0;
+                ServicesMenu = 0;
+              };
+            };
+          };
         };
       };
     };
