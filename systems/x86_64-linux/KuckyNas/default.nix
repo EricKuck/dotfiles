@@ -126,15 +126,16 @@ with lib.custom;
       };
       upsmon_user_hashed_pw.neededForUsers = true;
       tailscale_auth.neededForUsers = true;
+      caddy_env = { };
       immich_api_key.owner = "eric";
       eric_icloud_username.owner = "eric";
-      caddy_env = { };
       karakeep_env.owner = "eric";
       immich_server_env.owner = "eric";
       immich_db_env.owner = "eric";
       rmfakecloud_env.owner = "eric";
       paperless_env.owner = "eric";
       paperless_postgres_env.owner = "eric";
+      vaultwarden_env.owner = "eric";
     };
   };
 
@@ -282,6 +283,12 @@ with lib.custom;
           mode 640
         }
         level INFO
+        format filter {
+          request>headers>Cookie cookie {
+            replace session REDACTED
+            delete secret
+          }
+        }
       '';
       environmentFile = config.sops.secrets.caddy_env.path;
       globalConfig = ''

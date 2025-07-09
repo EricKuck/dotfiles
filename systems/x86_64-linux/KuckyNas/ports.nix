@@ -34,6 +34,7 @@
     syncthing = 8384;
     unifi = 8443;
     freshrss = 8487;
+    vaultwarden = 8488;
     sonarr = 8989;
     mosquitto_mqtt-websockets = 9001;
     qbittorrent = 9090;
