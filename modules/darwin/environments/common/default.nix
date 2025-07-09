@@ -217,7 +217,7 @@ in
 
       # TODO: add autostart entries?
       casks = [
-        "1password"
+        "bitwarden"
         "arc"
         "battery"
         "obsidian"

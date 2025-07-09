@@ -16,6 +16,7 @@ hs.hotkey.bind(hyper, 'b', function() launch('Arc', 'company.thebrowser.Browser'
 hs.hotkey.bind(hyper, 'm', function() launch('Spotify', 'com.spotify.client') end)
 hs.hotkey.bind(hyper, 's', function() launch('Slack', 'com.tinyspeck.slackmacgap') end)
 hs.hotkey.bind(hyper, 't', function() launch('Ghostty', 'com.mitchellh.ghostty') end)
+hs.hotkey.bind('cmd', '\\', function() hs.application.launchOrFocus('Bitwarden') end)
 
 -- Force paste
 hs.hotkey.bind(hyper, "v", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
