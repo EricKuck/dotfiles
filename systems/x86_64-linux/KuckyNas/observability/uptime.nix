@@ -74,7 +74,8 @@ let
       builtins.map (
         name:
         let
-          labels = containers.${name}.containerConfig.labels or [ ];
+          rawLabels = containers.${name}.containerConfig.labels or [ ];
+          labels = if builtins.isAttrs rawLabels then builtins.attrValues rawLabels else rawLabels;
         in
         builtins.map
           (

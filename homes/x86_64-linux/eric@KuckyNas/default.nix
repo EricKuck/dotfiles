@@ -90,7 +90,7 @@ with lib.custom;
 
     timers = {
       sync-cloud-photos = {
-        Unit.Description = "Sync photos from iCloud & Google Photos, sync with Immich";
+        Unit.Description = "Sync photos from iCloud, sync with Immich";
         Timer = {
           Unit = "sync-cloud-photos.service";
           OnBootSec = "1h";
