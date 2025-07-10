@@ -143,7 +143,7 @@ in
         rules = [
           {
             alert = "ServiceOutage";
-            expr = "probe_success == 0";
+            expr = ''probe_success{job!="icmp_probe"} == 0'';
             annotations = {
               summary = "Service probe failed";
               description = ''Failed on {{ $labels.target }}'';
