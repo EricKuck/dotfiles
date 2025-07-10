@@ -7,7 +7,7 @@ let
   WAKEWORD_CONTAINER_PATH = "/kuckyjar/container/wyoming-openwakeword";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       homeassistant = {
         containerConfig = {
@@ -38,7 +38,6 @@ in
           environments = {
             PUID = "1240";
             PGID = "1240";
-            TZ = "America/New_York";
           };
           volumes = [
             "${MUSIC_CONTAINER_PATH}/data:/data"

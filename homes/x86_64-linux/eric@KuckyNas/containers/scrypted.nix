@@ -3,7 +3,7 @@ let
   CONTAINER_PATH = "/kuckyjar/container/scrypted";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       scrypted = {
         containerConfig = {

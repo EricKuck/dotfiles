@@ -4,7 +4,7 @@ let
   inherit (config.virtualisation.quadlet) containers networks pods;
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     networks.karakeep.networkConfig.driver = "bridge";
 
     pods.karakeep = { };

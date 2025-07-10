@@ -17,8 +17,8 @@ let
   };
 
   backups = [
-    "/Users/eric"
-    "/Users/eric/Code" # Needed as separate entry since it's a volume
+    config.meta.flake.ownerHome
+    "${config.meta.flake.ownerHome}/Code" # Needed as separate entry since it's a volume
   ];
 in
 {

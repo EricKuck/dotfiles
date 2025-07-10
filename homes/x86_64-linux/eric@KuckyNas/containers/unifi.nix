@@ -3,16 +3,13 @@ let
   CONTAINER_PATH = "/kuckyjar/container/unifi";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       unifi = {
         containerConfig = {
           image = "docker.io/jacobalberty/unifi";
           name = "unifi";
           autoUpdate = "registry";
-          environments = {
-            TZ = "America/New_York";
-          };
           volumes = [
             "${CONTAINER_PATH}:/unifi"
           ];

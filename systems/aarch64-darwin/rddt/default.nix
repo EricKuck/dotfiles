@@ -17,7 +17,7 @@ with lib.custom;
     programs = {
       nh = {
         enable = true;
-        flake = "path:/Users/eric/.config/nix";
+        flake = "path:${config.meta.flake.path}";
         clean = {
           enable = true;
           extraArgs = "--keep-since 4d --keep 3";

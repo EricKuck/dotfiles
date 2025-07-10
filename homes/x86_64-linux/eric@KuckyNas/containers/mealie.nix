@@ -3,7 +3,7 @@ let
   CONTAINER_PATH = "/kuckyjar/container/mealie";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       mealie = {
         containerConfig = {
@@ -17,7 +17,6 @@ in
             ALLOW_SIGNUP = "true";
             PUID = "1076";
             PGID = "1076";
-            TZ = "America/New_York";
             MAX_WORKERS = "1";
           };
           volumes = [

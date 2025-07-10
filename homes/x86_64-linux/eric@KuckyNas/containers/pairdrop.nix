@@ -3,7 +3,7 @@ let
   CONTAINER_PATH = "/kuckyjar/container/pairdrop";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       pairdrop = {
         containerConfig = {

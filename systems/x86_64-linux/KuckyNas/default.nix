@@ -21,7 +21,7 @@ with lib.custom;
     programs = {
       nh = {
         enable = true;
-        flake = "path:/home/eric/.config/nixos";
+        flake = "path:${config.meta.flake.path}";
         clean = {
           enable = true;
           extraArgs = "--keep-since 4d --keep 3";
@@ -84,14 +84,14 @@ with lib.custom;
 
   security.wrappers = {
     kopia = {
-      owner = config.users.users.eric.name;
-      group = config.users.users.eric.group;
+      owner = config.meta.flake.owner;
+      group = config.users.users."${config.meta.flake.owner}".group;
       capabilities = "cap_dac_read_search=+ep";
       source = lib.getExe' pkgs.kopia "kopia";
     };
     kopia-backup-all = {
-      owner = config.users.users.eric.name;
-      group = config.users.users.eric.group;
+      owner = config.meta.flake.owner;
+      group = config.users.users."${config.meta.flake.owner}".group;
       capabilities = "cap_dac_read_search=+ep";
       source = lib.custom.scripts.kopia-backup pkgs;
     };
@@ -108,7 +108,7 @@ with lib.custom;
   };
 
   hardware.cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
-  time.timeZone = "America/New_York";
+  time.timeZone = config.meta.timezone;
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
     font = "Lat2-Terminus16";
@@ -118,7 +118,7 @@ with lib.custom;
 
   sops = {
     defaultSopsFile = lib.snowfall.fs.get-file "secrets/kuckynas.yaml";
-    age.sshKeyPaths = [ "${config.users.users.eric.home}/.ssh/id_ed25519_sops" ];
+    age.sshKeyPaths = [ "${config.meta.flake.ownerHome}/.ssh/id_ed25519_sops" ];
     secrets = {
       upsmon_user_pw = {
         mode = "0440";
@@ -127,15 +127,15 @@ with lib.custom;
       upsmon_user_hashed_pw.neededForUsers = true;
       tailscale_auth.neededForUsers = true;
       caddy_env = { };
-      immich_api_key.owner = "eric";
-      eric_icloud_username.owner = "eric";
-      karakeep_env.owner = "eric";
-      immich_server_env.owner = "eric";
-      immich_db_env.owner = "eric";
-      rmfakecloud_env.owner = "eric";
-      paperless_env.owner = "eric";
-      paperless_postgres_env.owner = "eric";
-      vaultwarden_env.owner = "eric";
+      immich_api_key.owner = config.meta.flake.owner;
+      eric_icloud_username.owner = config.meta.flake.owner;
+      karakeep_env.owner = config.meta.flake.owner;
+      immich_server_env.owner = config.meta.flake.owner;
+      immich_db_env.owner = config.meta.flake.owner;
+      rmfakecloud_env.owner = config.meta.flake.owner;
+      paperless_env.owner = config.meta.flake.owner;
+      paperless_postgres_env.owner = config.meta.flake.owner;
+      vaultwarden_env.owner = config.meta.flake.owner;
     };
   };
 
@@ -145,7 +145,7 @@ with lib.custom;
         hashedPassword = "!";
       };
 
-      eric = {
+      "${config.meta.flake.owner}" = {
         isNormalUser = true;
         extraGroups = [
           "wheel"
@@ -252,7 +252,7 @@ with lib.custom;
           writeable = "no";
           browseable = "yes";
           "guest ok" = "yes";
-          "force user" = "eric";
+          "force user" = config.meta.flake.owner;
           "force group" = "users";
         };
       };
@@ -374,7 +374,7 @@ with lib.custom;
         description = "Proxy to rootless podman socket";
         serviceConfig = {
           ExecStart = "${pkgs.systemd}/lib/systemd/systemd-socket-proxyd /run/user/1000/podman/podman.sock";
-          User = "eric";
+          User = config.meta.flake.owner;
           Group = "users";
           Restart = "on-failure";
         };

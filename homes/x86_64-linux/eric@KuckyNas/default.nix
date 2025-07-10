@@ -118,6 +118,4 @@ with lib.custom;
       onCalendar = "*-*-* 03:00:00";
     };
   };
-
-  virtualisation.quadlet.autoEscape = true;
 }

@@ -5,7 +5,7 @@ let
   inherit (config.virtualisation.quadlet) containers networks pods;
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     networks.paperless.networkConfig.driver = "bridge";
 
     pods.paperless = { };
@@ -47,8 +47,7 @@ in
             USERMAP_UID = "1026";
             USERMAP_GID = "101";
             PAPERLESS_OCR_LANGUAGES = "eng";
-            TZ = "America/New_York";
-            PAPERLESS_TIME_ZONE = "America/New_York";
+            PAPERLESS_TIME_ZONE = osConfig.meta.timezone;
             PAPERLESS_OCR_LANGUAGE = "eng";
           };
           environmentFiles = [ osConfig.sops.secrets.paperless_env.path ];

@@ -12,7 +12,7 @@ let
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       flaresolverr = {
         containerConfig = {
@@ -36,7 +36,6 @@ in
           environments = {
             PUID = "1044";
             PGID = "1044";
-            TZ = "America/New_York";
           };
           volumes = [
             "${PROWLARR_CONTAINER_PATH}/config:/config"
@@ -67,7 +66,6 @@ in
           environments = {
             PUID = "1072";
             PGID = "1072";
-            TZ = "America/New_York";
           };
           volumes = [
             "${SONARR_CONTAINER_PATH}/config:/config"
@@ -106,7 +104,6 @@ in
           environments = {
             PUID = "1072";
             PGID = "1072";
-            TZ = "America/New_York";
           };
           volumes = [
             "${RADARR_CONTAINER_PATH}/config:/config"
@@ -145,7 +142,6 @@ in
           environments = {
             PUID = "1072";
             PGID = "1072";
-            TZ = "America/New_York";
           };
           volumes = [
             "${BAZARR_CONTAINER_PATH}/config:/config"
@@ -171,9 +167,6 @@ in
           image = "docker.io/santiagosayshey/profilarr:latest";
           name = "profilarr";
           autoUpdate = "registry";
-          environments = {
-            TZ = "America/New_York";
-          };
           volumes = [
             "${PROFILARR_CONTAINER_PATH}/config:/config"
           ];
@@ -199,7 +192,6 @@ in
           environments = {
             PUID = "0";
             PGID = "0";
-            TZ = "America/New_York";
           };
           volumes = [
             "${CLEANUPARR_CONTAINER_PATH}/config:/config"
@@ -223,9 +215,6 @@ in
           image = "ghcr.io/plexguide/huntarr:latest";
           name = "huntarr";
           autoUpdate = "registry";
-          environments = {
-            TZ = "America/New_York";
-          };
           volumes = [
             "${HUNTARR_CONTAINER_PATH}/config:/config"
           ];
@@ -251,7 +240,6 @@ in
           environments = {
             PUID = "1072";
             PGID = "1072";
-            TZ = "America/New_York";
           };
           volumes = [
             "${MYLAR3_CONTAINER_PATH}/config:/config"

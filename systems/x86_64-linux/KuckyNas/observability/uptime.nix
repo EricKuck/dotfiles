@@ -68,7 +68,7 @@ let
 
   containerUrls =
     let
-      containers = config.home-manager.users.eric.virtualisation.quadlet.containers;
+      containers = config.home-manager.users."${config.meta.flake.owner}".quadlets.containers;
     in
     builtins.concatLists (
       builtins.map (

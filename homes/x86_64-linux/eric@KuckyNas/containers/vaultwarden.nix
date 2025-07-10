@@ -4,7 +4,7 @@ let
   HOST = "pass.kuck.ing";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       vaultwarden = {
         containerConfig = {
@@ -12,7 +12,6 @@ in
           name = "vaultwarden";
           autoUpdate = "registry";
           environments = {
-            TZ = "America/New_York";
             DOMAIN = "https://${HOST}";
             PUSH_ENABLED = "true";
             SMTP_HOST = "mail.smtp2go.com";

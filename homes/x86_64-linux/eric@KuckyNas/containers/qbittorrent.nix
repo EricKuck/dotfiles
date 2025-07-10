@@ -4,7 +4,7 @@ let
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       qbittorrent = {
         containerConfig = {
@@ -14,7 +14,6 @@ in
           environments = {
             PUID = "1072";
             PGID = "1072";
-            TZ = "America/New_York";
             UMASK = "022";
             WEBUI_PORT = "9090";
             TORRENTING_PORT = "6881";

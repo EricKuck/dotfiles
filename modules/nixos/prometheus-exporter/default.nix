@@ -205,14 +205,15 @@ in
       };
     }) exportersWithSystemServices;
 
-    home-manager.users.eric.systemd.user.services = lib.mapAttrs' (name: exporter: {
-      name = "prometheus-${name}-exporter";
-      value = {
-        Unit = mkSystemdUnit name exporter;
-        Service = mkSystemdService name exporter;
-        Install.WantedBy = [ "default.target" ];
-      };
-    }) exportersWithUserServices;
+    home-manager.users."${config.meta.flake.owner}".systemd.user.services = lib.mapAttrs' (
+      name: exporter: {
+        name = "prometheus-${name}-exporter";
+        value = {
+          Unit = mkSystemdUnit name exporter;
+          Service = mkSystemdService name exporter;
+          Install.WantedBy = [ "default.target" ];
+        };
+      }) exportersWithUserServices;
 
     services.prometheus = {
       scrapeConfigs = lib.mkBefore (

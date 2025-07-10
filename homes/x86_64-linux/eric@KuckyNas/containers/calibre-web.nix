@@ -5,7 +5,7 @@ let
   inherit (config.virtualisation.quadlet) networks;
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     networks.calibre.networkConfig.driver = "bridge";
     containers = {
       calibre = {
@@ -14,7 +14,6 @@ in
           name = "calibre-web-automated";
           autoUpdate = "registry";
           environments = {
-            TZ = "America/New_York";
             PUID = "1072";
             PGID = "1072";
           };
@@ -43,7 +42,6 @@ in
           name = "calibre-web-automated-m";
           autoUpdate = "registry";
           environments = {
-            TZ = "America/New_York";
             PUID = "1072";
             PGID = "1072";
           };

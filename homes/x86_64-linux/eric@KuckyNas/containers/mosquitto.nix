@@ -3,7 +3,7 @@ let
   CONTAINER_PATH = "/kuckyjar/container/mosquitto";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       mosquitto = {
         containerConfig = {

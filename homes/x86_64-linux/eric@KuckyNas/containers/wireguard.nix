@@ -4,7 +4,7 @@ let
   inherit (config.virtualisation.quadlet) networks;
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     networks.wireguard.networkConfig.driver = "bridge";
 
     containers = {
@@ -16,7 +16,6 @@ in
           environments = {
             PUID = "1048";
             PGID = "1048";
-            TZ = "America/New_York";
           };
           volumes = [
             "${CONTAINER_PATH}/config:/config"

@@ -1,9 +1,9 @@
 {
+  config,
   lib,
   pkgs,
   inputs,
   system,
-  config,
   ...
 }:
 
@@ -27,7 +27,7 @@ let
   };
 
   codeVolume = "Code";
-  codeMountPoint = "/Users/eric/Code";
+  codeMountPoint = "${config.meta.flake.ownerHome}/Code";
   codeMountOptions = "rw,noauto,nobrowse,suid,owners";
   codeKeychainEntry = "CodeVolume";
 in
@@ -38,7 +38,7 @@ in
 
   config = mkIf cfg.enable {
     system = {
-      primaryUser = "eric";
+      primaryUser = config.meta.flake.owner;
 
       activationScripts.userScript.text = ''
         #!${lib.getExe pkgs.bash}

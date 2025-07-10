@@ -3,7 +3,7 @@ let
   CONTAINER_PATH = "/kuckyjar/container/syncthing";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       syncthing = {
         containerConfig = {
@@ -13,7 +13,6 @@ in
           environments = {
             PGID = "1008";
             PUID = "1008";
-            TZ = "America/New_York";
           };
           volumes = [
             "${CONTAINER_PATH}/config:/config"

@@ -21,7 +21,7 @@ with lib.custom;
     programs = {
       nh = {
         enable = true;
-        flake = "path:/Users/eric/.config/nix";
+        flake = "path:${config.meta.flake.path}";
         clean = {
           enable = true;
           extraArgs = "--keep-since 4d --keep 3";
@@ -32,7 +32,7 @@ with lib.custom;
 
   sops = {
     defaultSopsFile = lib.snowfall.fs.get-file "secrets/ekmbp.yaml";
-    age.sshKeyPaths = [ "${config.users.users.eric.home}/.ssh/id_ed25519_sops" ];
+    age.sshKeyPaths = [ "${config.meta.flake.ownerHome}/.ssh/id_ed25519_sops" ];
     secrets = {
       btt_license = { };
       istat_menus_license = { };
@@ -61,6 +61,7 @@ with lib.custom;
       WireGuard = 1451685025;
       Infuse = 1136220934;
       "MQTT Explorer" = 1455214828;
+      PagerCall = 6740581987;
     };
   };
 

@@ -6,7 +6,7 @@ let
   SUGGEST_CONTAINER_PATH = "/kuckyjar/container/suggestarr";
 in
 {
-  virtualisation.quadlet = {
+  quadlets = {
     containers = {
       jellyfin = {
         containerConfig = {
@@ -20,7 +20,6 @@ in
             PGID = "1004";
             PUID = "1004";
             JELLYFIN_PublishedServerUrl = "192.168.1.2";
-            TZ = "America/New_York";
           };
           volumes = [
             "${FIN_CONTAINER_PATH}/config:/config"
@@ -47,9 +46,6 @@ in
           image = "docker.io/fallenbagel/jellyseerr:latest";
           name = "jellyseerr";
           autoUpdate = "registry";
-          environments = {
-            TZ = "America/New_York";
-          };
           volumes = [
             "${SEER_CONTAINER_PATH}/config:/app/config"
           ];
@@ -71,9 +67,6 @@ in
           image = "docker.io/tannermiddleton/recommendarr:latest";
           name = "recommendarr";
           autoUpdate = "registry";
-          environments = {
-            TZ = "America/New_York";
-          };
           volumes = [
             "${RECOMMEND_CONTAINER_PATH}/data:/app/server/data"
           ];
@@ -95,9 +88,6 @@ in
           image = "docker.io/ciuse99/suggestarr:latest";
           name = "suggestarr";
           autoUpdate = "registry";
-          environments = {
-            TZ = "America/New_York";
-          };
           volumes = [
             "${SUGGEST_CONTAINER_PATH}/config:/app/config/config_files"
           ];
