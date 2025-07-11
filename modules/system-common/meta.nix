@@ -35,5 +35,9 @@
       type = lib.types.str;
       default = "America/New_York";
     };
+
+    containerData = lib.mkOption {
+      type = lib.types.str;
+    };
   };
 }

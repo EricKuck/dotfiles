@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/immich";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/immich";
   inherit (config.virtualisation.quadlet) containers networks pods;
 in
 {

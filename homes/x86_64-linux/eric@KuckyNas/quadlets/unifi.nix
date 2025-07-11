@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/unifi";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/unifi";
 in
 {
   quadlets = {

@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/qbittorrent";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/qbittorrent";
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {

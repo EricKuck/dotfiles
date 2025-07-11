@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/karakeep";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/karakeep";
   inherit (config.virtualisation.quadlet) containers networks pods;
 in
 {

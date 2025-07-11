@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/freshrss";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/freshrss";
 in
 {
   quadlets = {

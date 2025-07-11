@@ -1,7 +1,7 @@
 { config, osConfig, ... }:
 let
-  RMCLOUD_CONTAINER_PATH = "/kuckyjar/container/rmfakecloud";
-  PAPERLESS_CONTAINER_PATH = "/kuckyjar/container/paperless";
+  RMCLOUD_CONTAINER_PATH = "${osConfig.meta.containerData}/rmfakecloud";
+  PAPERLESS_CONTAINER_PATH = "${osConfig.meta.containerData}/paperless";
   inherit (config.virtualisation.quadlet) containers networks pods;
 in
 {

@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/wireguard";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/wireguard";
   inherit (config.virtualisation.quadlet) networks;
 in
 {

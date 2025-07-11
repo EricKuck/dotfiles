@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/mosquitto";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/mosquitto";
 in
 {
   quadlets = {

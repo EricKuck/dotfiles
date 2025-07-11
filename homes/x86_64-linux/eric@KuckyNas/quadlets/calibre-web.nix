@@ -1,7 +1,7 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/calibre-web";
-  M_CONTAINER_PATH = "/kuckyjar/container/calibre-web-m";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/calibre-web";
+  M_CONTAINER_PATH = "${osConfig.meta.containerData}/calibre-web-m";
   inherit (config.virtualisation.quadlet) networks;
 in
 {

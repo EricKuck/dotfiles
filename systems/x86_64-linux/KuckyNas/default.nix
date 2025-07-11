@@ -31,6 +31,8 @@ with lib.custom;
     };
   };
 
+  meta.containerData = "/kuckyjar/container";
+
   hardware.coral.pcie.enable = true;
 
   boot = {

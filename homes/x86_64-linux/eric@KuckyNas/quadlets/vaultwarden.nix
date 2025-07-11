@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/vaultwarden";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/vaultwarden";
   HOST = "pass.kuck.ing";
 in
 {

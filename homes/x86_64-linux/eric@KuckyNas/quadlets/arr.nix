@@ -1,14 +1,14 @@
 { config, osConfig, ... }:
 let
-  PROWLARR_CONTAINER_PATH = "/kuckyjar/container/prowlarr";
-  SONARR_CONTAINER_PATH = "/kuckyjar/container/sonarr";
-  RADARR_CONTAINER_PATH = "/kuckyjar/container/radarr";
-  BAZARR_CONTAINER_PATH = "/kuckyjar/container/bazarr";
-  PROFILARR_CONTAINER_PATH = "/kuckyjar/container/profilarr";
-  CLEANUPARR_CONTAINER_PATH = "/kuckyjar/container/cleanuparr";
-  HUNTARR_CONTAINER_PATH = "/kuckyjar/container/huntarr";
-  MYLAR3_CONTAINER_PATH = "/kuckyjar/container/mylar3";
-  TORRENT_DL_PATH = "/kuckyjar/container/qbittorrent/downloads";
+  PROWLARR_CONTAINER_PATH = "${osConfig.meta.containerData}/prowlarr";
+  SONARR_CONTAINER_PATH = "${osConfig.meta.containerData}/sonarr";
+  RADARR_CONTAINER_PATH = "${osConfig.meta.containerData}/radarr";
+  BAZARR_CONTAINER_PATH = "${osConfig.meta.containerData}/bazarr";
+  PROFILARR_CONTAINER_PATH = "${osConfig.meta.containerData}/profilarr";
+  CLEANUPARR_CONTAINER_PATH = "${osConfig.meta.containerData}/cleanuparr";
+  HUNTARR_CONTAINER_PATH = "${osConfig.meta.containerData}/huntarr";
+  MYLAR3_CONTAINER_PATH = "${osConfig.meta.containerData}/mylar3";
+  TORRENT_DL_PATH = "${osConfig.meta.containerData}/qbittorrent/downloads";
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {

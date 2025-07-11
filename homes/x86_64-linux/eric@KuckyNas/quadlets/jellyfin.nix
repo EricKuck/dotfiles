@@ -1,9 +1,9 @@
 { config, osConfig, ... }:
 let
-  FIN_CONTAINER_PATH = "/kuckyjar/container/jellyfin";
-  SEER_CONTAINER_PATH = "/kuckyjar/container/jellyseer";
-  RECOMMEND_CONTAINER_PATH = "/kuckyjar/container/recommendarr";
-  SUGGEST_CONTAINER_PATH = "/kuckyjar/container/suggestarr";
+  FIN_CONTAINER_PATH = "${osConfig.meta.containerData}/jellyfin";
+  SEER_CONTAINER_PATH = "${osConfig.meta.containerData}/jellyseer";
+  RECOMMEND_CONTAINER_PATH = "${osConfig.meta.containerData}/recommendarr";
+  SUGGEST_CONTAINER_PATH = "${osConfig.meta.containerData}/suggestarr";
 in
 {
   quadlets = {

@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/obsidian-sync";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/obsidian-sync";
 in
 {
   quadlets = {

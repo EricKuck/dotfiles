@@ -1,6 +1,6 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "/kuckyjar/container/pairdrop";
+  CONTAINER_PATH = "${osConfig.meta.containerData}/pairdrop";
 in
 {
   quadlets = {

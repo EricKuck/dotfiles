@@ -1,10 +1,10 @@
 { config, osConfig, ... }:
 let
-  HA_CONTAINER_PATH = "/kuckyjar/container/homeassistant";
-  MUSIC_CONTAINER_PATH = "/kuckyjar/container/music-assistant";
-  PIPER_CONTAINER_PATH = "/kuckyjar/container/wyoming-piper";
-  WHISPER_CONTAINER_PATH = "/kuckyjar/container/wyoming-whisper";
-  WAKEWORD_CONTAINER_PATH = "/kuckyjar/container/wyoming-openwakeword";
+  HA_CONTAINER_PATH = "${osConfig.meta.containerData}/homeassistant";
+  MUSIC_CONTAINER_PATH = "${osConfig.meta.containerData}/music-assistant";
+  PIPER_CONTAINER_PATH = "${osConfig.meta.containerData}/wyoming-piper";
+  WHISPER_CONTAINER_PATH = "${osConfig.meta.containerData}/wyoming-whisper";
+  WAKEWORD_CONTAINER_PATH = "${osConfig.meta.containerData}/wyoming-openwakeword";
 in
 {
   quadlets = {
