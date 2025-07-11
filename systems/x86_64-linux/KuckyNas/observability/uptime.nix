@@ -20,10 +20,23 @@ let
 
       https_2xx = {
         prober = "http";
-        timeout = "5s";
+        timeout = "2s";
         http = {
           method = "GET";
           fail_if_not_ssl = true;
+        };
+      };
+
+      https_200_or_401 = {
+        prober = "http";
+        timeout = "2s";
+        http = {
+          method = "GET";
+          fail_if_not_ssl = true;
+          valid_status_codes = [
+            200
+            401
+          ];
         };
       };
 
@@ -116,7 +129,7 @@ in
         (blackboxTargets {
           job_name = "https_probe";
           scrape_interval = "1m";
-          modules = [ "https_2xx" ];
+          modules = [ "https_200_or_401" ];
           targets = caddyUrls;
         })
 

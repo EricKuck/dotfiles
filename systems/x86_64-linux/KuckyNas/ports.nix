@@ -35,6 +35,7 @@
     unifi = 8443;
     freshrss = 8487;
     vaultwarden = 8488;
+    obsidian-sync = 8489;
     sonarr = 8989;
     mosquitto_mqtt-websockets = 9001;
     qbittorrent = 9090;

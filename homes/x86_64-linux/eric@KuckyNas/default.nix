@@ -9,7 +9,7 @@
 with lib.custom;
 {
   imports = [
-    ./containers
+    ./quadlets
   ];
 
   custom = {
