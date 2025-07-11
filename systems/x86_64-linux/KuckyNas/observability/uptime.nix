@@ -18,18 +18,9 @@ let
         };
       };
 
-      https_2xx = {
-        prober = "http";
-        timeout = "2s";
-        http = {
-          method = "GET";
-          fail_if_not_ssl = true;
-        };
-      };
-
       https_200_or_401 = {
         prober = "http";
-        timeout = "2s";
+        timeout = "4s";
         http = {
           method = "GET";
           fail_if_not_ssl = true;

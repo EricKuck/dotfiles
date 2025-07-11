@@ -1,7 +1,7 @@
 {
-  inputs,
   lib,
   pkgs,
+  inputs,
   config,
   osConfig ? { },
   ...
@@ -13,37 +13,14 @@ with lib.custom;
   ];
 
   custom = {
-    cli-apps = {
-      common.enable = true;
+    environments.server = {
+      enable = true;
+      podman.enable = true;
     };
   };
 
-  home.packages = with pkgs; [
-    podman-compose
-    kopia
-    iotop
-    inputs.ghostty.packages.x86_64-linux.default
-  ];
-
   systemd.user = {
-    # Ensure the systemd services are (re)started on config change
-    startServices = "sd-switch";
-
     services = {
-      dns-ready = {
-        Unit = {
-          Description = "Wait for DNS to come up";
-          After = [ "network-online.target" ];
-        };
-        Service = {
-          Type = "oneshot";
-          ExecStart = "${lib.getExe pkgs.bash} -c 'until ${lib.getExe' pkgs.host "host"} google.com; do sleep 1; done'";
-        };
-        Install = {
-          WantedBy = [ "default.target" ];
-        };
-      };
-
       sync-cloud-photos = {
         Unit = {
           Description = "Sync photos from iCloud, sync with Immich";
@@ -60,32 +37,6 @@ with lib.custom;
           '';
         };
       };
-
-      kopia-backup-all = {
-        Unit = {
-          Description = "Kopia backup";
-          After = [ "network.target" ];
-        };
-        Service = {
-          Type = "oneshot";
-          TimeoutSec = 900;
-          ExecStart = "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia-backup-all.program}";
-        };
-      };
-
-      kopia-server = {
-        Unit = {
-          Description = "Start the kopia web ui server";
-          After = [ "dns-ready.service" ];
-        };
-        Service = {
-          Type = "simple";
-          ExecStart = "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia.program} server start --disable-csrf-token-checks --insecure --address=0.0.0.0:51515 --without-password";
-        };
-        Install = {
-          WantedBy = [ "default.target" ];
-        };
-      };
     };
 
     timers = {
@@ -98,24 +49,6 @@ with lib.custom;
         };
         Install.WantedBy = [ "timers.target" ];
       };
-
-      kopia-backup-all = {
-        Unit.Description = "Kopia backup schedule";
-        Timer = {
-          Unit = "kopia-backup-all.service";
-          OnBootSec = "1h";
-          OnUnitActiveSec = "1h";
-        };
-        Install.WantedBy = [ "timers.target" ];
-      };
-    };
-  };
-
-  services.podman = {
-    enable = true;
-    autoUpdate = {
-      enable = true;
-      onCalendar = "*-*-* 03:00:00";
     };
   };
 }

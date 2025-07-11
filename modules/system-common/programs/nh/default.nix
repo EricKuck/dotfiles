@@ -12,22 +12,16 @@ in
   options.custom.programs.nh = {
     enable = lib.mkEnableOption "nh";
 
-    flake = lib.mkOption {
-      type = lib.types.str;
-      description = ''
-        The path that will be used for the `NH_FLAKE` environment variable.
-
-        `NH_FLAKE` is used by nh as the default flake for performing actions, like `nh os switch`.
-      '';
-    };
-
     clean = {
-      enable = lib.mkEnableOption "periodic garbage collection with nh clean all";
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "periodic garbage collection with nh clean all";
+      };
 
       extraArgs = lib.mkOption {
         type = lib.types.singleLineStr;
-        default = "";
-        example = "--keep 5 --keep-since 3d";
+        default = "--keep-since 4d --keep 3";
         description = ''
           Options given to nh clean when the service is run automatically.
 
@@ -53,17 +47,12 @@ in
           assertion = cfg.clean.enable -> cfg.enable;
           message = "programs.nh.clean.enable requires programs.nh.enable";
         }
-
-        {
-          assertion = (cfg.flake != null) -> !(lib.hasSuffix ".nix" cfg.flake);
-          message = "nh.flake must be a directory, not a nix file";
-        }
       ];
 
       environment = lib.mkIf cfg.enable {
         systemPackages = with pkgs; [ nh ];
         variables = {
-          NH_FLAKE = cfg.flake;
+          NH_FLAKE = "path:${config.meta.flake.path}";
         };
       };
     }

@@ -8,24 +8,25 @@
 }:
 with lib.custom;
 {
-  disabledModules = [ "services/monitoring/ups.nix" ];
   imports = [
     ./ports.nix
     ./observability
-    "${inputs.nixpkgs-unstable}/nixos/modules/services/monitoring/ups.nix"
     inputs.sops-nix.nixosModules.sops
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
   custom = {
-    programs = {
-      nh = {
+    environments.server = {
+      enable = true;
+      quadlets.enable = true;
+      tailscale = {
         enable = true;
-        flake = "path:${config.meta.flake.path}";
-        clean = {
-          enable = true;
-          extraArgs = "--keep-since 4d --keep 3";
-        };
+        authKeyFile = config.sops.secrets.tailscale_auth.path;
+      };
+      ups = {
+        enable = true;
+        upsmonUserPass = config.sops.secrets.upsmon_user_pw.path;
+        upsmonHashedUserPass = config.sops.secrets.upsmon_user_hashed_pw.path;
       };
     };
   };
@@ -82,39 +83,9 @@ with lib.custom;
 
   swapDevices = [ ];
 
-  security.wrappers = {
-    kopia = {
-      owner = config.meta.flake.owner;
-      group = config.users.users."${config.meta.flake.owner}".group;
-      capabilities = "cap_dac_read_search=+ep";
-      source = lib.getExe' pkgs.kopia "kopia";
-    };
-    kopia-backup-all = {
-      owner = config.meta.flake.owner;
-      group = config.users.users."${config.meta.flake.owner}".group;
-      capabilities = "cap_dac_read_search=+ep";
-      source = lib.custom.scripts.kopia-backup pkgs;
-    };
-  };
-
-  networking = {
-    useDHCP = lib.mkDefault true;
-    hostId = "219f142e";
-    enableIPv6 = false;
-    defaultGateway = "192.168.1.1";
-    networkmanager.enable = true;
-    nameservers = [ "192.168.1.1" ];
-    firewall.enable = false;
-  };
+  networking.hostId = "219f142e";
 
   hardware.cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
-  time.timeZone = config.meta.timezone;
-  i18n.defaultLocale = "en_US.UTF-8";
-  console = {
-    font = "Lat2-Terminus16";
-    keyMap = "us";
-    useXkbConfig = false;
-  };
 
   sops = {
     defaultSopsFile = lib.snowfall.fs.get-file "secrets/kuckynas.yaml";
@@ -142,67 +113,19 @@ with lib.custom;
 
   users = {
     users = {
-      root = {
-        hashedPassword = "!";
-      };
+      "${config.meta.flake.owner}".openssh.authorizedKeys.keys = [ (builtins.readFile keys/ekMBP.pub) ];
 
-      "${config.meta.flake.owner}" = {
-        isNormalUser = true;
-        extraGroups = [
-          "wheel"
-          "podman"
-        ];
-        shell = pkgs.fish;
-        linger = true;
-        autoSubUidGidRange = true;
-        initialPassword = "pass";
-        openssh.authorizedKeys.keys = [ (builtins.readFile keys/ekMBP.pub) ];
-      };
-
-      upsmon = {
-        isSystemUser = true;
-        hashedPasswordFile = config.sops.secrets.upsmon_user_hashed_pw.path;
-        group = "upsmon";
-      };
-
-      caddy = {
-        extraGroups = [ "podman" ];
-      };
-    };
-
-    groups = {
-      upsmon = { };
-      podman = { };
+      caddy.extraGroups = [ "podman" ];
     };
   };
 
   environment.systemPackages = with pkgs; [
-    wireguard-go
-    eternal-terminal
-    lm_sensors
     unstable.zfs # TODO: re-evaluate using unstable once back on LTS kernel
-    sops
     unstable.icloudpd
     unstable.immich-go
   ];
 
-  programs = {
-    fish.enable = true;
-  };
-
   services = {
-    openssh = {
-      enable = true;
-      settings = {
-        PasswordAuthentication = false;
-        KbdInteractiveAuthentication = false;
-        PermitRootLogin = "no";
-      };
-    };
-
-    eternal-terminal.enable = true;
-    glances.enable = true;
-
     zfs = {
       autoScrub = {
         enable = true;
@@ -261,13 +184,6 @@ with lib.custom;
 
     samba-wsdd = {
       enable = true;
-    };
-
-    tailscale = {
-      enable = true;
-      authKeyFile = config.sops.secrets.tailscale_auth.path;
-      useRoutingFeatures = "server";
-      extraUpFlags = [ "--advertise-routes=192.168.1.0/24" ];
     };
 
     caddy = {
@@ -346,84 +262,13 @@ with lib.custom;
   };
 
   systemd = {
-    sockets = {
-      podman-rootless-proxy = {
-        enable = true;
-        description = "Socket for proxy to user podman socket";
-        socketConfig = {
-          ListenStream = "/run/podman-rootless-proxy/podman.sock";
-          SocketMode = 660;
-          SocketGroup = "podman";
-          Service = "podman-rootless-proxy.service";
-        };
-        requires = [ "podman-rootless-proxy.service" ];
-        wantedBy = [ "sockets.target" ];
-      };
-    };
-
     services = {
       caddy = {
         environment = {
           DOCKER_HOST = "unix:///run/podman-rootless-proxy/podman.sock";
         };
       };
-      tailscaled = {
-        after = [ "systemd-networkd-wait-online.service" ];
-      };
-      podman-rootless-proxy = {
-        enable = true;
-        description = "Proxy to rootless podman socket";
-        serviceConfig = {
-          ExecStart = "${pkgs.systemd}/lib/systemd/systemd-socket-proxyd /run/user/1000/podman/podman.sock";
-          User = config.meta.flake.owner;
-          Group = "users";
-          Restart = "on-failure";
-        };
-        requires = [ "podman.socket" ];
-        after = [ "default.target" ];
-      };
     };
-  };
-
-  power.ups = rec {
-    enable = true;
-    mode = "standalone";
-
-    users.upsmon = {
-      passwordFile = config.sops.secrets.upsmon_user_pw.path;
-      upsmon = "primary";
-    };
-
-    ups = {
-      cyberpower = {
-        driver = "usbhid-ups";
-        port = "auto";
-        description = "CP1500 AVR UPS";
-        directives = [
-          "vendorid = 0764"
-          "productid = 0501"
-        ];
-      };
-    };
-
-    upsmon.monitor.cyberpower.user = config.users.users.upsmon.name;
-  };
-
-  virtualisation = {
-    containers = {
-      enable = true;
-      containersConf.settings.engine.helper_binaries_dir = [
-        "${pkgs.netavark}/bin"
-        "${pkgs.aardvark-dns}/bin"
-        "${pkgs.podman}/libexec/podman"
-      ];
-    };
-    podman = {
-      enable = true;
-      dockerCompat = true;
-      defaultNetwork.settings.dns_enabled = true;
-    };
-    quadlet.enable = true;
   };
 
   system = {
