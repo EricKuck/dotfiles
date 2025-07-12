@@ -1,8 +1,15 @@
 { config, lib, ... }:
-{
-  options.ports = lib.mkOption {
-    type = lib.types.anything;
+let
+  ports = lib.custom.mkUniqueValueAttrSet {
+    name = "ports";
   };
+in
+{
+  options.ports = ports.option;
+
+  config.assertions = [
+    (ports.assertion config)
+  ];
 
   config.ports = {
     mosquitto_mqtt = 1883;
