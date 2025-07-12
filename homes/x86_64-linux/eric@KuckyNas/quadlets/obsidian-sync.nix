@@ -26,6 +26,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=obsidian.kuck.ing"
+            "blackbox.path=/_up"
           ];
 
           user = "3793:3793";

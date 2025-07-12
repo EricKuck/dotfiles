@@ -18,16 +18,12 @@ let
         };
       };
 
-      https_200_or_401 = {
+      https_2xx = {
         prober = "http";
         timeout = "4s";
         http = {
           method = "GET";
           fail_if_not_ssl = true;
-          valid_status_codes = [
-            200
-            401
-          ];
         };
       };
 
@@ -80,24 +76,32 @@ let
         let
           rawLabels = containers.${name}.containerConfig.labels or [ ];
           labels = if builtins.isAttrs rawLabels then builtins.attrValues rawLabels else rawLabels;
-        in
-        builtins.map
-          (
-            label:
+          getLabelValue =
+            key:
             let
-              parts = builtins.match "([^=]+)=(.*)" label;
+              matching = builtins.filter (
+                label:
+                let
+                  parts = builtins.match "([^=]+)=(.*)" label;
+                in
+                parts != null && builtins.elemAt parts 0 == key
+              ) labels;
             in
-            builtins.elemAt parts 1
-          )
-          (
-            builtins.filter (
-              label:
+            if matching == [ ] then
+              null
+            else
               let
-                parts = builtins.match "([^=]+)=(.*)" label;
+                parts = builtins.match "([^=]+)=(.*)" (builtins.elemAt matching 0);
               in
-              parts != null && builtins.match "caddy.host" (builtins.elemAt parts 0) != null
-            ) labels
-          )
+              builtins.elemAt parts 1;
+          host = getLabelValue "caddy.host";
+          path =
+            let
+              val = getLabelValue "blackbox.path";
+            in
+            if val == null then "" else val;
+        in
+        if host != null then [ "${host}${path}" ] else [ ]
       ) (builtins.attrNames containers)
     );
 
@@ -120,7 +124,7 @@ in
         (blackboxTargets {
           job_name = "https_probe";
           scrape_interval = "1m";
-          modules = [ "https_200_or_401" ];
+          modules = [ "https_2xx" ];
           targets = caddyUrls;
         })
 
