@@ -10,6 +10,7 @@ with lib.custom;
 {
   imports = [
     ./ports.nix
+    ./uids.nix
     ./observability
     inputs.sops-nix.nixosModules.sops
     (modulesPath + "/installer/scan/not-detected.nix")

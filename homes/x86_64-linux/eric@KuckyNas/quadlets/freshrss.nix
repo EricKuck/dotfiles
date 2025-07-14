@@ -11,8 +11,8 @@ in
           name = "freshrss";
           autoUpdate = "registry";
           environments = {
-            PUID = "1240";
-            PGID = "1240";
+            PUID = toString osConfig.uids.freshrss;
+            PGID = toString osConfig.uids.freshrss;
             DOCKER_MODS = "linuxserver/mods:universal-cron";
           };
           volumes = [

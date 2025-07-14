@@ -28,8 +28,7 @@ in
             "caddy.host=obsidian.kuck.ing"
             "blackbox.path=/_up"
           ];
-
-          user = "3793:3793";
+          user = osConfig.serviceOwners.obsidian-sync;
         };
         serviceConfig = {
           Restart = "always";

@@ -17,9 +17,9 @@ in
             VIRTUAL_ENV = "/lsiopy";
             LSIO_FIRST_PARTY = "true";
             NVIDIA_DRIVER_CAPABILITIES = "compute,video,utility";
-            PGID = "1004";
-            PUID = "1004";
             JELLYFIN_PublishedServerUrl = "192.168.1.2";
+            PUID = toString osConfig.uids.jellyfin;
+            PGID = toString osConfig.uids.jellyfin;
           };
           volumes = [
             "${FIN_CONTAINER_PATH}/config:/config"

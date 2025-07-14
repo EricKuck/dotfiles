@@ -15,8 +15,6 @@ in
             WEB_CONCURRENCY = "1";
             BASE_URL = "http://192.168.1.2";
             ALLOW_SIGNUP = "true";
-            PUID = "1076";
-            PGID = "1076";
             MAX_WORKERS = "1";
           };
           volumes = [
@@ -29,6 +27,7 @@ in
             "caddy.enable=true"
             "caddy.host=mealie.kuck.ing"
           ];
+          user = osConfig.serviceOwners.mealie;
         };
         serviceConfig = {
           Restart = "always";

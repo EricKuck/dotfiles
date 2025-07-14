@@ -31,7 +31,7 @@ in
             "caddy.enable=true"
             "caddy.host=${HOST}"
           ];
-          user = "3792:3792";
+          user = osConfig.serviceOwners.vaultwarden;
         };
         serviceConfig = {
           Restart = "always";

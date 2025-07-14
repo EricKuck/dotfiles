@@ -177,7 +177,7 @@ in
             "caddy.enable=true"
             "caddy.host=profilarr.kuck.ing"
           ];
-          user = "3992:3992";
+          user = osConfig.serviceOwners.profilarr;
         };
         serviceConfig = {
           Restart = "always";
@@ -189,10 +189,6 @@ in
           image = "ghcr.io/cleanuparr/cleanuparr:latest";
           name = "cleanuparr";
           autoUpdate = "registry";
-          environments = {
-            PUID = "0";
-            PGID = "0";
-          };
           volumes = [
             "${CLEANUPARR_CONTAINER_PATH}/config:/config"
           ];
@@ -203,7 +199,7 @@ in
             "caddy.enable=true"
             "caddy.host=cleanuparr.kuck.ing"
           ];
-          user = "3993:3993";
+          user = osConfig.serviceOwners.cleanuparr;
         };
         serviceConfig = {
           Restart = "always";
@@ -225,7 +221,7 @@ in
             "caddy.enable=true"
             "caddy.host=huntarr.kuck.ing"
           ];
-          user = "3994:3994";
+          user = osConfig.serviceOwners.huntarr;
         };
         serviceConfig = {
           Restart = "always";

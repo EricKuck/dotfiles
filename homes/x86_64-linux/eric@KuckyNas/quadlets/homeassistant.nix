@@ -35,10 +35,6 @@ in
           name = "music-assistant-server";
           autoUpdate = "registry";
           networks = [ "host" ];
-          environments = {
-            PUID = "1240";
-            PGID = "1240";
-          };
           volumes = [
             "${MUSIC_CONTAINER_PATH}/data:/data"
           ];

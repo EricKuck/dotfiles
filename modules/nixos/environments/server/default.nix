@@ -8,6 +8,63 @@
 let
   inherit (lib) mkEnableOption mkIf;
   cfg = config.custom.environments.server;
+
+  userScriptSnippets = lib.mapAttrsToList (
+    name: container:
+    let
+      containerConfig = container.containerConfig or { };
+      user = containerConfig.user or null;
+      fsOwner =
+        if user != null then
+          let
+            parts = lib.splitString ":" user;
+            uid = lib.toInt (builtins.elemAt parts 0);
+            gid = lib.toInt (builtins.elemAt parts 1);
+          in
+          "${toString (uid + 99999)}:${toString (gid + 99999)}"
+        else
+          null;
+
+      ownedVolumes =
+        builtins.map
+          (
+            vol:
+            let
+              src = builtins.elemAt (lib.splitString ":" vol) 0;
+            in
+            src
+          )
+          (
+            builtins.filter (
+              vol:
+              let
+                src = builtins.elemAt (lib.splitString ":" vol) 0;
+              in
+              lib.hasPrefix config.meta.containerData src
+            ) containerConfig.volumes
+          );
+    in
+    if fsOwner != null then
+      ''
+        set -e
+        DIR_PATHS=(${lib.strings.concatStringsSep " " (map (dir: builtins.toJSON dir) ownedVolumes)})
+        echo "all paths..."
+        echo $DIR_PATHS
+        for DIR_PATH in "''${DIR_PATHS[@]}"; do
+          echo "path: $DIR_PATH"
+          PERMS=$(stat -c "%a" "$DIR_PATH")
+          if [ "$PERMS" != "700" ]; then
+            echo "🚨🚨 $DIR_PATH permissions, used for ${name}, are wrong: $PERMS. Should be 700." >&2
+          fi
+          OWNER=$(stat -c "%u:%g" "$DIR_PATH")
+          if [ "$OWNER" != "${fsOwner}" ]; then
+            echo "🚨🚨 $DIR_PATH ownership, used for ${name} is wrong: $OWNER. Should be ${fsOwner}." >&2
+          fi
+        done
+      ''
+    else
+      ""
+  ) config.home-manager.users."${config.meta.flake.owner}".quadlets.containers;
 in
 {
   options.custom.environments.server = {
@@ -199,5 +256,9 @@ in
       };
       quadlet.enable = true;
     };
+
+    system.activationScripts.userScript.text = mkIf cfg.quadlets.enable (
+      lib.concatStringsSep "\n" (lib.filter (s: s != "") userScriptSnippets)
+    );
   };
 }

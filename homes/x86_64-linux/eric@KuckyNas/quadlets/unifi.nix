@@ -18,7 +18,7 @@ in
             "${toString osConfig.ports.unifi_comm}:8080"
             "${toString osConfig.ports.unifi}:8443"
           ];
-          user = "999:999";
+          user = osConfig.serviceOwners.unifi;
           labels = [
             "caddy.port=${toString osConfig.ports.unifi}"
           ];

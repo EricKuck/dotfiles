@@ -11,8 +11,8 @@ in
           name = "syncthing";
           autoUpdate = "registry";
           environments = {
-            PGID = "1008";
-            PUID = "1008";
+            PUID = toString osConfig.uids.syncthing;
+            PGID = toString osConfig.uids.syncthing;
           };
           volumes = [
             "${CONTAINER_PATH}/config:/config"
