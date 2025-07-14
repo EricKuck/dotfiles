@@ -46,21 +46,19 @@ let
     in
     if fsOwner != null then
       ''
-        set -e
-        DIR_PATHS=(${lib.strings.concatStringsSep " " (map (dir: builtins.toJSON dir) ownedVolumes)})
-        echo "all paths..."
-        echo $DIR_PATHS
-        for DIR_PATH in "''${DIR_PATHS[@]}"; do
-          echo "path: $DIR_PATH"
-          PERMS=$(stat -c "%a" "$DIR_PATH")
-          if [ "$PERMS" != "700" ]; then
-            echo "🚨🚨 $DIR_PATH permissions, used for ${name}, are wrong: $PERMS. Should be 700." >&2
-          fi
-          OWNER=$(stat -c "%u:%g" "$DIR_PATH")
-          if [ "$OWNER" != "${fsOwner}" ]; then
-            echo "🚨🚨 $DIR_PATH ownership, used for ${name} is wrong: $OWNER. Should be ${fsOwner}." >&2
-          fi
-        done
+        if [ -d "${config.meta.containerData}" ]; then
+          DIR_PATHS=(${lib.strings.concatStringsSep " " (map (dir: builtins.toJSON dir) ownedVolumes)})
+          for DIR_PATH in "''${DIR_PATHS[@]}"; do
+            PERMS=$(stat -c "%a" "$DIR_PATH")
+            if [ "$PERMS" != "700" ]; then
+              echo "🚨🚨 $DIR_PATH permissions, used for ${name}, are wrong: $PERMS. Should be 700." >&2
+            fi
+            OWNER=$(stat -c "%u:%g" "$DIR_PATH")
+            if [ "$OWNER" != "${fsOwner}" ]; then
+              echo "🚨🚨 $DIR_PATH ownership, used for ${name} is wrong: $OWNER. Should be ${fsOwner}." >&2
+            fi
+          done
+        fi
       ''
     else
       ""

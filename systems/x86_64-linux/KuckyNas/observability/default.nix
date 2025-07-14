@@ -34,11 +34,10 @@ in
 {
   imports = lib.fileset.toList (lib.fileset.fileFilter (file: file.name != "default.nix") ./.);
 
-  sops.secrets.alertmanager_pagerduty_key = {
-    owner = "alertmanager";
-    group = "alertmanager";
-    mode = "0400";
-  };
+  sops.secrets.alertmanager_pagerduty_key = { };
+
+  systemd.services.alertmanager.serviceConfig.LoadCredential =
+    "pagerduty_key:${config.sops.secrets.alertmanager_pagerduty_key.path}";
 
   services = {
     prometheus = {
@@ -100,7 +99,7 @@ in
               name = "pagerduty";
               pagerduty_configs = [
                 {
-                  service_key_file = config.sops.secrets.alertmanager_pagerduty_key.path;
+                  service_key_file = "$CREDENTIALS_DIRECTORY/pagerduty_key";
                 }
               ];
             }
