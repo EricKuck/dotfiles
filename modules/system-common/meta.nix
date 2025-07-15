@@ -36,6 +36,10 @@
       default = "America/New_York";
     };
 
+    ipAddress = lib.mkOption {
+      type = lib.types.str;
+    };
+
     containerData = lib.mkOption {
       type = lib.types.str;
     };

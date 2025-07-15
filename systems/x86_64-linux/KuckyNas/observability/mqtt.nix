@@ -9,7 +9,7 @@
     enable = true;
     port = config.ports.prometheus-mqtt-exporter;
     systemd = {
-      execStart = lib.getExe pkgs.mqtt-exporter;
+      execStart = "${lib.getExe pkgs.bash} -c 'while ! ${lib.getExe pkgs.netcat} -z localhost ${toString config.ports.mosquitto_mqtt}; do ${pkgs.coreutils}/bin/sleep 0.5; done; ${lib.getExe pkgs.mqtt-exporter}'";
       environment = {
         MQTT_USERNAME = "prometheus";
         PROMETHEUS_PORT = toString config.ports.prometheus-mqtt-exporter;

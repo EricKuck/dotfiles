@@ -17,7 +17,7 @@ in
           name = "rmfakecloud";
           autoUpdate = "registry";
           environments = {
-            STORAGE_URL = "http://192.168.1.2:${toString osConfig.ports.rmfakecloud}";
+            STORAGE_URL = "http://${osConfig.meta.ipAddress}:${toString osConfig.ports.rmfakecloud}";
           };
           environmentFiles = [ osConfig.sops.secrets.rmfakecloud_env.path ];
           volumes = [

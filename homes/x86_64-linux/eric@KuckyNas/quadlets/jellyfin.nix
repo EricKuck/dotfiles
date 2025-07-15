@@ -17,7 +17,7 @@ in
             VIRTUAL_ENV = "/lsiopy";
             LSIO_FIRST_PARTY = "true";
             NVIDIA_DRIVER_CAPABILITIES = "compute,video,utility";
-            JELLYFIN_PublishedServerUrl = "192.168.1.2";
+            JELLYFIN_PublishedServerUrl = osConfig.meta.ipAddress;
             PUID = toString osConfig.uids.jellyfin;
             PGID = toString osConfig.uids.jellyfin;
           };

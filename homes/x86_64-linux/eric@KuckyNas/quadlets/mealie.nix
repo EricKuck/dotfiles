@@ -13,7 +13,7 @@ in
           environments = {
             HOST = "0.0.0.0";
             WEB_CONCURRENCY = "1";
-            BASE_URL = "http://192.168.1.2";
+            BASE_URL = "http://${osConfig.meta.ipAddress}";
             ALLOW_SIGNUP = "true";
             MAX_WORKERS = "1";
           };

@@ -32,7 +32,10 @@ with lib.custom;
     };
   };
 
-  meta.containerData = "/kuckyjar/container";
+  meta = {
+    ipAddress = "192.168.1.2";
+    containerData = "/kuckyjar/container";
+  };
 
   hardware.coral.pcie.enable = true;
 
@@ -86,7 +89,16 @@ with lib.custom;
 
   swapDevices = [ ];
 
-  networking.hostId = "219f142e";
+  networking = {
+    hostId = "219f142e";
+    useDHCP = false;
+    interfaces.enp6s0.ipv4.addresses = [
+      {
+        address = config.meta.ipAddress;
+        prefixLength = 24;
+      }
+    ];
+  };
 
   hardware.cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
 

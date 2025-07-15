@@ -17,7 +17,10 @@
     };
   };
 
-  meta.containerData = "${osConfig.meta.flake.ownerHome}/container";
+  meta = {
+    ipAddress = "192.168.1.3";
+    containerData = "${osConfig.meta.flake.ownerHome}/container";
+  };
 
   boot = {
     kernelPackages = pkgs.linuxKernel.packages.linux_rpi3;

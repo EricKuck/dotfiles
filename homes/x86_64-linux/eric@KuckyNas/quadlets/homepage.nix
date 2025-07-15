@@ -12,7 +12,7 @@ in
           autoUpdate = "registry";
           environments = {
             PORT = "3010";
-            HOMEPAGE_ALLOWED_HOSTS = "192.168.1.2:3010,homepage.kuck.ing";
+            HOMEPAGE_ALLOWED_HOSTS = "${osConfig.meta.ipAddress}:3010,homepage.kuck.ing";
           };
           volumes = [
             "${CONTAINER_PATH}/config:/app/config"

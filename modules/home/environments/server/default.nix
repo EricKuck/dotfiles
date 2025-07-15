@@ -49,7 +49,7 @@ in
           };
           Service = {
             Type = "oneshot";
-            ExecStart = "${lib.getExe pkgs.bash} -c 'until ${lib.getExe' pkgs.host "host"} google.com; do sleep 1; done'";
+            ExecStart = "${lib.getExe pkgs.bash} -c 'until ${lib.getExe' pkgs.host "host"} google.com; do ${pkgs.coreutils}/bin/sleep 1; done'";
           };
           Install = {
             WantedBy = [ "default.target" ];
