@@ -30,8 +30,6 @@ in
     unifi_comm = 8080;
     calibre = 8083;
     calibre-downloader = 8084;
-    calibre-m = 8085;
-    calibre-downloader-m = 8086;
     mylar3 = 8090;
     music-assistant = 8095;
     jellyfin = 8096;
