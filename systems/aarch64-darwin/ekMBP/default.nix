@@ -19,14 +19,7 @@ with lib.custom;
     };
 
     programs = {
-      nh = {
-        enable = true;
-        flake = "path:${config.meta.flake.path}";
-        clean = {
-          enable = true;
-          extraArgs = "--keep-since 4d --keep 3";
-        };
-      };
+      nh.enable = true;
     };
   };
 
@@ -36,6 +29,7 @@ with lib.custom;
     secrets = {
       btt_license = { };
       istat_menus_license = { };
+      mqtt_creds.owner = config.meta.flake.owner;
     };
   };
 
