@@ -104,7 +104,7 @@ in
       useDHCP = lib.mkDefault true;
       enableIPv6 = false;
       defaultGateway = "192.168.1.1";
-      nameservers = [ "192.168.1.1" ];
+      nameservers = [ "172.17.0.2" ];
       firewall.enable = false;
     };
 

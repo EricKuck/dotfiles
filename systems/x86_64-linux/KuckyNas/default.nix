@@ -230,7 +230,7 @@ with lib.custom;
         acme_dns cloudflare {$CF_DNS_TOKEN}
       '';
       virtualHosts = {
-        "adguard.kuck.ing".extraConfig = ''
+        "dns.kuck.ing".extraConfig = ''
           reverse_proxy http://192.168.1.1
         '';
         "z2m.kuck.ing".extraConfig = ''
