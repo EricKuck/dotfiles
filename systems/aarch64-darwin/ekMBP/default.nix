@@ -44,7 +44,7 @@ with lib.custom;
       "orcaslicer"
       "winbox"
       "autodesk-fusion"
-      "thunderbird"
+      "mailspring"
       "signal"
       "inkscape"
       "vial"

@@ -119,6 +119,7 @@ log
 /Library/Application\ Support/Blender
 /Library/Application\ Support/Slack
 /Library/Application\ Support/FileProvider
+/Library/Application\ Support/Mailspring
 /Library/Containers/com.apple.*
 /Library/Containers/com.firecore.infuse
 /Library/Containers/com.tinyspeck.slackmacgap
