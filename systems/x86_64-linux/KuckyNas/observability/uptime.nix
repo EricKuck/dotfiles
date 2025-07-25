@@ -13,6 +13,7 @@ let
         prober = "http";
         timeout = "5s";
         http = {
+          preferred_ip_protocol = "ip4";
           method = "GET";
           fail_if_not_ssl = false;
         };
@@ -20,8 +21,9 @@ let
 
       https_2xx = {
         prober = "http";
-        timeout = "4s";
+        timeout = "5s";
         http = {
+          preferred_ip_protocol = "ip4";
           method = "GET";
           fail_if_not_ssl = true;
         };
@@ -123,7 +125,7 @@ in
 
         (blackboxTargets {
           job_name = "https_probe";
-          scrape_interval = "1m";
+          scrape_interval = "90s";
           modules = [ "https_2xx" ];
           targets = caddyUrls;
         })
@@ -142,7 +144,7 @@ in
     };
     systemd = {
       ambientCapabilities = [ "CAP_NET_RAW" ];
-      execStart = "${lib.getExe pkgs.prometheus-blackbox-exporter} --web.listen-address localhost:${toString config.ports.prometheus-blackbox-exporter} --config.file ${configFile}";
+      execStart = "${lib.getExe pkgs.prometheus-blackbox-exporter} --web.listen-address localhost:${toString config.ports.prometheus-blackbox-exporter} --config.file ${configFile} --log.level=info --log.prober=info";
       execReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
     };
     rules = [

@@ -158,6 +158,11 @@ in
     };
 
     services = {
+      resolved = {
+        enable = true;
+        fallbackDns = [ ];
+      };
+
       openssh = {
         enable = true;
         settings = {
