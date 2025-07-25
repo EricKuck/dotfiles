@@ -64,50 +64,10 @@ let
       ];
     };
 
-  directCaddyUrls = builtins.filter (item: builtins.match ".*\\*.*" item == null) (
-    builtins.attrNames config.services.caddy.virtualHosts
-  );
-
-  containerUrls =
-    let
-      containers = config.home-manager.users."${config.meta.flake.owner}".quadlets.containers;
-    in
-    builtins.concatLists (
-      builtins.map (
-        name:
-        let
-          rawLabels = containers.${name}.containerConfig.labels or [ ];
-          labels = if builtins.isAttrs rawLabels then builtins.attrValues rawLabels else rawLabels;
-          getLabelValue =
-            key:
-            let
-              matching = builtins.filter (
-                label:
-                let
-                  parts = builtins.match "([^=]+)=(.*)" label;
-                in
-                parts != null && builtins.elemAt parts 0 == key
-              ) labels;
-            in
-            if matching == [ ] then
-              null
-            else
-              let
-                parts = builtins.match "([^=]+)=(.*)" (builtins.elemAt matching 0);
-              in
-              builtins.elemAt parts 1;
-          host = getLabelValue "caddy.host";
-          path =
-            let
-              val = getLabelValue "blackbox.path";
-            in
-            if val == null then "" else val;
-        in
-        if host != null then [ "${host}${path}" ] else [ ]
-      ) (builtins.attrNames containers)
-    );
-
-  caddyUrls = builtins.map (item: "https://${item}") (directCaddyUrls ++ containerUrls);
+  caddyUrls = lib.custom.hostedUrls {
+    inherit config;
+    includeBlackboxPath = true;
+  };
 in
 {
   services.custom.prometheus-exporters.blackbox = {

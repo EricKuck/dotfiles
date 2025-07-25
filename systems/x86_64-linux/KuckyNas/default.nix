@@ -6,7 +6,12 @@
   modulesPath,
   ...
 }:
-with lib.custom;
+let
+  caddyUrls = lib.custom.hostedUrls {
+    inherit config;
+    includeScheme = false;
+  };
+in
 {
   imports = [
     ./ports.nix
@@ -99,6 +104,8 @@ with lib.custom;
         prefixLength = 24;
       }
     ];
+    # The flood of dns lookups from blackbox makes viewing adguard stats obnoxious, just hostfile locally hosted stuff
+    extraHosts = builtins.concatStringsSep "\n" (builtins.map (host: "127.0.0.1 ${host}") caddyUrls);
   };
 
   hardware.cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
