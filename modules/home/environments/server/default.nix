@@ -63,7 +63,7 @@ in
           };
           Service = {
             Type = "oneshot";
-            TimeoutSec = 900;
+            TimeoutSec = 1320;
             ExecStart = "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia.program} snapshot create --all";
           };
         };

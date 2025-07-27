@@ -85,7 +85,7 @@ in
 
         (blackboxTargets {
           job_name = "https_probe";
-          scrape_interval = "90s";
+          scrape_interval = "1m";
           modules = [ "https_2xx" ];
           targets = caddyUrls;
         })

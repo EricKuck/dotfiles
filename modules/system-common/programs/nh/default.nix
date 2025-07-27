@@ -31,62 +31,61 @@ in
     };
   };
 
-  config =
-    {
-      warnings =
-        if (!(cfg.clean.enable -> !config.nix.gc.automatic)) then
-          [
-            "programs.nh.clean.enable and nix.gc.automatic are both enabled. Please use one or the other to avoid conflict."
-          ]
-        else
-          [ ];
-
-      assertions = [
-        # Not strictly required but probably a good assertion to have
-        {
-          assertion = cfg.clean.enable -> cfg.enable;
-          message = "programs.nh.clean.enable requires programs.nh.enable";
-        }
-      ];
-
-      environment = lib.mkIf cfg.enable {
-        systemPackages = with pkgs; [ nh ];
-        variables = {
-          NH_FLAKE = "path:${config.meta.flake.path}";
-        };
-      };
-    }
-    // (
-      if (lib.snowfall.system.is-darwin system) then
-        {
-          launchd = lib.mkIf cfg.clean.enable {
-            agents = {
-              nh-clean = {
-                command = "exec ${lib.getExe pkgs.nh} clean all ${cfg.clean.extraArgs}";
-                serviceConfig = {
-                  StartInterval = 604800; # Weekly
-                };
-              };
-            };
-          };
-        }
+  config = {
+    warnings =
+      if (!(cfg.clean.enable -> !config.nix.gc.automatic)) then
+        [
+          "programs.nh.clean.enable and nix.gc.automatic are both enabled. Please use one or the other to avoid conflict."
+        ]
       else
-        {
-          systemd = lib.mkIf cfg.clean.enable {
-            services.nh-clean = {
-              description = "nh clean";
-              script = "exec ${lib.getExe pkgs.nh} clean all ${cfg.clean.extraArgs}";
-              startAt = "weekly";
-              path = [ config.nix.package ];
-              serviceConfig.Type = "oneshot";
-            };
+        [ ];
 
-            timers.nh-clean = {
-              timerConfig = {
-                Persistent = true;
+    assertions = [
+      # Not strictly required but probably a good assertion to have
+      {
+        assertion = cfg.clean.enable -> cfg.enable;
+        message = "programs.nh.clean.enable requires programs.nh.enable";
+      }
+    ];
+
+    environment = lib.mkIf cfg.enable {
+      systemPackages = with pkgs; [ nh ];
+      variables = {
+        NH_FLAKE = "path:${config.meta.flake.path}";
+      };
+    };
+  }
+  // (
+    if (lib.snowfall.system.is-darwin system) then
+      {
+        launchd = lib.mkIf cfg.clean.enable {
+          agents = {
+            nh-clean = {
+              command = "exec ${lib.getExe pkgs.nh} clean all ${cfg.clean.extraArgs}";
+              serviceConfig = {
+                StartInterval = 604800; # Weekly
               };
             };
           };
-        }
-    );
+        };
+      }
+    else
+      {
+        systemd = lib.mkIf cfg.clean.enable {
+          services.nh-clean = {
+            description = "nh clean";
+            script = "exec ${lib.getExe pkgs.nh} clean all ${cfg.clean.extraArgs}";
+            startAt = "weekly";
+            path = [ config.nix.package ];
+            serviceConfig.Type = "oneshot";
+          };
+
+          timers.nh-clean = {
+            timerConfig = {
+              Persistent = true;
+            };
+          };
+        };
+      }
+  );
 }

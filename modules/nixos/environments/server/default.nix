@@ -126,7 +126,8 @@ in
           isNormalUser = true;
           extraGroups = [
             "wheel"
-          ] ++ lib.optional cfg.quadlets.enable "podman";
+          ]
+          ++ lib.optional cfg.quadlets.enable "podman";
           shell = pkgs.fish;
           linger = true;
           autoSubUidGidRange = true;
