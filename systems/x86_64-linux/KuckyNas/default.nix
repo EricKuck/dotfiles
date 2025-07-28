@@ -53,11 +53,22 @@ in
         "sd_mod"
       ];
       kernelModules = [ ];
+      systemd.enable = true;
     };
 
     kernelModules = [ "kvm-intel" ];
     kernelPackages = pkgs.linuxPackages_6_13;
-    kernelParams = [ "zfs.zfs_arc_max=13958643712" ]; # 13GB: 2GB + 1GB/TB in pool
+    kernelParams = [
+      "zfs.zfs_arc_max=13958643712" # 13GB: 2GB + 1GB/TB in pool
+      "zswap.enabled=1"
+      "zswap.compressor=lz4"
+      "zswap.max_pool_percent=20"
+      "zswap.shrinker_enabled=1"
+    ];
+    kernel.sysctl = {
+      "vm.swappiness" = 30;
+      "vm.vfs_cache_pressure" = 50;
+    };
     extraModulePackages = [ ];
 
     loader = {
@@ -93,7 +104,12 @@ in
     };
   };
 
-  swapDevices = [ ];
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 16 * 1024;
+    }
+  ];
 
   networking = {
     hostId = "219f142e";
