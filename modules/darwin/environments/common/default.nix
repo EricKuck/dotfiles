@@ -276,7 +276,7 @@ in
         "macmediakeyforwarder"
         "spotify"
         "lulu"
-        "intellij-idea-ce"
+        "intellij-idea@eap"
         "raycast"
         "jordanbaird-ice"
         "visual-studio-code"

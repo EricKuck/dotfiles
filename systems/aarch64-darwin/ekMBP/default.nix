@@ -44,6 +44,7 @@ with lib.custom;
       "orcaslicer"
       "winbox"
       "autodesk-fusion"
+      "openscad@snapshot"
       "mailspring"
       "signal"
       "inkscape"
