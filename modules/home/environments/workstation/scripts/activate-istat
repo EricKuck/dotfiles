@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+license=$(sudo cat /run/secrets/istat_menus_license)
+printf "iStat Menus doesn't have an activation URL. Enter this in the license menu:\n$license"

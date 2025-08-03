@@ -35,8 +35,6 @@ with lib.custom;
 
   environment.systemPackages = with pkgs; [
     sops
-    (lib.custom.scripts.activate-btt pkgs)
-    (lib.custom.scripts.activate-istat pkgs)
   ];
 
   homebrew = {

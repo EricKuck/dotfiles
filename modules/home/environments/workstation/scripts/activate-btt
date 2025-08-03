@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -e
+license=$(sudo cat /run/secrets/btt_license)
+open "btt://license/$license"
+

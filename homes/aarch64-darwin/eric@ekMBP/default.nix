@@ -8,11 +8,8 @@
 with lib.custom;
 {
   custom = {
-    cli-apps = {
-      common.enable = true;
-    };
-
     environments = {
+      workstation.enable = true;
       android.enable = true;
       ios.enable = true;
       golang.enable = true;

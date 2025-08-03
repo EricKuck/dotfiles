@@ -1,0 +1,99 @@
+#!/usr/bin/osascript
+
+-- List your Dock labels in desired toggle order
+set dockLabels to {"Orion", "Orion - Infinite Retry", "Orion - CMJ"}
+
+-- Helper: Get current visible Dock labels
+on getVisibleDockLabels()
+	set visibleLabels to {}
+	tell application "System Events"
+		tell process "Dock"
+			repeat with dockItem in UI elements of list 1
+				try
+					set labelName to name of dockItem
+					if labelName is not missing value then
+						set end of visibleLabels to labelName
+					end if
+				end try
+			end repeat
+		end tell
+	end tell
+	return visibleLabels
+end getVisibleDockLabels
+
+-- Helper: Activate app by Dock label
+on activateDockItemWithLabel(dockLabel)
+	tell application "System Events"
+		tell process "Dock"
+			set dockItems to UI elements of list 1
+		end tell
+	end tell
+	
+	repeat with dockItem in dockItems
+		try
+			-- Get the raw name inside tell block
+			tell application "System Events" to tell process "Dock"
+				set dockItemName to name of dockItem as string
+			end tell
+		on error
+			set dockItemName to ""
+		end try
+		
+		if dockItemName is equal to dockLabel then
+			tell application "System Events" to tell process "Dock"
+				perform action "AXPress" of dockItem
+			end tell
+			exit repeat
+		end if
+	end repeat
+end activateDockItemWithLabel
+
+-- Step 1: Filter dockLabels to only currently visible ones
+set visibleDockLabels to getVisibleDockLabels()
+set activeLabels to {}
+
+repeat with l in dockLabels
+	if visibleDockLabels contains l then
+		set end of activeLabels to l
+	end if
+end repeat
+
+-- Safety: do nothing if only one visible
+if (count of activeLabels) < 2 then
+	display notification "Only one Orion instance is open — nothing to toggle."
+	return
+end if
+
+-- Step 2: Load last used label (and clean it up)
+try
+	set lastLabel to do shell script "cat /tmp/last_orion_toggle_label 2>/dev/null"
+	set lastLabel to lastLabel as string
+on error
+	set lastLabel to ""
+end try
+
+-- Step 3: Find next label
+set nextLabel to missing value
+set foundMatch to false
+
+repeat with i from 1 to count of activeLabels
+	set thisLabel to item i of activeLabels
+	if thisLabel as string is equal to lastLabel
+		set foundMatch to true
+		if i = (count of activeLabels) then
+			set nextLabel to item 1 of activeLabels
+		else
+			set nextLabel to item (i + 1) of activeLabels
+		end if
+		exit repeat
+	end if
+end repeat
+
+-- If lastLabel not found (e.g., it was closed), start from the first available
+if foundMatch is false then
+	set nextLabel to item 1 of activeLabels
+end if
+
+-- Step 4: Activate and save
+activateDockItemWithLabel(nextLabel as string)
+do shell script "echo " & quoted form of nextLabel & " > /tmp/last_orion_toggle_label"
