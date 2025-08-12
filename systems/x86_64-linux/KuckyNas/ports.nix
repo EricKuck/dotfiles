@@ -22,6 +22,7 @@ in
     suggestarr = 3034;
     karakeep = 3091;
     unifi_stun = 3478;
+    searxng = 3479;
     jellyseerr = 5055;
     bazarr = 6767;
     profilarr = 6868;

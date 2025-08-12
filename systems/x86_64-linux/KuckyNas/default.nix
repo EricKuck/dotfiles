@@ -40,6 +40,7 @@ in
   meta = {
     ipAddress = "192.168.1.2";
     containerData = "/kuckyjar/container";
+    containerCache = "/kuckyjar/container-cache";
   };
 
   hardware.coral.pcie.enable = true;
@@ -57,7 +58,7 @@ in
     };
 
     kernelModules = [ "kvm-intel" ];
-    kernelPackages = pkgs.linuxPackages_6_13;
+    kernelPackages = pkgs.linuxPackages_6_15;
     kernelParams = [
       "zfs.zfs_arc_max=13958643712" # 13GB: 2GB + 1GB/TB in pool
       "zswap.enabled=1"
@@ -232,7 +233,7 @@ in
           "github.com/caddy-dns/cloudflare@v0.2.1"
           "github.com/EricKuck/caddy-docker-upstreams@v0.0.0-20250616194924-027669749ea0"
         ];
-        hash = "sha256-sjJJu6wRGMq7qStWHMLTRY36gRZfbp1D+G6vlQ5xc28=";
+        hash = "sha256-AkWY63Jk+G5dluiwWtaOmzBofQh7xoa1npGNDiIdDzE=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {

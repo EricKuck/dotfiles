@@ -43,5 +43,9 @@
     containerData = lib.mkOption {
       type = lib.types.str;
     };
+
+    containerCache = lib.mkOption {
+      type = lib.types.str;
+    };
   };
 }
