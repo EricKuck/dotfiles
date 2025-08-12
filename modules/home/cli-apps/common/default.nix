@@ -49,7 +49,6 @@ in
         figlet
         lolcat
         ffmpeg
-        nodejs_24
         sd
         dua
         usbutils

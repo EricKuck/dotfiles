@@ -229,12 +229,6 @@ in
               RunAtLoad = true;
             };
           };
-          litra-autotoggle = {
-            command = "${lib.getExe pkgs.custom.litra-rs} autotoggle";
-            serviceConfig = {
-              RunAtLoad = true;
-            };
-          };
         };
       };
     };
@@ -291,6 +285,7 @@ in
         "slack"
         "cameracontroller"
         "discord"
+        "kap"
       ];
 
       masApps = {
