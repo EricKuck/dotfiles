@@ -29,7 +29,7 @@ in
     radarr = 7878;
     paperless = 8010;
     unifi_comm = 8080;
-    calibre = 8083;
+    booklore = 8082;
     calibre-downloader = 8084;
     mylar3 = 8090;
     music-assistant = 8095;
