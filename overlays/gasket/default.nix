@@ -1,7 +1,7 @@
 { ... }:
 
 _final: prev: {
-  linuxPackages_6_15 = prev.linuxPackages_6_15.extend (
+  linuxPackages_6_16 = prev.linuxPackages_6_16.extend (
     finalPkgs: oldPkgs: {
       gasket = oldPkgs.gasket.overrideAttrs (old: rec {
         patches = [

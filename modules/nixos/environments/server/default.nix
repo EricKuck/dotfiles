@@ -150,6 +150,7 @@ in
     environment.systemPackages = with pkgs; [
       wireguard-go
       eternal-terminal
+      shpool
       lm_sensors
       sops
     ];

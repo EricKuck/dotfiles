@@ -21,6 +21,7 @@ with lib.custom;
     packages = with pkgs; [
       cloc
       eternal-terminal
+      shpool
       tailscale
       scrcpy
     ];
