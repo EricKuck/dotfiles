@@ -1,14 +1,13 @@
-local hyper = {'ctrl', 'alt', 'cmd', 'shift'}
+local hyper = {"ctrl", "alt", "cmd", "shift"}
 
 -- Reload automatically on config changes
-hs.pathwatcher.new(os.getenv('HOME') .. '/.hammerspoon/', hs.reload):start()
-hs.alert.show('🔨🥄 config loaded')
+hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", hs.reload):start()
+hs.alert.show("🔨🥄 config loaded")
 
 -- Hotkeys
-hs.hotkey.bind({'ctrl', 'cmd'}, 'h', hs.reload) -- Reload config
-hs.hotkey.bind(hyper, 'a', function() hs.eventtap.keyStroke({"cmd", "shift"}, "4") end) -- Screenshot
-hs.hotkey.bind(hyper, 's', function() hs.eventtap.keyStroke({"cmd", "shift"}, "6") end) -- Screen record w/ kap
-hs.hotkey.bind('cmd', '\\', function() hs.application.launchOrFocus('Bitwarden') end) -- Show bitwarden
+hs.hotkey.bind({"ctrl", "cmd"}, "h", hs.reload) -- Reload config
+hs.hotkey.bind(hyper, "a", function() hs.eventtap.keyStroke({"ctrl", "cmd", "shift"}, "4") end) -- Screenshot
+hs.hotkey.bind("cmd", "\\", function() hs.application.launchOrFocus("Bitwarden") end) -- Show bitwarden
 
 -- Force paste
 hs.hotkey.bind(hyper, "v", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
@@ -63,7 +62,7 @@ for k, camera in pairs(hs.camera.allCameras()) do
 end
 
 hs.camera.setWatcherCallback(function(camera, state)
-  if state == 'Added' then
+  if state == "Added" then
     setupCameraPropertyWatcher(camera)
   end
   toggleLights()

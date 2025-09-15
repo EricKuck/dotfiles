@@ -84,7 +84,7 @@ log
 /Library/Application\ Support/kotlin/daemon
 /Library/Application\ Support/com.bugsnag.Bugsnag
 /Library/Application\ Support/Spotify
-/Library/Application\ Support/JetBrains/Toolbox
+/Library/Application\ Support/JetBrains
 /Library/Application\ Support/Autodesk
 /Library/Application\ Support/Bitwarden
 /Library/Application\ Support/com.raycast.macos
@@ -121,6 +121,8 @@ log
 /Library/Application\ Support/FileProvider
 /Library/Application\ Support/Mailspring
 /Library/Application\ Support/zen
+/Library/Application\ Support/discord
+/Library/Application\ Support/obsidian
 /Library/Containers/com.apple.*
 /Library/Containers/com.firecore.infuse
 /Library/Containers/com.tinyspeck.slackmacgap
@@ -211,3 +213,9 @@ Library/Intents/Image
 /blenderkit_data
 /.thumbnails
 /.local/state
+/.firebender
+/.junie
+/.gradle/nodejs
+/.gradle/yarn
+/.gradle/binaryen
+/.skiko

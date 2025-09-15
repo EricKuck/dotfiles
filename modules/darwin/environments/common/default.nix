@@ -270,7 +270,10 @@ in
         "macmediakeyforwarder"
         "spotify"
         "lulu"
-        "intellij-idea@eap"
+        {
+          name = "intellij-idea@eap";
+          greedy = true;
+        }
         "raycast"
         "jordanbaird-ice"
         "visual-studio-code"
@@ -285,7 +288,10 @@ in
         "slack"
         "cameracontroller"
         "discord"
-        "kap"
+        {
+          name = "ishare";
+          greedy = true;
+        }
       ];
 
       masApps = {
