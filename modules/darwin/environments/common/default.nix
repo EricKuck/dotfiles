@@ -267,6 +267,7 @@ in
         "arc"
         "battery"
         "obsidian"
+        "notesnook"
         "macmediakeyforwarder"
         "spotify"
         "lulu"
@@ -292,6 +293,7 @@ in
           name = "ishare";
           greedy = true;
         }
+        "meetingbar"
       ];
 
       masApps = {
