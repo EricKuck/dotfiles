@@ -32,8 +32,6 @@
 
     nix-inspect.url = "github:bluskript/nix-inspect";
 
-    ghostty.url = "github:ghostty-org/ghostty";
-
     quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
   };
 
@@ -43,7 +41,6 @@
       snowfall-lib,
       treefmt-nix,
       sops-nix,
-      ghostty,
       nixpkgs-unstable,
       systems,
       ...

@@ -150,6 +150,7 @@ in
       obsidian-sync_env.owner = config.meta.flake.owner;
       booklore_env.owner = config.meta.flake.owner;
       booklore-db_env.owner = config.meta.flake.owner;
+      notesnook_env.owner = config.meta.flake.owner;
     };
   };
 

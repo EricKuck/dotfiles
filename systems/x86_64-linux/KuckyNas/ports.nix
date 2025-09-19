@@ -42,6 +42,11 @@ in
     freshrss = 8487;
     vaultwarden = 8488;
     obsidian-sync = 8489;
+    notesnook-s3 = 8490;
+    notesnook-identity = 8491;
+    notesnook-server = 8492;
+    notesnook-sse = 8493;
+    notesnook-monograph = 8494;
     sonarr = 8989;
     mosquitto_mqtt-websockets = 9001;
     qbittorrent = 9090;

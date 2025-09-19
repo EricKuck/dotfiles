@@ -33,7 +33,7 @@ in
       [
         kopia
         iotop
-        inputs.ghostty.packages."${system}".default
+        ghostty
       ]
       ++ lib.optional cfg.podman.enable pkgs.podman-compose;
 
