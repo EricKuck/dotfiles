@@ -71,11 +71,12 @@ in
 
       calibre-downloader = {
         containerConfig = {
-          image = "ghcr.io/calibrain/calibre-web-automated-book-downloader:latest";
+          image = "ghcr.io/calibrain/calibre-web-automated-book-downloader-extbp:latest";
           name = "calibre-web-downloader";
           autoUpdate = "registry";
           environments = {
             USE_BOOK_TITLE = "true";
+            EXT_BYPASSER_URL = "http://host.containers.internal:${toString osConfig.ports.byparr}";
           };
           volumes = [
             "${CONTAINER_PATH}/bookdrop:/cwa-book-ingest"

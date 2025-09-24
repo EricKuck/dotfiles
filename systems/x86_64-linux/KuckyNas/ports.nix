@@ -35,7 +35,7 @@ in
     music-assistant = 8095;
     jellyfin = 8096;
     homeassistant = 8123;
-    flaresolverr = 8191;
+    byparr = 8191;
     kavita = 8345;
     syncthing = 8384;
     unifi = 8443;

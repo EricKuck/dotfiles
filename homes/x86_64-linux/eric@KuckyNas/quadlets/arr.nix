@@ -14,13 +14,13 @@ in
 {
   quadlets = {
     containers = {
-      flaresolverr = {
+      byparr = {
         containerConfig = {
-          image = "ghcr.io/flaresolverr/flaresolverr:latest";
-          name = "flaresolverr";
+          image = "ghcr.io/thephaseless/byparr:latest";
+          name = "byparr";
           autoUpdate = "registry";
           publishPorts = [
-            "${toString osConfig.ports.flaresolverr}:8191"
+            "${toString osConfig.ports.byparr}:8191"
           ];
         };
         serviceConfig = {
@@ -53,8 +53,8 @@ in
           Restart = "always";
         };
         unitConfig = {
-          Requires = [ containers.flaresolverr.ref ];
-          After = [ containers.flaresolverr.ref ];
+          Requires = [ containers.byparr.ref ];
+          After = [ containers.byparr.ref ];
         };
       };
 
