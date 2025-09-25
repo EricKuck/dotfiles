@@ -18,7 +18,7 @@ in
   config = mkIf cfg.enable {
     home.packages =
       if format == "darwin" then
-        [ pkgs.cocoapods ]
+        [ pkgs.xcodes ]
       else
         throw "iOS environment only available for darwin targets";
   };

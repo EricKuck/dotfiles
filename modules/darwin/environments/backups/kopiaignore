@@ -124,6 +124,8 @@ log
 /Library/Application\ Support/discord
 /Library/Application\ Support/obsidian
 /Library/Containers/com.apple.*
+/Library/Containers/com.utmapp.UTM/Data
+/Library/Containers/com.utmapp.QEMUHelper
 /Library/Containers/com.firecore.infuse
 /Library/Containers/com.tinyspeck.slackmacgap
 /Library/Containers/com.readdle.smartemail-Mac
@@ -131,6 +133,7 @@ log
 /Library/Containers/com.atlassian.jira.mac
 /Library/Containers/com.docker.docker
 /Library/Containers/de.janbolz.silicio
+/Library/Containers/com.sindresorhus.Gifski
 /Library/Group\ Containers/group.com.apple.*
 /Library/Group\ Containers/BJ4HAAB9B3.ZoomClient3rd
 /Library/Group\ Containers/3L68KQB4HG.group.com.readdle.smartemail

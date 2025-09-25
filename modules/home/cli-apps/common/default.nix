@@ -197,6 +197,11 @@ in
         enable = true;
         colors = builtins.fromTOML (builtins.readFile ../configs/fzf/colors.toml);
       };
+
+      zoxide = {
+        enable = true;
+        enableFishIntegration = true;
+      };
     };
 
     xdg.configFile = {

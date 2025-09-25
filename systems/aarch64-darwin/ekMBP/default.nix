@@ -13,7 +13,6 @@ with lib.custom;
     environments = {
       common.enable = true;
       android.enable = true;
-      ios.enable = true;
       rust.enable = true;
       backups.enable = true;
     };
@@ -47,6 +46,7 @@ with lib.custom;
       "signal"
       "inkscape"
       "vial"
+      "utm"
     ];
 
     masApps = {
