@@ -2,6 +2,7 @@
 let
   CONTAINER_PATH = "${osConfig.meta.containerData}/immich";
   CONTAINER_CACHE_PATH = "${osConfig.meta.containerCache}/immich";
+  IMMICH_VERSION = "v1.143.1";
   inherit (config.virtualisation.quadlet) containers networks pods;
 in
 {
@@ -13,7 +14,7 @@ in
     containers = {
       immich-server = {
         containerConfig = {
-          image = "ghcr.io/immich-app/immich-server:release";
+          image = "ghcr.io/immich-app/immich-server:${IMMICH_VERSION}";
           name = "immich_server";
           environmentFiles = [ osConfig.sops.secrets.immich_server_env.path ];
           volumes = [
@@ -48,7 +49,7 @@ in
 
       immich-machine-learning = {
         containerConfig = {
-          image = "ghcr.io/immich-app/immich-machine-learning:release";
+          image = "ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION}";
           name = "immich_machine_learning";
           environmentFiles = [ osConfig.sops.secrets.immich_server_env.path ];
           volumes = [
@@ -80,7 +81,7 @@ in
 
       immich-database = {
         containerConfig = {
-          image = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:8d292bdb796aa58bbbaa47fe971c8516f6f57d6a47e7172e62754feb6ed4e7b0";
+          image = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:c44be5f2871c59362966d71eab4268170eb6f5653c0e6170184e72b38ffdf107";
           name = "immich_postgres";
           environments = {
             POSTGRES_INITDB_ARGS = "--data-checksums";
