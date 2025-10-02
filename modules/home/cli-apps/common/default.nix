@@ -53,7 +53,7 @@ in
         dua
         usbutils
         speedtest-cli
-        gpg
+        gnupg1
         unstable.nix-init
       ];
 
