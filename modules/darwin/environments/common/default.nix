@@ -264,7 +264,6 @@ in
       # TODO: add autostart entries?
       casks = [
         "bitwarden"
-        "arc"
         "battery"
         "obsidian"
         "notesnook"
@@ -294,6 +293,7 @@ in
           greedy = true;
         }
         "meetingbar"
+        "neardrop"
       ];
 
       masApps = {
