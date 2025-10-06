@@ -33,6 +33,8 @@
     nix-inspect.url = "github:bluskript/nix-inspect";
 
     quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
+
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 
   outputs =

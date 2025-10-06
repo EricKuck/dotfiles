@@ -1,5 +1,5 @@
 {
-  libs,
+  lib,
   pkgs,
   inputs,
   config,
@@ -8,6 +8,7 @@
 {
   imports = [
     inputs.nixos-hardware.nixosModules.raspberry-pi-3
+    inputs.sops-nix.nixosModules.sops
   ];
 
   custom = {
@@ -19,7 +20,7 @@
 
   meta = {
     ipAddress = "192.168.1.3";
-    containerData = "${osConfig.meta.flake.ownerHome}/container";
+    containerData = "${config.meta.flake.ownerHome}/container";
   };
 
   boot = {
