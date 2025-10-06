@@ -25,6 +25,7 @@ in
     home.packages = with pkgs; [
       poppler-utils
       imagemagickBig
+      ffmpeg
       (writeShellScriptBin "activate-btt" (builtins.readFile ./scripts/activate-btt))
       (writeShellScriptBin "activate-istat" (builtins.readFile ./scripts/activate-istat))
       (writeShellScriptBin "scanify" (builtins.readFile ./scripts/scanify))

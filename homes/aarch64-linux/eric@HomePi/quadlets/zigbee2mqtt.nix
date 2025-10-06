@@ -20,6 +20,10 @@ in
           devices = [
             "/dev/ttyACM0"
           ];
+          addGroups = [
+            "keep-groups"
+          ];
+          userns = "keep-id";
         };
         serviceConfig = {
           Restart = "always";

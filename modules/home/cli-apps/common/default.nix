@@ -25,13 +25,8 @@ in
         nvd
         nix-output-monitor
         nix-prefetch-git
-        neovim
-        nnn
         fd
         ripgrep
-        btop
-        iftop
-        htop
         bat
         grc
         killall
@@ -48,11 +43,9 @@ in
         eza
         figlet
         lolcat
-        ffmpeg
         sd
         dua
         usbutils
-        speedtest-cli
         gnupg1
         unstable.nix-init
       ];

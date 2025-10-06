@@ -51,4 +51,8 @@ with lib.custom;
       };
     };
   };
+
+  home.packages = with pkgs; [
+    ffmpeg
+  ];
 }
