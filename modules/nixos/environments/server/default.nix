@@ -243,6 +243,8 @@ in
           after = [ "systemd-networkd-wait-online.service" ];
         };
       };
+
+      targets.network-online.wantedBy = [ "multi-user.target" ];
     };
 
     virtualisation = mkIf cfg.quadlets.enable {
