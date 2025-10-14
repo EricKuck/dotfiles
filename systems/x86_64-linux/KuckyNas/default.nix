@@ -263,6 +263,9 @@ in
         "z2m.kuck.ing".extraConfig = ''
           reverse_proxy http://192.168.1.3:8080
         '';
+        "glancepi.kuck.ing".extraConfig = ''
+          reverse_proxy http://192.168.1.3:61208
+        '';
         "kopia.kuck.ing".extraConfig = ''
           reverse_proxy http://localhost:51515
         '';

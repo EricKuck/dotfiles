@@ -24,6 +24,7 @@ in
     unifi_stun = 3478;
     searxng = 3479;
     jellyseerr = 5055;
+    changedetection = 5056;
     bazarr = 6767;
     profilarr = 6868;
     radarr = 7878;
