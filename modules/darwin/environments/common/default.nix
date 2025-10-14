@@ -261,6 +261,10 @@ in
         lockfiles = true;
       };
 
+      taps = [
+        "grishka/grishka"
+      ];
+
       # TODO: add autostart entries?
       casks = [
         "bitwarden"
