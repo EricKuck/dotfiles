@@ -18,4 +18,9 @@ with lib.custom;
       podman.enable = true;
     };
   };
+
+  home.packages = with pkgs; [
+    python313Packages.universal-silabs-flasher
+  ];
+
 }
