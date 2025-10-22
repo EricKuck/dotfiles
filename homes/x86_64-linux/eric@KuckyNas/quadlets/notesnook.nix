@@ -44,6 +44,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-s3.kuck.ing"
+            "blackbox.allow40x=true"
           ];
           exec = "server /data/s3 --console-address :9090";
           healthCmd = "timeout 5s bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1";
@@ -89,6 +90,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-identity.kuck.ing"
+            "blackbox.path=/health"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/identity?replSet=rs0";
@@ -118,6 +120,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-sync.kuck.ing"
+            "blackbox.path=/health"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/?replSet=rs0";
@@ -160,6 +163,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-sse.kuck.ing"
+            "blackbox.path=/health"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/?replSet=rs0";
@@ -206,7 +210,7 @@ in
             PUBLIC_URL = "https://notes-monograph.kuck.ing";
           };
           environmentFiles = [ osConfig.sops.secrets.notesnook_env.path ];
-          healthCmd = "wget --tries=1 -nv -q  http://localhost:3000/api/health -O- || exit 1";
+          healthCmd = "timeout 5s bash -c ':> /dev/tcp/127.0.0.1/3000' || exit 1";
           networks = [ networks.notesnook.ref ];
           pod = pods.notesnook.ref;
         };

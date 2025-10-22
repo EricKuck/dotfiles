@@ -122,7 +122,9 @@ in
       }
     ];
     # The flood of dns lookups from blackbox makes viewing adguard stats obnoxious, just hostfile locally hosted stuff
-    extraHosts = builtins.concatStringsSep "\n" (builtins.map (host: "127.0.0.1 ${host}") caddyUrls);
+    extraHosts = builtins.concatStringsSep "\n" (
+      builtins.map (host: "127.0.0.1 ${host}") caddyUrls.all
+    );
   };
 
   hardware.cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
@@ -263,7 +265,7 @@ in
         "z2m.kuck.ing".extraConfig = ''
           reverse_proxy http://192.168.1.3:8080
         '';
-        "glancepi.kuck.ing".extraConfig = ''
+        "glance2.kuck.ing".extraConfig = ''
           reverse_proxy http://192.168.1.3:61208
         '';
         "kopia.kuck.ing".extraConfig = ''

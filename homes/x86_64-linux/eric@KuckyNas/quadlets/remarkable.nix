@@ -49,6 +49,7 @@ in
             PAPERLESS_OCR_LANGUAGES = "eng";
             PAPERLESS_TIME_ZONE = osConfig.meta.timezone;
             PAPERLESS_OCR_LANGUAGE = "eng";
+            PAPERLESS_URL = "https://paperless.kuck.ing";
           };
           environmentFiles = [ osConfig.sops.secrets.paperless_env.path ];
           volumes = [
@@ -94,12 +95,12 @@ in
 
       paperless-ngx-postgres = {
         containerConfig = {
-          image = "docker.io/library/postgres:15";
+          image = "docker.io/library/postgres:18";
           name = "paperless-ngx-postgres";
           autoUpdate = "registry";
           environmentFiles = [ osConfig.sops.secrets.paperless_postgres_env.path ];
           volumes = [
-            "${PAPERLESS_CONTAINER_PATH}/pgdata:/var/lib/postgresql/data"
+            "${PAPERLESS_CONTAINER_PATH}/pgdata:/var/lib/postgresql"
           ];
           networks = [ networks.paperless.ref ];
           pod = pods.paperless.ref;

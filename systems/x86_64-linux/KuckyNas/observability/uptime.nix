@@ -29,6 +29,29 @@ let
         };
       };
 
+      https_2xx_or_40x = {
+        prober = "http";
+        timeout = "5s";
+        http = {
+          preferred_ip_protocol = "ip4";
+          method = "GET";
+          valid_status_codes = [
+            200
+            201
+            202
+            203
+            204
+            205
+            206
+            400
+            401
+            403
+            404
+          ];
+          fail_if_not_ssl = true;
+        };
+      };
+
       icmp = {
         prober = "icmp";
         timeout = "5s";
@@ -87,7 +110,14 @@ in
           job_name = "https_probe";
           scrape_interval = "1m";
           modules = [ "https_2xx" ];
-          targets = caddyUrls;
+          targets = caddyUrls.strict;
+        })
+
+        (blackboxTargets {
+          job_name = "https_probe_40x";
+          scrape_interval = "1m";
+          modules = [ "https_2xx_or_40x" ];
+          targets = caddyUrls.allow40x;
         })
 
         (blackboxTargets {
