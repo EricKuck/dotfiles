@@ -40,7 +40,7 @@
     };
 
     kernelModules = [ "kvm-intel" ];
-    kernelPackages = pkgs.linuxPackages_6_16;
+    kernelPackages = pkgs.linuxPackages_6_17;
     kernel.sysctl = {
       "vm.swappiness" = 30;
       "vm.vfs_cache_pressure" = 50;
