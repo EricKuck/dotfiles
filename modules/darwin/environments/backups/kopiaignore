@@ -1,3 +1,11 @@
+# Code dir
+/Android/**/coverage
+/Android/**/snapshots
+/iOS/**/Snapshots
+/kmp/**/.kotlin
+/kmp/**/spmKmpPlugin
+
+# Everything else
 *.sock
 *.noindex
 *.download
@@ -41,9 +49,6 @@ log
 /.config/github-copilot
 /go/pkg/mod
 /traces
-/Code/Android/**/coverage
-/Code/Android/**/snapshots
-/Code/iOS/**/Snapshots
 /Library/Assistant
 /Library/Thunderbird
 /Library/thunderbird
