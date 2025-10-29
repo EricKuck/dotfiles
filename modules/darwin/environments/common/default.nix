@@ -272,7 +272,6 @@ in
         "obsidian"
         "notesnook"
         "macmediakeyforwarder"
-        "spotify"
         "lulu"
         {
           name = "intellij-idea@eap";
