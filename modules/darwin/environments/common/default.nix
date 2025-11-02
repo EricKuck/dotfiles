@@ -269,7 +269,6 @@ in
       casks = [
         "bitwarden"
         "battery"
-        "obsidian"
         "notesnook"
         "macmediakeyforwarder"
         "lulu"

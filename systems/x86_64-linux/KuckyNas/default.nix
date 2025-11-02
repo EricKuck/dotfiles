@@ -149,7 +149,6 @@ in
       paperless_env.owner = config.meta.flake.owner;
       paperless_postgres_env.owner = config.meta.flake.owner;
       vaultwarden_env.owner = config.meta.flake.owner;
-      obsidian-sync_env.owner = config.meta.flake.owner;
       booklore_env.owner = config.meta.flake.owner;
       booklore-db_env.owner = config.meta.flake.owner;
       notesnook_env.owner = config.meta.flake.owner;

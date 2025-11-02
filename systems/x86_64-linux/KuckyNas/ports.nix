@@ -42,7 +42,6 @@ in
     unifi = 8443;
     freshrss = 8487;
     vaultwarden = 8488;
-    obsidian-sync = 8489;
     notesnook-s3 = 8490;
     notesnook-identity = 8491;
     notesnook-server = 8492;

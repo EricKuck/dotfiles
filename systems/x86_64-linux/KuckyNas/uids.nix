@@ -34,7 +34,6 @@ in
       mealie = 1076;
       freshrss = 1240;
 
-      obsidian-sync = 3793;
       vaultwarden = 3792;
 
       profilarr = 3992;
