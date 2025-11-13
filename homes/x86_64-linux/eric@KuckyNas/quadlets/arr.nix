@@ -164,7 +164,7 @@ in
 
       profilarr = {
         containerConfig = {
-          image = "docker.io/santiagosayshey/profilarr:latest";
+          image = "docker.io/santiagosayshey/profilarr:v1.1.2";
           name = "profilarr";
           autoUpdate = "registry";
           volumes = [

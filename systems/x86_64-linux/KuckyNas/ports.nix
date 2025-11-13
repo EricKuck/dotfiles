@@ -31,7 +31,7 @@ in
     paperless = 8010;
     unifi_comm = 8080;
     booklore = 8082;
-    calibre-downloader = 8084;
+    ephemera = 8085;
     mylar3 = 8090;
     music-assistant = 8095;
     jellyfin = 8096;

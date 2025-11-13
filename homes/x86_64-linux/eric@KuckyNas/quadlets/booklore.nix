@@ -1,6 +1,7 @@
 { config, osConfig, ... }:
 let
-  CONTAINER_PATH = "${osConfig.meta.containerData}/booklore";
+  BOOKLORE_CONTAINER_PATH = "${osConfig.meta.containerData}/booklore";
+  EPHEMERA_CONTAINER_PATH = "${osConfig.meta.containerCache}/ephemera";
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {
@@ -22,9 +23,9 @@ in
           };
           environmentFiles = [ osConfig.sops.secrets.booklore_env.path ];
           volumes = [
-            "${CONTAINER_PATH}/data:/app/data"
+            "${BOOKLORE_CONTAINER_PATH}/data:/app/data"
             "/kuckyjar/media/Books:/books"
-            "${CONTAINER_PATH}/bookdrop:/bookdrop"
+            "${BOOKLORE_CONTAINER_PATH}/bookdrop:/bookdrop"
           ];
           publishPorts = [
             "${toString osConfig.ports.booklore}:${toString osConfig.ports.booklore}"
@@ -60,7 +61,7 @@ in
           };
           environmentFiles = [ osConfig.sops.secrets.booklore-db_env.path ];
           volumes = [
-            "${CONTAINER_PATH}/db:/config"
+            "${BOOKLORE_CONTAINER_PATH}/db:/config"
           ];
           networks = [ networks.booklore.ref ];
         };
@@ -69,25 +70,28 @@ in
         };
       };
 
-      calibre-downloader = {
+      ephemera = {
         containerConfig = {
-          image = "ghcr.io/calibrain/calibre-web-automated-book-downloader-extbp:latest";
-          name = "calibre-web-downloader";
+          image = "ghcr.io/orwellianepilogue/ephemera:latest";
+          name = "ephemera";
           autoUpdate = "registry";
           environments = {
-            USE_BOOK_TITLE = "true";
-            EXT_BYPASSER_URL = "http://host.containers.internal:${toString osConfig.ports.byparr}";
+            AA_BASE_URL = "https://annas-archive.org";
+            LG_BASE_URL = "https://libgen.bz";
+            FLARESOLVERR_URL = "http://host.containers.internal:${toString osConfig.ports.byparr}";
           };
           volumes = [
-            "${CONTAINER_PATH}/bookdrop:/cwa-book-ingest"
+            "${EPHEMERA_CONTAINER_PATH}/data:/app/data"
+            "${EPHEMERA_CONTAINER_PATH}/downloads:/app/downloads"
+            "${BOOKLORE_CONTAINER_PATH}/bookdrop:/app/ingest"
           ];
           publishPorts = [
-            "${toString osConfig.ports.calibre-downloader}:8084"
+            "${toString osConfig.ports.ephemera}:8286"
           ];
           networks = [ networks.booklore.ref ];
           labels = [
             "caddy.enable=true"
-            "caddy.host=calibre-downloader.kuck.ing"
+            "caddy.host=ephemera.kuck.ing"
           ];
         };
         serviceConfig = {
