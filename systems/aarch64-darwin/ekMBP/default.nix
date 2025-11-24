@@ -38,7 +38,7 @@ with lib.custom;
 
   homebrew = {
     casks = [
-      "orcaslicer"
+      "bambu-studio"
       "winbox"
       "autodesk-fusion"
       "openscad@snapshot"
