@@ -9,6 +9,7 @@ let
   HUNTARR_CONTAINER_PATH = "${osConfig.meta.containerData}/huntarr";
   MYLAR3_CONTAINER_PATH = "${osConfig.meta.containerData}/mylar3";
   TORRENT_DL_PATH = "${osConfig.meta.containerData}/qbittorrent/downloads";
+  NZB_DL_PATH = "${osConfig.meta.containerData}/sabnzbd/downloads";
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {
@@ -70,7 +71,8 @@ in
           volumes = [
             "${SONARR_CONTAINER_PATH}/config:/config"
             "/kuckyjar/media/TV:/tv"
-            "${TORRENT_DL_PATH}:/downloads"
+            "${TORRENT_DL_PATH}:/torrent_downloads"
+            "${NZB_DL_PATH}:/nzb_downloads"
           ];
           publishPorts = [
             "${toString osConfig.ports.sonarr}:8989"
@@ -87,10 +89,12 @@ in
         unitConfig = {
           Requires = [
             containers.qbittorrent.ref
+            containers.sabnzbd.ref
             containers.prowlarr.ref
           ];
           After = [
             containers.qbittorrent.ref
+            containers.sabnzbd.ref
             containers.prowlarr.ref
           ];
         };
@@ -108,7 +112,8 @@ in
           volumes = [
             "${RADARR_CONTAINER_PATH}/config:/config"
             "/kuckyjar/media/Movies:/movies"
-            "${TORRENT_DL_PATH}:/downloads"
+            "${TORRENT_DL_PATH}:/torrent_downloads"
+            "${NZB_DL_PATH}:/nzb_downloads"
           ];
           publishPorts = [
             "${toString osConfig.ports.radarr}:7878"
@@ -125,10 +130,12 @@ in
         unitConfig = {
           Requires = [
             containers.qbittorrent.ref
+            containers.sabnzbd.ref
             containers.prowlarr.ref
           ];
           After = [
             containers.qbittorrent.ref
+            containers.sabnzbd.ref
             containers.prowlarr.ref
           ];
         };
@@ -240,7 +247,8 @@ in
           volumes = [
             "${MYLAR3_CONTAINER_PATH}/config:/config"
             "/kuckyjar/media/Comics:/comics"
-            "${TORRENT_DL_PATH}:/downloads"
+            "${TORRENT_DL_PATH}:/torrent_downloads"
+            "${NZB_DL_PATH}:/nzb_downloads"
           ];
           publishPorts = [
             "${toString osConfig.ports.mylar3}:8090"
@@ -257,10 +265,12 @@ in
         unitConfig = {
           Requires = [
             containers.qbittorrent.ref
+            containers.sabnzbd.ref
             containers.prowlarr.ref
           ];
           After = [
             containers.qbittorrent.ref
+            containers.sabnzbd.ref
             containers.prowlarr.ref
           ];
         };

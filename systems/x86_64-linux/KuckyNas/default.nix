@@ -58,7 +58,7 @@ in
     };
 
     kernelModules = [ "kvm-intel" ];
-    kernelPackages = pkgs.linuxPackages_6_16;
+    kernelPackages = pkgs.linuxPackages_6_17;
     kernelParams = [
       "zfs.zfs_arc_max=13958643712" # 13GB: 2GB + 1GB/TB in pool
       "zswap.enabled=1"
@@ -237,7 +237,7 @@ in
           "github.com/caddy-dns/cloudflare@v0.2.1"
           "github.com/EricKuck/caddy-docker-upstreams@v0.0.0-20250616194924-027669749ea0"
         ];
-        hash = "sha256-kaIkHb6zYylAN6ffLPFOvlKYhUXVU8lJZBvOkYzPtzg=";
+        hash = "sha256-PoWY6BctAwdtv71CqKE6zQmI2ABXE2dgPP44Lr4H79Y=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {

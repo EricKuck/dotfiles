@@ -20,7 +20,7 @@ in
           };
           volumes = [
             "${CONTAINER_PATH}/config:/config"
-            "${CONTAINER_PATH}/downloads:/downloads"
+            "${CONTAINER_PATH}/downloads:/torrent_downloads"
             "${CONTAINER_PATH}/vuetorrent:/vuetorrent"
           ];
           publishPorts = [

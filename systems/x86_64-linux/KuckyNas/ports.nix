@@ -36,6 +36,9 @@ in
     music-assistant = 8095;
     jellyfin = 8096;
     homeassistant = 8123;
+    matrix-synapse = 8124;
+    matrix-mas = 8125;
+    matrix-gvoice = 8126;
     byparr = 8191;
     kavita = 8345;
     syncthing = 8384;
@@ -51,6 +54,7 @@ in
     mosquitto_mqtt-websockets = 9001;
     qbittorrent = 9090;
     qbittorrent_torrent = 9091;
+    sabnzbd = 9092;
     prometheus-node-exporter = 9100;
     prometheus-zfs-exporter = 9101;
     prometheus-podman-exporter = 9102;
