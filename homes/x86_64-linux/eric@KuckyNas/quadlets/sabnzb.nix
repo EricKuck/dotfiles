@@ -9,7 +9,7 @@ in
       sabnzbd = {
         containerConfig = {
           image = "lscr.io/linuxserver/sabnzbd:latest";
-          name = "sabznb";
+          name = "sabznbd";
           autoUpdate = "registry";
           environments = {
             PUID = "1072";

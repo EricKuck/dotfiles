@@ -3,6 +3,7 @@ let
   PROWLARR_CONTAINER_PATH = "${osConfig.meta.containerData}/prowlarr";
   SONARR_CONTAINER_PATH = "${osConfig.meta.containerData}/sonarr";
   RADARR_CONTAINER_PATH = "${osConfig.meta.containerData}/radarr";
+  LIDARR_CONTAINER_PATH = "${osConfig.meta.containerData}/lidarr";
   BAZARR_CONTAINER_PATH = "${osConfig.meta.containerData}/bazarr";
   PROFILARR_CONTAINER_PATH = "${osConfig.meta.containerData}/profilarr";
   CLEANUPARR_CONTAINER_PATH = "${osConfig.meta.containerData}/cleanuparr";
@@ -122,6 +123,47 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=radarr.kuck.ing"
+          ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+        unitConfig = {
+          Requires = [
+            containers.qbittorrent.ref
+            containers.sabnzbd.ref
+            containers.prowlarr.ref
+          ];
+          After = [
+            containers.qbittorrent.ref
+            containers.sabnzbd.ref
+            containers.prowlarr.ref
+          ];
+        };
+      };
+
+      lidarr = {
+        containerConfig = {
+          image = "lscr.io/linuxserver/lidarr:latest";
+          name = "lidarr";
+          autoUpdate = "registry";
+          environments = {
+            PUID = "1072";
+            PGID = "1072";
+          };
+          volumes = [
+            "${LIDARR_CONTAINER_PATH}/config:/config"
+            "/kuckyjar/media/Music:/music"
+            "${TORRENT_DL_PATH}:/torrent_downloads"
+            "${NZB_DL_PATH}:/nzb_downloads"
+          ];
+          publishPorts = [
+            "${toString osConfig.ports.lidarr}:8686"
+          ];
+          networks = [ networks.wireguard.ref ];
+          labels = [
+            "caddy.enable=true"
+            "caddy.host=lidarr.kuck.ing"
           ];
         };
         serviceConfig = {
