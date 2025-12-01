@@ -249,6 +249,8 @@ in
     homebrew = {
       enable = true;
 
+      caskArgs.no_quarantine = true;
+
       onActivation = {
         upgrade = true;
         autoUpdate = true;
@@ -263,6 +265,7 @@ in
 
       taps = [
         "grishka/grishka"
+        "kgarner7/feishin"
       ];
 
       # TODO: add autostart entries?
@@ -296,6 +299,7 @@ in
         }
         "meetingbar"
         "neardrop"
+        "feishin"
       ];
 
       masApps = {
