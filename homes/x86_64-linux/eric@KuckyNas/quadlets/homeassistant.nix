@@ -40,7 +40,7 @@ in
           ];
           labels = [
             "caddy.enable=true"
-            "caddy.port=${toString osConfig.ports.music-assistant}"
+            "caddy.port=${toString osConfig.ports.music-assistant_web}"
             "caddy.host=music.kuck.ing"
           ];
         };

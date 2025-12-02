@@ -33,8 +33,10 @@ in
     booklore = 8082;
     ephemera = 8085;
     mylar3 = 8090;
-    music-assistant = 8095;
+    music-assistant_web = 8095;
     jellyfin = 8096;
+    music-assistant_player = 8097;
+    multi-scrobbler = 8098;
     homeassistant = 8123;
     matrix-synapse = 8124;
     matrix-mas = 8125;
