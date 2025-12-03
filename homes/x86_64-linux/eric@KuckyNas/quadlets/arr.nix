@@ -11,6 +11,7 @@ let
   MYLAR3_CONTAINER_PATH = "${osConfig.meta.containerData}/mylar3";
   TORRENT_DL_PATH = "${osConfig.meta.containerData}/qbittorrent/downloads";
   NZB_DL_PATH = "${osConfig.meta.containerData}/sabnzbd/downloads";
+  SOULSEEK_DL_PATH = "${osConfig.meta.containerData}/soulseek/downloads";
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {
@@ -144,7 +145,7 @@ in
 
       lidarr = {
         containerConfig = {
-          image = "lscr.io/linuxserver/lidarr:latest";
+          image = "ghcr.io/linuxserver-labs/prarr:lidarr-plugins";
           name = "lidarr";
           autoUpdate = "registry";
           environments = {
@@ -153,9 +154,12 @@ in
           };
           volumes = [
             "${LIDARR_CONTAINER_PATH}/config:/config"
+            "${LIDARR_CONTAINER_PATH}/lucida:/lucida"
+            "${LIDARR_CONTAINER_PATH}/dab:/dab"
             "/kuckyjar/media/Music:/music"
             "${TORRENT_DL_PATH}:/torrent_downloads"
             "${NZB_DL_PATH}:/nzb_downloads"
+            "${SOULSEEK_DL_PATH}:/soulseek_downloads"
           ];
           publishPorts = [
             "${toString osConfig.ports.lidarr}:8686"

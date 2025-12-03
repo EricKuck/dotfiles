@@ -23,6 +23,7 @@ in
     karakeep = 3091;
     unifi_stun = 3478;
     searxng = 3479;
+    soulseek_web = 5030;
     jellyseerr = 5055;
     changedetection = 5056;
     bazarr = 6767;
@@ -42,6 +43,7 @@ in
     matrix-mas = 8125;
     matrix-gvoice = 8126;
     byparr = 8191;
+    metadata-remote = 8338;
     kavita = 8345;
     syncthing = 8384;
     unifi = 8443;
@@ -55,7 +57,7 @@ in
     lidarr = 8686;
     sonarr = 8989;
     mosquitto_mqtt-websockets = 9001;
-    qbittorrent = 9090;
+    qbittorrent_web = 9090;
     qbittorrent_torrent = 9091;
     sabnzbd = 9092;
     prometheus-node-exporter = 9100;
@@ -86,6 +88,7 @@ in
     cleanuparr = 11011;
     syncthing_discovery = 21027;
     syncthing_sync = 22000;
+    soulseek_dl = 50300;
     wireguard = 51820;
     glances = 61208;
   };

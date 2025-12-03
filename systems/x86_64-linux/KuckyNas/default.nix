@@ -69,6 +69,7 @@ in
     kernel.sysctl = {
       "vm.swappiness" = 30;
       "vm.vfs_cache_pressure" = 50;
+      "fs.inotify.max_user_instances" = 1024;
     };
     extraModulePackages = [ ];
 

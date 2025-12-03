@@ -23,7 +23,8 @@ in
           ];
           publishPorts = [
             "${toString osConfig.ports.wireguard}:51820/udp"
-            "${toString osConfig.ports.qbittorrent}:${toString osConfig.ports.qbittorrent}"
+            "${toString osConfig.ports.qbittorrent_web}:${toString osConfig.ports.qbittorrent_web}"
+            "${toString osConfig.ports.soulseek_web}:${toString osConfig.ports.soulseek_web}"
           ];
           networks = [ networks.wireguard.ref ];
           addCapabilities = [ "NET_ADMIN" ];

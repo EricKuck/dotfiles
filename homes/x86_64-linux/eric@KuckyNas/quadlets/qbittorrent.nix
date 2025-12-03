@@ -24,7 +24,7 @@ in
             "${CONTAINER_PATH}/vuetorrent:/vuetorrent"
           ];
           publishPorts = [
-            "${toString osConfig.ports.qbittorrent}:9090"
+            "${toString osConfig.ports.qbittorrent_web}:9090"
             "${toString osConfig.ports.qbittorrent_torrent}:6881"
             "${toString osConfig.ports.qbittorrent_torrent}:6881/udp"
           ];
@@ -33,7 +33,7 @@ in
           ];
           labels = [
             "caddy.enable=true"
-            "caddy.port=${toString osConfig.ports.qbittorrent}"
+            "caddy.port=${toString osConfig.ports.qbittorrent_web}"
             "caddy.host=qbittorrent.kuck.ing"
           ];
         };
