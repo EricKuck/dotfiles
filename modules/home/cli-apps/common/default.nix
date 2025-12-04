@@ -47,6 +47,7 @@ in
         dua
         usbutils
         gnupg1
+        chafa
         unstable.nix-init
       ];
 
@@ -64,6 +65,7 @@ in
         ls = "eza -g";
         nix-shell = "nix-shell --run fish";
         flake-repl = "nix repl --expr \"builtins.getFlake $FLAKE\"";
+        icat = "chafa";
       };
 
       file = {
