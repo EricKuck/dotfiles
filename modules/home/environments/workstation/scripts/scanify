@@ -11,10 +11,10 @@ for file in "$@"; do
     splitFileBase=${splitFile%.pdf}
     scannedJpg=$splitFileBase"_scanned.jpg"
 
-    convert -density 200 -trim -flatten "$splitFile" -attenuate 0.2 +noise Gaussian -rotate "$([ $((RANDOM % 2)) -eq 1 ] && echo -)0.$(($RANDOM % 8 + 1))" "$scannedJpg"
+    convert -background white -density 300 -trim -flatten "$splitFile" -attenuate 0.2 +noise Gaussian -background transparent -rotate "$([ $((RANDOM % 2)) -eq 1 ] && echo -)0.$(($RANDOM % 8 + 1))" "$scannedJpg"
   done
 
-  convert -density 200 $(ls -rt /tmp/fake-scan-split-*_scanned.jpg) -attenuate 0.2 +noise Gaussian -sharpen 0x1.0 -colorspace Gray +level 15%,100% "$output"
+  convert -density 300 $(ls -rt /tmp/fake-scan-split-*_scanned.jpg) -attenuate 0.2 +noise Gaussian -sharpen 0x1.0 -colorspace Gray +level 15%,100% -define pdf:Title="Scanned Document" -define pdf:Author="" -define pdf:Creator="Image Capture" -define pdf:Producer="Mac OS X $(sw_vers -productVersion ) Quartz PDFContext" "$output"
   echo "Scanified PDF available at $output"
 
   rm /tmp/fake-scan-split-*.jpg
