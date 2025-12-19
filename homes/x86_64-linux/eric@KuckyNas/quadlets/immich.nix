@@ -69,7 +69,7 @@ in
 
       immich-redis = {
         containerConfig = {
-          image = "docker.io/valkey/valkey:8@sha256:81db6d39e1bba3b3ff32bd3a1b19a6d69690f94a3954ec131277b9a26b95b3aa";
+          image = "docker.io/valkey/valkey:9@sha256:fb8d272e529ea567b9bf1302245796f21a2672b8368ca3fcb938ac334e613c8f";
           name = "immich_redis";
           healthCmd = "redis-cli ping || exit 1";
           networks = [ networks.immich.ref ];
@@ -82,7 +82,7 @@ in
 
       immich-database = {
         containerConfig = {
-          image = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:41eacbe83eca995561fe43814fd4891e16e39632806253848efaf04d3c8a8b84";
+          image = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23";
           name = "immich_postgres";
           environments = {
             POSTGRES_INITDB_ARGS = "--data-checksums";

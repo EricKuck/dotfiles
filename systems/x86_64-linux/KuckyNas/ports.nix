@@ -23,6 +23,7 @@ in
     karakeep = 3091;
     unifi_stun = 3478;
     searxng = 3479;
+    navidrome = 4533;
     soulseek_web = 5030;
     jellyseerr = 5055;
     changedetection = 5056;
@@ -43,6 +44,7 @@ in
     matrix-mas = 8125;
     matrix-gvoice = 8126;
     byparr = 8191;
+    flaresolverr = 8192;
     metadata-remote = 8338;
     kavita = 8345;
     syncthing = 8384;

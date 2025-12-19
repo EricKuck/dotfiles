@@ -70,6 +70,25 @@ in
         };
       };
 
+      # TODO: remove once byparr has ephemera support
+      flaresolverr = {
+        containerConfig = {
+          image = "ghcr.io/flaresolverr/flaresolverr:latest";
+          name = "flaresolverr";
+          autoUpdate = "registry";
+          environments = {
+            PORT = toString osConfig.ports.flaresolverr;
+          };
+          publishPorts = [
+            "${toString osConfig.ports.flaresolverr}:${toString osConfig.ports.flaresolverr}"
+          ];
+          networks = [ networks.booklore.ref ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+      };
+
       ephemera = {
         containerConfig = {
           image = "ghcr.io/orwellianepilogue/ephemera:latest";
@@ -78,7 +97,7 @@ in
           environments = {
             AA_BASE_URL = "https://annas-archive.org";
             LG_BASE_URL = "https://libgen.bz";
-            FLARESOLVERR_URL = "http://host.containers.internal:${toString osConfig.ports.byparr}";
+            FLARESOLVERR_URL = "http://host.containers.internal:${toString osConfig.ports.flaresolverr}";
           };
           volumes = [
             "${EPHEMERA_CONTAINER_PATH}/data:/app/data"

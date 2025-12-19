@@ -239,7 +239,7 @@ in
           "github.com/caddy-dns/cloudflare@v0.2.1"
           "github.com/EricKuck/caddy-docker-upstreams@v0.0.0-20250616194924-027669749ea0"
         ];
-        hash = "sha256-PoWY6BctAwdtv71CqKE6zQmI2ABXE2dgPP44Lr4H79Y=";
+        hash = "sha256-m6axEJDx8CRl/hIQEzuxn+2eS+qZDTbmUvPvX2gqCkg=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {
