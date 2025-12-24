@@ -2,9 +2,6 @@
 let
   HA_CONTAINER_PATH = "${osConfig.meta.containerData}/homeassistant";
   MUSIC_CONTAINER_PATH = "${osConfig.meta.containerData}/music-assistant";
-  PIPER_CONTAINER_PATH = "${osConfig.meta.containerData}/wyoming-piper";
-  WHISPER_CONTAINER_PATH = "${osConfig.meta.containerData}/wyoming-whisper";
-  WAKEWORD_CONTAINER_PATH = "${osConfig.meta.containerData}/wyoming-openwakeword";
 in
 {
   quadlets = {
@@ -43,62 +40,6 @@ in
             "caddy.port=${toString osConfig.ports.music-assistant_web}"
             "caddy.host=music.kuck.ing"
           ];
-        };
-        serviceConfig = {
-          Restart = "always";
-        };
-      };
-
-      wyoming-piper = {
-        containerConfig = {
-          image = "docker.io/rhasspy/wyoming-piper:latest";
-          name = "wyoming-piper";
-          autoUpdate = "registry";
-          publishPorts = [
-            "${toString osConfig.ports.wyoming-piper}:10200"
-          ];
-          volumes = [
-            "${PIPER_CONTAINER_PATH}/data:/data"
-          ];
-          exec = "--voice en_GB-northern_english_male-medium";
-        };
-        serviceConfig = {
-          Restart = "always";
-        };
-      };
-
-      wyoming-whisper = {
-        containerConfig = {
-          image = "docker.io/rhasspy/wyoming-whisper:latest";
-          name = "wyoming-whisper";
-          autoUpdate = "registry";
-          publishPorts = [
-            "${toString osConfig.ports.wyoming-whisper}:10300"
-          ];
-          volumes = [
-            "${WHISPER_CONTAINER_PATH}/data:/data"
-          ];
-          exec = "--model base --language en";
-        };
-        serviceConfig = {
-          Restart = "always";
-        };
-      };
-
-      wyoming-openwakeword = {
-        containerConfig = {
-          image = "docker.io/rhasspy/wyoming-openwakeword:latest";
-          name = "wyoming-openwakeword";
-          autoUpdate = "registry";
-          publishPorts = [
-            "${toString osConfig.ports.wyoming-openwakeword}:10400"
-          ];
-          volumes = [
-            "${WAKEWORD_CONTAINER_PATH}/data:/data"
-            "${WAKEWORD_CONTAINER_PATH}/config:/config"
-            "${WAKEWORD_CONTAINER_PATH}/custom:/custom"
-          ];
-          exec = "--preload-model 'ok_nabu' --custom-model-dir /custom";
         };
         serviceConfig = {
           Restart = "always";

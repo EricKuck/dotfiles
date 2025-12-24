@@ -83,9 +83,6 @@ in
     alloy = 9997;
     prometheus = 9998;
     grafana = 9999;
-    wyoming-piper = 10200;
-    wyoming-whisper = 10300;
-    wyoming-openwakeword = 10400;
     scrypted = 10443;
     cleanuparr = 11011;
     syncthing_discovery = 21027;
