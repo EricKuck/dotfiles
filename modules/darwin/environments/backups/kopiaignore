@@ -47,6 +47,7 @@ log
 /Downloads/*.mov
 /.konan
 /.config/github-copilot
+/.androidbin
 /go/pkg/mod
 /traces
 /Library/Assistant
@@ -84,6 +85,7 @@ log
 /Library/Printers
 /Library/studentd
 /Library/Application\ Support/balena-etcher
+/Library/Application\ Support/BambuStudio
 /Library/Application\ Support/virtualenv
 /Library/Application\ Support/Knowledge
 /Library/Application\ Support/kotlin/daemon

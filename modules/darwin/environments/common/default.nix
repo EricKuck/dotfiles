@@ -288,7 +288,7 @@ in
         "bettertouchtool"
         "karabiner-elements"
         "hammerspoon"
-        "ghostty"
+        "ghostty@tip"
         "figma"
         "slack"
         "cameracontroller"
