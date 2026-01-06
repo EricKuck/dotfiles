@@ -7,10 +7,28 @@
   ...
 }:
 let
-  caddyUrls = lib.custom.hostedUrls {
+  allCaddyUrls = lib.custom.hostedUrls {
     inherit config;
     includeScheme = false;
   };
+
+  podmanCaddyUrls = lib.custom.hostedUrls {
+    inherit config;
+    includeScheme = false;
+    includeDirectCaddyUrls = false;
+  };
+
+  podmanVirtualHosts = lib.listToAttrs (
+    map (
+      item:
+      lib.nameValuePair item.url {
+        extraConfig = ''
+          import tls
+          reverse_proxy http://localhost:${toString item.port}
+        '';
+      }
+    ) (builtins.filter (item: item.port != null) podmanCaddyUrls.all)
+  );
 in
 {
   imports = [
@@ -124,11 +142,14 @@ in
     ];
     # The flood of dns lookups from blackbox makes viewing adguard stats obnoxious, just hostfile locally hosted stuff
     extraHosts = builtins.concatStringsSep "\n" (
-      builtins.map (host: "127.0.0.1 ${host}") caddyUrls.all
+      builtins.map (host: "127.0.0.1 ${host}") (builtins.map (x: x.url) allCaddyUrls.all)
     );
   };
 
-  hardware.cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
+  hardware = {
+    cpu.intel.updateMicrocode = config.hardware.enableRedistributableFirmware;
+    bluetooth.enable = true;
+  };
 
   sops = {
     defaultSopsFile = lib.snowfall.fs.get-file "secrets/kuckynas.yaml";
@@ -237,9 +258,8 @@ in
       package = pkgs.caddy.withPlugins {
         plugins = [
           "github.com/caddy-dns/cloudflare@v0.2.1"
-          "github.com/EricKuck/caddy-docker-upstreams@v0.0.0-20250616194924-027669749ea0"
         ];
-        hash = "sha256-m6axEJDx8CRl/hIQEzuxn+2eS+qZDTbmUvPvX2gqCkg=";
+        hash = "sha256-Zls+5kWd/JSQsmZC4SRQ/WS+pUcRolNaaI7UQoPzJA0=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {
@@ -254,25 +274,36 @@ in
         }
       '';
       environmentFile = config.sops.secrets.caddy_env.path;
+      extraConfig = ''
+        (tls) {
+          tls {
+            dns cloudflare {env.CF_DNS_TOKEN}
+            resolvers 1.1.1.1 8.8.8.8
+          }
+        }
+      '';
       globalConfig = ''
         skip_install_trust
-        email {$ACME_EMAIL}
-        acme_dns cloudflare {$CF_DNS_TOKEN}
       '';
       virtualHosts = {
         "dns.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://192.168.1.1
         '';
         "z2m.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://192.168.1.3:8080
         '';
         "glance2.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://192.168.1.3:61208
         '';
         "kopia.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://localhost:51515
         '';
         "unifi.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy https://localhost:${toString config.ports.unifi} {
             transport http {
               tls_insecure_skip_verify
@@ -280,6 +311,7 @@ in
           }
         '';
         "scrypted.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy https://localhost:${toString config.ports.scrypted} {
             transport http {
               tls_insecure_skip_verify
@@ -287,36 +319,27 @@ in
           }
         '';
         "alloy.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://localhost:${toString config.ports.alloy}
         '';
         "prom.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://localhost:${toString config.ports.prometheus}
         '';
         "alerts.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://localhost:${toString config.ports.prometheus-alertmanager}
         '';
         "grafana.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://localhost:${toString config.ports.grafana}
         '';
         "glances.kuck.ing".extraConfig = ''
+          import tls
           reverse_proxy http://localhost:${toString config.ports.glances}
         '';
-        "*.kuck.ing".extraConfig = ''
-          reverse_proxy {
-            dynamic docker
-          }
-        '';
-      };
-    };
-  };
-
-  systemd = {
-    services = {
-      caddy = {
-        environment = {
-          DOCKER_HOST = "unix:///run/podman-rootless-proxy/podman.sock";
-        };
-      };
+      }
+      // podmanVirtualHosts;
     };
   };
 

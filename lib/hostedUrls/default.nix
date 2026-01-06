@@ -5,6 +5,7 @@
       config,
       includeScheme ? true,
       includeBlackboxPath ? false,
+      includeDirectCaddyUrls ? true,
     }:
     let
       containers = config.home-manager.users."${config.meta.flake.owner}".quadlets.containers;
@@ -28,9 +29,47 @@
       normalizeLabels =
         rawLabels: if builtins.isAttrs rawLabels then builtins.attrValues rawLabels else rawLabels;
 
-      directCaddyUrls = builtins.filter (item: builtins.match ".*\\*.*" item == null) (
-        builtins.attrNames config.services.caddy.virtualHosts
-      );
+      portFromPublishSpec =
+        spec:
+        let
+          portSpec = toString spec;
+          noProtocolPortSpec = builtins.elemAt (builtins.match "^([^/]+)(/.*)?$" portSpec) 0;
+          # ip:host:container
+          m3 = builtins.match "^[^:]+:([0-9]+):[0-9]+$" noProtocolPortSpec;
+          # host:container
+          m2 = builtins.match "^([0-9]+):[0-9]+$" noProtocolPortSpec;
+          # single port "8080" (treat as host port)
+          m1 = builtins.match "^([0-9]+)$" noProtocolPortSpec;
+        in
+        if m3 != null then
+          builtins.elemAt m3 0
+        else if m2 != null then
+          builtins.elemAt m2 0
+        else if m1 != null then
+          builtins.elemAt m1 0
+        else
+          null;
+
+      getQuadletPort =
+        container:
+        let
+          candidate =
+            container.containerConfig.publishPorts or container.containerConfig.ports
+              or container.containerConfig.port or null;
+
+          vals = if builtins.isList candidate then candidate else [ candidate ];
+
+          parsed = builtins.filter (x: x != null) (builtins.map portFromPublishSpec vals);
+        in
+        if parsed == [ ] then null else builtins.elemAt parsed 0;
+
+      directCaddyUrls =
+        if includeDirectCaddyUrls then
+          builtins.filter (item: builtins.match ".*\\*.*" item == null) (
+            builtins.attrNames config.services.caddy.virtualHosts
+          )
+        else
+          [ ];
 
       containerData = builtins.map (
         name:
@@ -47,11 +86,16 @@
             else
               "";
           allow40x = getLabelValue labels "blackbox.allow40x" == "true";
+
+          labelPort = getLabelValue labels "caddy.port";
+          portStr = if labelPort != null then labelPort else getQuadletPort containers.${name};
+          port = builtins.fromJSON portStr;
         in
         if host != null then
           {
             url = "${host}${path}";
             inherit allow40x;
+            inherit port;
           }
         else
           null
@@ -74,12 +118,12 @@
         item // { url = full; }
       ) combinedUrls;
 
-      urlsAllow40x = builtins.map (x: x.url) (builtins.filter (x: x.allow40x) withScheme);
-      urlsStrict = builtins.map (x: x.url) (builtins.filter (x: !x.allow40x) withScheme);
+      strictItems = builtins.filter (x: !x.allow40x) withScheme;
+      allow40xItems = builtins.filter (x: x.allow40x) withScheme;
     in
     {
-      all = urlsStrict ++ urlsAllow40x;
-      strict = urlsStrict;
-      allow40x = urlsAllow40x;
+      all = strictItems ++ allow40xItems;
+      strict = strictItems;
+      allow40x = allow40xItems;
     };
 }

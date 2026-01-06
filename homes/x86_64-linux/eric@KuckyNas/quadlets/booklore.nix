@@ -95,7 +95,7 @@ in
           name = "ephemera";
           autoUpdate = "registry";
           environments = {
-            AA_BASE_URL = "https://annas-archive.org";
+            AA_BASE_URL = "https://annas-archive.se";
             LG_BASE_URL = "https://libgen.bz";
             FLARESOLVERR_URL = "http://host.containers.internal:${toString osConfig.ports.flaresolverr}";
           };

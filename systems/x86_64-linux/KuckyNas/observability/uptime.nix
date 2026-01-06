@@ -110,14 +110,14 @@ in
           job_name = "https_probe";
           scrape_interval = "1m";
           modules = [ "https_2xx" ];
-          targets = caddyUrls.strict;
+          targets = builtins.map (x: x.url) caddyUrls.strict;
         })
 
         (blackboxTargets {
           job_name = "https_probe_40x";
           scrape_interval = "1m";
           modules = [ "https_2xx_or_40x" ];
-          targets = caddyUrls.allow40x;
+          targets = builtins.map (x: x.url) caddyUrls.allow40x;
         })
 
         (blackboxTargets {
