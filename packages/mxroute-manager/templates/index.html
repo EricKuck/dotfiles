@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Email Forwarder Manager</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                padding-top: 2rem;
+                background-color: #f8f9fa;
+            }
+
+            .container {
+                max-width: 800px;
+            }
+
+            .card {
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                margin-bottom: 2rem;
+            }
+
+            .table-actions {
+                width: 100px;
+                text-align: right;
+            }
+
+            .spinner-border {
+                display: none;
+                width: 1rem;
+                height: 1rem;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1 class="mb-4 text-center">Email Forwarders</h1>
+
+            <!-- Add Forwarder Card -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Add New Forwarder</h5>
+                </div>
+                <div class="card-body">
+                    <form id="addForm">
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label for="emailInput" class="form-label"
+                                    >Incoming Alias</label
+                                >
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="emailInput"
+                                    placeholder="e.g. companyname"
+                                    required
+                                />
+                            </div>
+                            <div class="col-md-5">
+                                <label for="forwardToSelect" class="form-label"
+                                    >Forward To</label
+                                >
+                                <select
+                                    class="form-select"
+                                    id="forwardToSelect"
+                                    required
+                                >
+                                    <option value="" selected disabled>
+                                        Select destination...
+                                    </option>
+                                    {% for email in allowed_destinations %}
+                                    <option value="{{ email }}">
+                                        {{ email }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button
+                                    type="submit"
+                                    class="btn btn-success w-100"
+                                >
+                                    <span
+                                        class="spinner-border spinner-border-sm me-1"
+                                        role="status"
+                                        aria-hidden="true"
+                                        id="addSpinner"
+                                    ></span>
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List Forwarders Card -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Current Forwarders</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Forwarder</th>
+                                <th>Destination</th>
+                                <th class="table-actions">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="forwardersTableBody">
+                            <tr>
+                                <td
+                                    colspan="3"
+                                    class="text-center text-muted py-4"
+                                >
+                                    Select a destination email to view
+                                    forwarders.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            const forwardToSelect = document.getElementById("forwardToSelect");
+            const forwardersTableBody = document.getElementById(
+                "forwardersTableBody",
+            );
+
+            // Load forwarders when destination changes
+            forwardToSelect.addEventListener("change", async function () {
+                const destination = this.value;
+                await loadForwarders(destination);
+            });
+
+            async function loadForwarders(destination) {
+                if (!destination) {
+                    forwardersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">Select a destination email to view forwarders.</td>
+                    </tr>
+                `;
+                    return;
+                }
+
+                // Show loading state
+                forwardersTableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-4">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Loading forwarders...
+                    </td>
+                </tr>
+            `;
+
+                try {
+                    const response = await fetch(
+                        `/api/forwarders?destination=${encodeURIComponent(destination)}`,
+                    );
+                    const data = await response.json();
+
+                    if (response.ok && data.forwarders) {
+                        if (data.forwarders.length === 0) {
+                            forwardersTableBody.innerHTML = `
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">No forwarders found for ${destination}.</td>
+                            </tr>
+                        `;
+                        } else {
+                            forwardersTableBody.innerHTML = data.forwarders
+                                .map(
+                                    (fwd) => `
+                            <tr>
+                                <td>${fwd.full_email}</td>
+                                <td>${fwd.destination}</td>
+                                <td class="table-actions">
+                                    <button class="btn btn-sm btn-danger delete-btn" data-email="${fwd.full_email}"
+                                        onclick="deleteForwarder(this)">Delete</button>
+                                </td>
+                            </tr>
+                        `,
+                                )
+                                .join("");
+                        }
+                    } else {
+                        forwardersTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="text-center text-danger py-4">Error loading forwarders: ${data.error || "Unknown error"}</td>
+                        </tr>
+                    `;
+                    }
+                } catch (err) {
+                    console.error("Error loading forwarders:", err);
+                    forwardersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-danger py-4">Network error loading forwarders.</td>
+                    </tr>
+                `;
+                }
+            }
+
+            document
+                .getElementById("addForm")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+
+                    const email = document.getElementById("emailInput").value;
+                    const forwardTo =
+                        document.getElementById("forwardToSelect").value;
+                    const btn = this.querySelector('button[type="submit"]');
+                    const spinner = document.getElementById("addSpinner");
+
+                    if (!email || !forwardTo) return;
+
+                    // Loading state
+                    btn.disabled = true;
+                    spinner.style.display = "inline-block";
+
+                    try {
+                        const response = await fetch("/api/add", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                email: email,
+                                forward_to: forwardTo,
+                            }),
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                            // Clear the form
+                            document.getElementById("emailInput").value = "";
+                            // Reload the forwarders list for the current destination
+                            await loadForwarders(forwardTo);
+                        } else {
+                            alert(
+                                "Error: " +
+                                    (result.error || "Failed to add forwarder"),
+                            );
+                        }
+                    } catch (err) {
+                        alert("Network error occurred.");
+                        console.error(err);
+                    } finally {
+                        btn.disabled = false;
+                        spinner.style.display = "none";
+                    }
+                });
+
+            async function deleteForwarder(btn) {
+                const email = btn.getAttribute("data-email");
+                if (
+                    !confirm(
+                        `Are you sure you want to delete the forwarder for ${email}?`,
+                    )
+                )
+                    return;
+
+                const originalText = btn.innerText;
+                btn.innerText = "...";
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch("/api/delete", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: email }),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        // Reload forwarders for the current destination
+                        const currentDestination = forwardToSelect.value;
+                        await loadForwarders(currentDestination);
+                    } else {
+                        alert(
+                            "Error: " +
+                                (result.error || "Failed to delete forwarder"),
+                        );
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    alert("Network error occurred.");
+                    console.error(err);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            }
+        </script>
+    </body>
+</html>

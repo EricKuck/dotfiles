@@ -44,7 +44,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-s3.kuck.ing"
-            "blackbox.allow40x=true"
+            "blackbox.disable=true"
           ];
           exec = "server /data/s3 --console-address :9090";
           healthCmd = "timeout 5s bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1";
@@ -90,7 +90,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-identity.kuck.ing"
-            "blackbox.path=/health"
+            "blackbox.disable=true"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/identity?replSet=rs0";
@@ -120,7 +120,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-sync.kuck.ing"
-            "blackbox.path=/health"
+            "blackbox.disable=true"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/?replSet=rs0";
@@ -163,7 +163,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-sse.kuck.ing"
-            "blackbox.path=/health"
+            "blackbox.disable=true"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/?replSet=rs0";

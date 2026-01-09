@@ -13,6 +13,7 @@ in
 
   config.ports = {
     mosquitto_mqtt = 1883;
+    mxroute-manager = 2121;
     immich = 2283;
     immich-ml = 2284;
     rmfakecloud = 3000;
@@ -35,6 +36,7 @@ in
     booklore = 8082;
     ephemera = 8085;
     mylar3 = 8090;
+    kapowarr = 8091;
     music-assistant_web = 8095;
     jellyfin = 8096;
     music-assistant_player = 8097;

@@ -5,6 +5,7 @@
       config,
       includeScheme ? true,
       includeBlackboxPath ? false,
+      ignoreBlackboxDisabled ? false,
       includeDirectCaddyUrls ? true,
     }:
     let
@@ -63,11 +64,21 @@
         in
         if parsed == [ ] then null else builtins.elemAt parsed 0;
 
+      blackboxConfig = config.custom.blackboxConfig or { };
+      disabledUrls = blackboxConfig.disabled or [ ];
+      urlPaths = blackboxConfig.paths or { };
+      allow40xUrls = blackboxConfig.allow40x or [ ];
+
       directCaddyUrls =
         if includeDirectCaddyUrls then
-          builtins.filter (item: builtins.match ".*\\*.*" item == null) (
-            builtins.attrNames config.services.caddy.virtualHosts
-          )
+          builtins.filter (
+            item:
+            let
+              hasWildcard = builtins.match ".*\\*.*" item != null;
+              isDisabled = builtins.elem item disabledUrls;
+            in
+            !hasWildcard && (!isDisabled || ignoreBlackboxDisabled)
+          ) (builtins.attrNames config.services.caddy.virtualHosts)
         else
           [ ];
 
@@ -86,12 +97,13 @@
             else
               "";
           allow40x = getLabelValue labels "blackbox.allow40x" == "true";
+          disabled = getLabelValue labels "blackbox.disabled" == "true";
 
           labelPort = getLabelValue labels "caddy.port";
           portStr = if labelPort != null then labelPort else getQuadletPort containers.${name};
           port = builtins.fromJSON portStr;
         in
-        if host != null then
+        if host != null && (!disabled || ignoreBlackboxDisabled) then
           {
             url = "${host}${path}";
             inherit allow40x;

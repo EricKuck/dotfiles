@@ -98,6 +98,7 @@ in
             AA_BASE_URL = "https://annas-archive.se";
             LG_BASE_URL = "https://libgen.bz";
             FLARESOLVERR_URL = "http://host.containers.internal:${toString osConfig.ports.flaresolverr}";
+            BASE_URL = "https://ephemera.kuck.ing";
           };
           volumes = [
             "${EPHEMERA_CONTAINER_PATH}/data:/app/data"

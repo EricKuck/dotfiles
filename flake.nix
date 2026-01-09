@@ -72,7 +72,7 @@
           projectRootFile = "flake.nix";
           settings.global.excludes = [ "./result/**" ];
 
-          programs.nixfmt-rfc-style.enable = true; # *.nix
+          programs.nixfmt.enable = true; # *.nix
           programs.black.enable = true; # *.py
           programs.shellcheck.enable = true;
           settings.formatter.shellcheck.excludes = [

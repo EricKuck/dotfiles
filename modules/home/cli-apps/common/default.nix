@@ -20,7 +20,7 @@ in
     home = {
       packages = with pkgs; [
         inputs.nix-inspect.packages.${system}.default
-        inputs.nixpkgs-unstable.legacyPackages.${system}.nixfmt-rfc-style
+        nixfmt
         nix-search-cli
         nvd
         nix-output-monitor
@@ -173,9 +173,7 @@ in
           {
             name = "nix";
             auto-format = true;
-            formatter.command = "${lib.getExe
-              inputs.nixpkgs-unstable.legacyPackages.${system}.nixfmt-rfc-style
-            }";
+            formatter.command = "${lib.getExe pkgs.nixfmt}";
           }
         ];
       };

@@ -76,7 +76,7 @@ in
     };
 
     kernelModules = [ "kvm-intel" ];
-    kernelPackages = pkgs.linuxPackages_6_17;
+    kernelPackages = pkgs.linuxPackages_6_18;
     kernelParams = [
       "zfs.zfs_arc_max=13958643712" # 13GB: 2GB + 1GB/TB in pool
       "zswap.enabled=1"
@@ -104,7 +104,7 @@ in
         "kuckyjar"
         "backups"
       ];
-      package = pkgs.unstable.zfs; # TODO: re-evaluate when back on an LTS kernel
+      package = pkgs.unstable.zfs_2_4; # TODO: re-evaluate when back on an LTS kernel
     };
   };
 
@@ -162,6 +162,10 @@ in
       upsmon_user_hashed_pw.neededForUsers = true;
       tailscale_auth.neededForUsers = true;
       caddy_env = { };
+      mxroute-server = { };
+      mxroute-username = { };
+      mxroute-apikey = { };
+      mxroute-emails = { };
       immich_api_key.owner = config.meta.flake.owner;
       eric_icloud_username.owner = config.meta.flake.owner;
       karakeep_env.owner = config.meta.flake.owner;
@@ -187,7 +191,7 @@ in
   };
 
   environment.systemPackages = with pkgs; [
-    unstable.zfs # TODO: re-evaluate using unstable once back on LTS kernel
+    unstable.zfs_2_4 # TODO: re-evaluate using unstable once back on LTS kernel
     unstable.icloudpd
     unstable.immich-go
   ];
@@ -285,61 +289,78 @@ in
       globalConfig = ''
         skip_install_trust
       '';
-      virtualHosts = {
-        "dns.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy http://192.168.1.1
-        '';
-        "z2m.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy http://192.168.1.3:8080
-        '';
-        "glance2.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy http://192.168.1.3:61208
-        '';
-        "kopia.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy http://localhost:51515
-        '';
-        "unifi.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy https://localhost:${toString config.ports.unifi} {
-            transport http {
-              tls_insecure_skip_verify
-            }
+      virtualHosts = podmanVirtualHosts;
+    };
+
+    caddy-with-blackbox.virtualHosts = {
+      "dns.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://192.168.1.1
+      '';
+      "z2m.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://192.168.1.3:8080
+      '';
+      "glance2.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://192.168.1.3:61208
+      '';
+      "kopia.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://localhost:51515
+      '';
+      "unifi.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy https://localhost:${toString config.ports.unifi} {
+          transport http {
+            tls_insecure_skip_verify
           }
-        '';
-        "scrypted.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy https://localhost:${toString config.ports.scrypted} {
-            transport http {
-              tls_insecure_skip_verify
-            }
+        }
+      '';
+      "scrypted.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy https://localhost:${toString config.ports.scrypted} {
+          transport http {
+            tls_insecure_skip_verify
           }
-        '';
-        "alloy.kuck.ing".extraConfig = ''
+        }
+      '';
+      "alloy.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://localhost:${toString config.ports.alloy}
+      '';
+      "prom.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://localhost:${toString config.ports.prometheus}
+      '';
+      "alerts.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://localhost:${toString config.ports.prometheus-alertmanager}
+      '';
+      "grafana.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://localhost:${toString config.ports.grafana}
+      '';
+      "glances.kuck.ing".extraConfig = ''
+        import tls
+        reverse_proxy http://localhost:${toString config.ports.glances}
+      '';
+      "forwarders.kuck.ing" = {
+        extraConfig = ''
           import tls
-          reverse_proxy http://localhost:${toString config.ports.alloy}
+          reverse_proxy http://localhost:${toString config.ports.mxroute-manager}
         '';
-        "prom.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy http://localhost:${toString config.ports.prometheus}
-        '';
-        "alerts.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy http://localhost:${toString config.ports.prometheus-alertmanager}
-        '';
-        "grafana.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy http://localhost:${toString config.ports.grafana}
-        '';
-        "glances.kuck.ing".extraConfig = ''
-          import tls
-          reverse_proxy http://localhost:${toString config.ports.glances}
-        '';
-      }
-      // podmanVirtualHosts;
+        blackbox.disabled = true;
+      };
+    };
+
+    custom.mxroute-manager = {
+      enable = true;
+      port = config.ports.mxroute-manager;
+      mxrouteServer = config.sops.secrets.mxroute-server.path;
+      mxrouteUsername = config.sops.secrets.mxroute-username.path;
+      mxrouteApiKeyFile = config.sops.secrets.mxroute-apikey.path;
+      allowedEmailsFile = config.sops.secrets.mxroute-emails.path;
     };
   };
 

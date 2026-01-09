@@ -9,6 +9,7 @@ let
   CLEANUPARR_CONTAINER_PATH = "${osConfig.meta.containerData}/cleanuparr";
   HUNTARR_CONTAINER_PATH = "${osConfig.meta.containerData}/huntarr";
   MYLAR3_CONTAINER_PATH = "${osConfig.meta.containerData}/mylar3";
+  KAPOWARR_CONTAINER_PATH = "${osConfig.meta.containerData}/kapowarr";
   TORRENT_DL_PATH = "${osConfig.meta.containerData}/qbittorrent/downloads";
   NZB_DL_PATH = "${osConfig.meta.containerData}/sabnzbd/downloads";
   SOULSEEK_DL_PATH = "${osConfig.meta.containerData}/soulseek/downloads";
@@ -278,6 +279,43 @@ in
         };
         serviceConfig = {
           Restart = "always";
+        };
+      };
+
+      kapowarr = {
+        containerConfig = {
+          image = "docker.io/mrcas/kapowarr:latest";
+          name = "kapowarr";
+          autoUpdate = "registry";
+          environments = {
+            PUID = "1072";
+            PGID = "1072";
+          };
+          volumes = [
+            "${KAPOWARR_CONTAINER_PATH}/db:/app/db"
+            "/kuckyjar/media/Comics:/comics"
+          ];
+          publishPorts = [
+            "${toString osConfig.ports.kapowarr}:5656"
+          ];
+          networks = [ networks.wireguard.ref ];
+          labels = [
+            "caddy.enable=true"
+            "caddy.host=kapowarr.kuck.ing"
+          ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+        unitConfig = {
+          Requires = [
+            containers.qbittorrent.ref
+            containers.prowlarr.ref
+          ];
+          After = [
+            containers.qbittorrent.ref
+            containers.prowlarr.ref
+          ];
         };
       };
 
