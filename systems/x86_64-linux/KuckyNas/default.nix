@@ -162,6 +162,9 @@ in
       upsmon_user_hashed_pw.neededForUsers = true;
       tailscale_auth.neededForUsers = true;
       caddy_env = { };
+      mxroute-username = { };
+      mxroute-apikey = { };
+      mxroute-emails = { };
       immich_api_key.owner = config.meta.flake.owner;
       eric_icloud_username.owner = config.meta.flake.owner;
       karakeep_env.owner = config.meta.flake.owner;
@@ -340,6 +343,13 @@ in
         '';
       }
       // podmanVirtualHosts;
+    };
+
+    custom.mxroute-manager = {
+      enable = true;
+      mxrouteUsername = config.sops.secrets.mxroute-username;
+      mxrouteApiKeyFile = config.sops.secrets.mxroute-apikey;
+      allowedEmailsFile = config.sops.secrets.mxroute-emails;
     };
   };
 
