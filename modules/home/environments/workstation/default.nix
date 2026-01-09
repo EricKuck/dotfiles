@@ -27,6 +27,7 @@ in
       imagemagickBig
       ffmpeg
       svgo
+      claude-code
       (writeShellScriptBin "activate-btt" (builtins.readFile ./scripts/activate-btt))
       (writeShellScriptBin "activate-istat" (builtins.readFile ./scripts/activate-istat))
       (writeShellScriptBin "scanify" (builtins.readFile ./scripts/scanify))

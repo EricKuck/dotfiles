@@ -24,6 +24,7 @@
 .vol
 .localized
 .tart
+.gemini
 Backups.backupdb
 Cache
 Caches

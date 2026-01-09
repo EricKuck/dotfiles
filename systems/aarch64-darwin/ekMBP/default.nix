@@ -47,6 +47,7 @@ with lib.custom;
       "inkscape"
       "vial"
       "utm"
+      "zed"
     ];
 
     masApps = {
