@@ -89,8 +89,7 @@ let
 
   caddyUrls = lib.custom.hostedUrls {
     inherit config;
-    includeBlackboxPath = true;
-    ignoreBlackboxDisabled = true;
+    forBlackbox = true;
   };
 in
 {

@@ -26,6 +26,7 @@ let
           import tls
           reverse_proxy http://localhost:${toString item.port}
         '';
+        blackbox.disabled = item.blackboxDisabled;
       }
     ) (builtins.filter (item: item.port != null) podmanCaddyUrls.all)
   );
@@ -289,7 +290,6 @@ in
       globalConfig = ''
         skip_install_trust
       '';
-      virtualHosts = podmanVirtualHosts;
     };
 
     caddy-with-blackbox.virtualHosts = {
@@ -352,7 +352,8 @@ in
         '';
         blackbox.disabled = true;
       };
-    };
+    }
+    // podmanVirtualHosts;
 
     custom.mxroute-manager = {
       enable = true;

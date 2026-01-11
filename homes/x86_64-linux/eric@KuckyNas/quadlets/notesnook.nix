@@ -44,7 +44,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-s3.kuck.ing"
-            "blackbox.disable=true"
+            "blackbox.disabled=true"
           ];
           exec = "server /data/s3 --console-address :9090";
           healthCmd = "timeout 5s bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1";
@@ -90,7 +90,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-identity.kuck.ing"
-            "blackbox.disable=true"
+            "blackbox.path=/health"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/identity?replSet=rs0";
@@ -120,7 +120,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-sync.kuck.ing"
-            "blackbox.disable=true"
+            "blackbox.path=/health"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/?replSet=rs0";
@@ -163,7 +163,7 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-sse.kuck.ing"
-            "blackbox.disable=true"
+            "blackbox.path=/health"
           ];
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/?replSet=rs0";
@@ -204,10 +204,13 @@ in
           labels = [
             "caddy.enable=true"
             "caddy.host=notes-monograph.kuck.ing"
+            "blackbox.path=/health"
           ];
           environments = {
             API_HOST = "http://notesnook-server:5264";
             PUBLIC_URL = "https://notes-monograph.kuck.ing";
+            NODE_ENV = "production";
+            HOST = "0.0.0.0";
           };
           environmentFiles = [ osConfig.sops.secrets.notesnook_env.path ];
           healthCmd = "timeout 5s bash -c ':> /dev/tcp/127.0.0.1/3000' || exit 1";

@@ -4,8 +4,7 @@
     {
       config,
       includeScheme ? true,
-      includeBlackboxPath ? false,
-      ignoreBlackboxDisabled ? false,
+      forBlackbox ? false,
       includeDirectCaddyUrls ? true,
     }:
     let
@@ -77,7 +76,7 @@
               hasWildcard = builtins.match ".*\\*.*" item != null;
               isDisabled = builtins.elem item disabledUrls;
             in
-            !hasWildcard && (!isDisabled || ignoreBlackboxDisabled)
+            !hasWildcard && (!isDisabled || !forBlackbox)
           ) (builtins.attrNames config.services.caddy.virtualHosts)
         else
           [ ];
@@ -89,7 +88,7 @@
           labels = normalizeLabels rawLabels;
           host = getLabelValue labels "caddy.host";
           path =
-            if includeBlackboxPath then
+            if forBlackbox then
               let
                 val = getLabelValue labels "blackbox.path";
               in
@@ -97,17 +96,18 @@
             else
               "";
           allow40x = getLabelValue labels "blackbox.allow40x" == "true";
-          disabled = getLabelValue labels "blackbox.disabled" == "true";
+          blackboxDisabled = getLabelValue labels "blackbox.disabled" == "true";
 
           labelPort = getLabelValue labels "caddy.port";
           portStr = if labelPort != null then labelPort else getQuadletPort containers.${name};
           port = builtins.fromJSON portStr;
         in
-        if host != null && (!disabled || ignoreBlackboxDisabled) then
+        if host != null && (!blackboxDisabled || !forBlackbox) then
           {
             url = "${host}${path}";
             inherit allow40x;
             inherit port;
+            inherit blackboxDisabled;
           }
         else
           null
@@ -115,12 +115,22 @@
 
       validContainerData = builtins.filter (x: x != null) containerData;
 
-      combinedUrls =
+      allUrls =
         builtins.map (url: {
           url = url;
           allow40x = false;
         }) directCaddyUrls
         ++ validContainerData;
+
+      # Remove duplicate URLs - can happen as each podman quadlet with a caddy config ultimately gets added to the directCaddyUrls eventually
+      urlMap = builtins.listToAttrs (
+        builtins.map (item: {
+          name = item.url;
+          value = item;
+        }) allUrls
+      );
+
+      combinedUrls = builtins.attrValues urlMap;
 
       withScheme = builtins.map (
         item:
