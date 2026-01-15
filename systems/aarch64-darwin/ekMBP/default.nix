@@ -50,6 +50,7 @@ with lib.custom;
       "vial"
       "utm"
       "zed"
+      "obs"
       "BarutSRB/tap/omniwm"
     ];
 
