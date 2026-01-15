@@ -23,6 +23,7 @@ with lib.custom;
       eternal-terminal
       tailscale
       scrcpy
+      rclone
     ];
 
     # NEVER change this value after the initial install, for any reason,

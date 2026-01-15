@@ -280,7 +280,7 @@ in
           greedy = true;
         }
         "raycast"
-        "jordanbaird-ice"
+        "jordanbaird-ice@beta"
         "visual-studio-code"
         "istat-menus"
         "docker-desktop"

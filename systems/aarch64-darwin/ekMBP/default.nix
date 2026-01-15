@@ -37,6 +37,8 @@ with lib.custom;
   ];
 
   homebrew = {
+    taps = [ "BarutSRB/tap" ];
+
     casks = [
       "bambu-studio"
       "winbox"
@@ -48,6 +50,7 @@ with lib.custom;
       "vial"
       "utm"
       "zed"
+      "BarutSRB/tap/omniwm"
     ];
 
     masApps = {
