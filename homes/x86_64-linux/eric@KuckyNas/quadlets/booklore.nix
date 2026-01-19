@@ -1,7 +1,7 @@
 { config, osConfig, ... }:
 let
   BOOKLORE_CONTAINER_PATH = "${osConfig.meta.containerData}/booklore";
-  EPHEMERA_CONTAINER_PATH = "${osConfig.meta.containerCache}/ephemera";
+  SHELFMARK_CONTAINER_PATH = "${osConfig.meta.containerData}/shelfmark";
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {
@@ -89,29 +89,25 @@ in
         };
       };
 
-      ephemera = {
+      shelfmark = {
         containerConfig = {
-          image = "ghcr.io/orwellianepilogue/ephemera:latest";
-          name = "ephemera";
+          image = "ghcr.io/calibrain/shelfmark-lite:latest";
+          name = "shelfmark";
           autoUpdate = "registry";
           environments = {
-            AA_BASE_URL = "https://annas-archive.se";
-            LG_BASE_URL = "https://libgen.bz";
-            FLARESOLVERR_URL = "http://host.containers.internal:${toString osConfig.ports.flaresolverr}";
-            BASE_URL = "https://ephemera.kuck.ing";
+            EXT_BYPASSER_URL = "http://host.containers.internal:${toString osConfig.ports.byparr}";
           };
           volumes = [
-            "${EPHEMERA_CONTAINER_PATH}/data:/app/data"
-            "${EPHEMERA_CONTAINER_PATH}/downloads:/app/downloads"
-            "${BOOKLORE_CONTAINER_PATH}/bookdrop:/app/ingest"
+            "${SHELFMARK_CONTAINER_PATH}/config:/config"
+            "${BOOKLORE_CONTAINER_PATH}/bookdrop:/books"
           ];
           publishPorts = [
-            "${toString osConfig.ports.ephemera}:8286"
+            "${toString osConfig.ports.shelfmark}:8084"
           ];
           networks = [ networks.booklore.ref ];
           labels = [
             "caddy.enable=true"
-            "caddy.host=ephemera.kuck.ing"
+            "caddy.host=shelfmark.kuck.ing"
           ];
         };
         serviceConfig = {

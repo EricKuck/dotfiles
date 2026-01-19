@@ -34,7 +34,7 @@ in
     paperless = 8010;
     unifi_comm = 8080;
     booklore = 8082;
-    ephemera = 8085;
+    shelfmark = 8084;
     mylar3 = 8090;
     kapowarr = 8091;
     music-assistant_web = 8095;

@@ -95,6 +95,7 @@ in
           environments = {
             MONGODB_CONNECTION_STRING = "mongodb://notesnook-db:27017/identity?replSet=rs0";
             MONGODB_DATABASE_NAME = "identity";
+            KNOWN_PROXIES = "10.0.0.0/8;172.16.0.0/12;192.168.0.0/16";
           };
           environmentFiles = [ osConfig.sops.secrets.notesnook_env.path ];
           healthCmd = "wget --tries=1 -nv -q  http://localhost:8264/health -O- || exit 1";

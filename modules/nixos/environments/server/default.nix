@@ -102,6 +102,7 @@ in
     networking = {
       networkmanager.enable = true;
       useDHCP = lib.mkDefault true;
+      dhcpcd.IPv6rs = false;
       enableIPv6 = false;
       defaultGateway = "192.168.1.1";
       nameservers = [ "172.17.0.2" ];
