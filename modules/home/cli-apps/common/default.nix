@@ -23,6 +23,7 @@ in
         nixfmt
         nix-search-cli
         nvd
+        nil
         nix-output-monitor
         nix-prefetch-git
         fd
@@ -48,6 +49,7 @@ in
         usbutils
         gnupg1
         chafa
+        claude-code
         unstable.nix-init
       ];
 
