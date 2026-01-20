@@ -2,8 +2,6 @@
   config,
   lib,
   pkgs,
-  inputs,
-  system,
   ...
 }:
 
@@ -291,6 +289,7 @@ in
         "ghostty@tip"
         "figma"
         "slack"
+        "element"
         "cameracontroller"
         "discord"
         {
