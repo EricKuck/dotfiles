@@ -139,6 +139,7 @@ in
           end
 
           bind \ct set_fish_title
+          bind alt-backspace backward-kill-word
         '';
 
         plugins = [
