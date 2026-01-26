@@ -45,6 +45,10 @@ in
     matrix-synapse = 8124;
     matrix-mas = 8125;
     matrix-gvoice = 8126;
+    matrix-signal = 8127;
+    matrix-gmessages = 8128;
+    matrix-discord = 8129;
+    matrix-slack = 8130;
     byparr = 8191;
     flaresolverr = 8192;
     metadata-remote = 8338;

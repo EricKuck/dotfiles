@@ -69,7 +69,7 @@ in
 
       immich-redis = {
         containerConfig = {
-          image = "docker.io/valkey/valkey:9@sha256:fb8d272e529ea567b9bf1302245796f21a2672b8368ca3fcb938ac334e613c8f";
+          image = "docker.io/valkey/valkey:9@sha256:546304417feac0874c3dd576e0952c6bb8f06bb4093ea0c9ca303c73cf458f63";
           name = "immich_redis";
           healthCmd = "redis-cli ping || exit 1";
           networks = [ networks.immich.ref ];

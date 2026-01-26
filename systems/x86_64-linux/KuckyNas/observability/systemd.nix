@@ -18,7 +18,7 @@
             expr = ''systemd_unit_state{state="failed"} > 0'';
             annotations = {
               summary = "Systemd unit failed";
-              description = ''{{ $labels.name }}'';
+              description = "{{ $labels.name }}";
             };
           }
         ];

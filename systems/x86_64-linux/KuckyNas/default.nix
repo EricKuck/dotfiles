@@ -36,6 +36,7 @@ in
     ./ports.nix
     ./uids.nix
     ./observability
+    ./matrix
     inputs.sops-nix.nixosModules.sops
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
@@ -61,6 +62,10 @@ in
     containerData = "/kuckyjar/container";
     containerCache = "/kuckyjar/container-cache";
   };
+
+  nixpkgs.config.permittedInsecurePackages = [
+    "olm-3.2.16"
+  ];
 
   hardware.coral.pcie.enable = true;
 
@@ -180,7 +185,38 @@ in
       booklore-db_env.owner = config.meta.flake.owner;
       notesnook_env.owner = config.meta.flake.owner;
       multi-scrobbler_env.owner = config.meta.flake.owner;
+      matrix-synapse-config = { };
+      matrix-mas-config = { };
+      matrix-mas-signing-key = { };
+      matrix-mas-encryption-key = { };
+      mautrix-signal-pickle-key = { };
+      mautrix-gvoice-pickle-key = { };
+      mautrix-gmessages-pickle-key = { };
+      mautrix-discord-pickle-key = { };
+      mautrix-slack-pickle-key = { };
+      doublepuppet-as-token = { };
+      doublepuppet-hs-token = { };
     };
+    templates."mautrix-signal-env".content = ''
+      MAUTRIX_SIGNAL_PICKLE_KEY=${config.sops.placeholder.mautrix-signal-pickle-key}
+      DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
+    '';
+    templates."mautrix-gvoice-env".content = ''
+      MAUTRIX_GVOICE_PICKLE_KEY=${config.sops.placeholder.mautrix-gvoice-pickle-key}
+      DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
+    '';
+    templates."mautrix-gmessages-env".content = ''
+      MAUTRIX_GMESSAGES_PICKLE_KEY=${config.sops.placeholder.mautrix-gmessages-pickle-key}
+      DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
+    '';
+    templates."mautrix-discord-env".content = ''
+      MAUTRIX_DISCORD_PICKLE_KEY=${config.sops.placeholder.mautrix-discord-pickle-key}
+      DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
+    '';
+    templates."mautrix-slack-env".content = ''
+      MAUTRIX_SLACK_PICKLE_KEY=${config.sops.placeholder.mautrix-slack-pickle-key}
+      DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
+    '';
   };
 
   users = {

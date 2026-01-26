@@ -17,7 +17,7 @@ let
               expr = "up == 0";
               annotations = {
                 summary = "Monitoring process is down or unreachable";
-                description = ''{{ $labels.instance }} not reachable.'';
+                description = "{{ $labels.instance }} not reachable.";
               };
             }
           ];
