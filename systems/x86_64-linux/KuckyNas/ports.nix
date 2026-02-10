@@ -14,6 +14,7 @@ in
   config.ports = {
     mosquitto_mqtt = 1883;
     mxroute-manager = 2121;
+    bitwarden_mxroute = 2122;
     immich = 2283;
     immich-ml = 2284;
     rmfakecloud = 3000;

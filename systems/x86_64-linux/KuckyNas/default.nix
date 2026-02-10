@@ -30,6 +30,14 @@ let
       }
     ) (builtins.filter (item: item.port != null) podmanCaddyUrls.all)
   );
+
+  irlCiAndroidBuildTools = "36.0.0";
+  irlCiAndroidComposition = pkgs.androidenv.composeAndroidPackages {
+    buildToolsVersions = [ irlCiAndroidBuildTools ];
+    platformVersions = [ "36" ];
+    platformToolsVersion = "36.0.2";
+    ndkVersions = [ "29.0.14206865" ];
+  };
 in
 {
   imports = [
@@ -63,9 +71,10 @@ in
     containerCache = "/kuckyjar/container-cache";
   };
 
-  nixpkgs.config.permittedInsecurePackages = [
-    "olm-3.2.16"
-  ];
+  nixpkgs.config = {
+    permittedInsecurePackages = [ "olm-3.2.16" ];
+    android_sdk.accept_license = true;
+  };
 
   hardware.coral.pcie.enable = true;
 
@@ -185,6 +194,7 @@ in
       booklore-db_env.owner = config.meta.flake.owner;
       notesnook_env.owner = config.meta.flake.owner;
       multi-scrobbler_env.owner = config.meta.flake.owner;
+      bitwarden_mxroute_env.owner = config.meta.flake.owner;
       matrix-synapse-config = { };
       matrix-mas-config = { };
       matrix-mas-signing-key = { };
@@ -225,6 +235,8 @@ in
 
       caddy.extraGroups = [ "podman" ];
     };
+
+    groups = { };
   };
 
   environment.systemPackages = with pkgs; [
@@ -300,7 +312,7 @@ in
         plugins = [
           "github.com/caddy-dns/cloudflare@v0.2.1"
         ];
-        hash = "sha256-Zls+5kWd/JSQsmZC4SRQ/WS+pUcRolNaaI7UQoPzJA0=";
+        hash = "sha256-Rw2zrODQE1Ljgb4FenqUb3LmaNQUTp7h2/tXyjufClY=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {
@@ -398,6 +410,31 @@ in
       mxrouteUsername = config.sops.secrets.mxroute-username.path;
       mxrouteApiKeyFile = config.sops.secrets.mxroute-apikey.path;
       allowedEmailsFile = config.sops.secrets.mxroute-emails.path;
+    };
+
+    custom.gha-runner.runners = {
+      irl1 = {
+        url = "https://github.com/Infinite-Retry";
+        androidPackages = irlCiAndroidComposition;
+        extraPackages = with pkgs; [
+          git-lfs
+          zulu17
+          firebase-tools
+          gawk
+          jq
+          curl
+        ];
+        environment = {
+          "ANDROID_HOME" = "${irlCiAndroidComposition.androidsdk}/libexec/android-sdk";
+          "JAVA_HOME" = "${pkgs.zulu17}";
+          GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${irlCiAndroidComposition.androidsdk}/libexec/android-sdk/build-tools/${irlCiAndroidBuildTools}/aapt2";
+        };
+        gradleProperties = {
+          "org.gradle.java.installations.paths" = "${pkgs.zulu17}";
+          "org.gradle.java.home" = "${pkgs.zulu17}";
+          "systemProp.jna.library.path" = lib.makeLibraryPath [ pkgs.udev ];
+        };
+      };
     };
   };
 

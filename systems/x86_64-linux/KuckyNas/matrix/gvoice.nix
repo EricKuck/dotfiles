@@ -42,7 +42,7 @@ in
 
     settings = {
       network = {
-        displayname_template = "{{or .Name .PhoneNumber \"Unknown user\"}}";
+        displayname_template = "{{ or .Contact.Name .Name }}";
         number_in_topic = true;
       };
     };

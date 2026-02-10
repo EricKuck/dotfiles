@@ -49,7 +49,7 @@ in
         usbutils
         gnupg1
         chafa
-        claude-code
+        codex
         unstable.nix-init
       ];
 
