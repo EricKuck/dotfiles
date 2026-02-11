@@ -108,17 +108,30 @@ in
       let
         android = runner.androidPackages;
         androidHome = if android != null then "${android.androidsdk}/libexec/android-sdk" else null;
+        defaultLdPath = lib.makeLibraryPath [
+          pkgs.stdenv.cc.cc.lib
+          pkgs.udev
+        ];
+        userLdPath = runner.environment.LD_LIBRARY_PATH or "";
+        mergedLdPath = lib.concatStringsSep ":" (
+          lib.filter (s: s != "") [
+            defaultLdPath
+            userLdPath
+          ]
+        );
+        baseEnv =
+          optionalAttrs (mergedLdPath != "") { LD_LIBRARY_PATH = mergedLdPath; }
+          // optionalAttrs (android != null) {
+            ANDROID_HOME = androidHome;
+            ANDROID_SDK_ROOT = androidHome;
+          };
+        runnerEnv = lib.removeAttrs runner.environment [ "LD_LIBRARY_PATH" ];
       in
       {
         name = "github-runner-${name}";
         value = {
           serviceConfig.ProtectHome = lib.mkForce false;
-          environment =
-            runner.environment
-            // optionalAttrs (android != null) {
-              ANDROID_HOME = androidHome;
-              ANDROID_SDK_ROOT = androidHome;
-            };
+          environment = baseEnv // runnerEnv;
         };
       }
     ) enabledRunners;

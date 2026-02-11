@@ -418,20 +418,21 @@ in
         androidPackages = irlCiAndroidComposition;
         extraPackages = with pkgs; [
           git-lfs
-          zulu17
+          zulu25
           firebase-tools
           gawk
           jq
           curl
+          stdenv.cc.cc.lib
         ];
         environment = {
           "ANDROID_HOME" = "${irlCiAndroidComposition.androidsdk}/libexec/android-sdk";
-          "JAVA_HOME" = "${pkgs.zulu17}";
+          "JAVA_HOME" = "${pkgs.zulu25}";
           GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${irlCiAndroidComposition.androidsdk}/libexec/android-sdk/build-tools/${irlCiAndroidBuildTools}/aapt2";
         };
         gradleProperties = {
-          "org.gradle.java.installations.paths" = "${pkgs.zulu17}";
-          "org.gradle.java.home" = "${pkgs.zulu17}";
+          "org.gradle.java.installations.paths" = "${pkgs.zulu25}";
+          "org.gradle.java.home" = "${pkgs.zulu25}";
           "systemProp.jna.library.path" = lib.makeLibraryPath [ pkgs.udev ];
         };
       };
