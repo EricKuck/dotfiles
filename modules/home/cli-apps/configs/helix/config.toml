@@ -1,10 +1,14 @@
 theme = "catppuccin_frappe"
 
-[editor]
-lsp.enable = true
+[editor.lsp]
+enable = true
 
 [editor.soft-wrap]
 enable = true
+
+[editor.file-picker]
+hidden = false
+git-ignore = false
 
 [keys.normal]
 Cmd-c = ":clipboard-yank"

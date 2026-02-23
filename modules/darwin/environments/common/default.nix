@@ -264,6 +264,7 @@ in
       taps = [
         "grishka/grishka"
         "kgarner7/feishin"
+        "lihaoyun6/tap"
       ];
 
       # TODO: add autostart entries?
@@ -293,7 +294,7 @@ in
         "cameracontroller"
         "discord"
         {
-          name = "ishare";
+          name = "quickrecorder";
           greedy = true;
         }
         "meetingbar"

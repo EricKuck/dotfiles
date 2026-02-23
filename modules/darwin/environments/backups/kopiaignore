@@ -25,6 +25,9 @@
 .localized
 .tart
 .gemini
+.claude
+.codex
+.pub-cache
 Backups.backupdb
 Cache
 Caches
@@ -86,6 +89,7 @@ log
 /Library/Printers
 /Library/studentd
 /Library/Application\ Support/balena-etcher
+/Library/Application\ Support/apprenticevr
 /Library/Application\ Support/BambuStudio
 /Library/Application\ Support/virtualenv
 /Library/Application\ Support/Knowledge
@@ -131,6 +135,7 @@ log
 /Library/Application\ Support/zen
 /Library/Application\ Support/discord
 /Library/Application\ Support/obsidian
+/Library/Application\ Support/Zed
 /Library/Containers/com.apple.*
 /Library/Containers/com.utmapp.UTM/Data
 /Library/Containers/com.utmapp.QEMUHelper

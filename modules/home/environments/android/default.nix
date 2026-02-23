@@ -31,6 +31,7 @@ in
       shellAliases = {
         java11 = setJavaHome 11;
         java17 = setJavaHome 17;
+        java21 = setJavaHome 21;
         java25 = setJavaHome 25;
       };
 
@@ -47,14 +48,15 @@ in
       file = {
         "jdk/zulu11.jdk".source = javaHome 11;
         "jdk/zulu17.jdk".source = javaHome 17;
+        "jdk/zulu21.jdk".source = javaHome 21;
         "jdk/zulu25.jdk".source = javaHome 25;
       };
 
       activation = {
-        linkJvm = "/usr/bin/sudo ln -sfn ${jdkDir 25} /Library/Java/JavaVirtualMachines/";
+        linkJvm = "/usr/bin/sudo ln -sfn ${jdkDir 21} /Library/Java/JavaVirtualMachines/";
       };
     };
 
-    programs.fish.interactiveShellInit = setJavaHome 25;
+    programs.fish.interactiveShellInit = setJavaHome 21;
   };
 }

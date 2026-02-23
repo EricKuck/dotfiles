@@ -39,6 +39,7 @@ in
         git
         git-lfs
         lazygit
+        jujutsu
         delta
         gh
         eza

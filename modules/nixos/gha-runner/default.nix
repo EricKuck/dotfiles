@@ -136,28 +136,31 @@ in
       }
     ) enabledRunners;
 
-    systemd.tmpfiles.rules =
+    system.activationScripts.ghaRunnerGradleProperties.text =
       let
-        mkGradleRules =
+        mkGradleScript =
           name: runner:
           let
             props = runner.gradleProperties;
           in
           if props == { } then
-            [ ]
+            ""
           else
             let
               gradleDir = "/home/gha-runner-${name}/.gradle";
               gradleFile = pkgs.writeText "gha-runner-${name}-gradle.properties" (
                 lib.generators.toKeyValue { } props + "\n"
               );
+              install = "${pkgs.coreutils}/bin/install";
             in
-            [
-              "d ${gradleDir} 0750 gha-runner-${name} gha-runner - -"
-              "L ${gradleDir}/gradle.properties - - - - ${gradleFile}"
-            ];
+            ''
+              ${install} -d -m 0750 -o gha-runner-${name} -g gha-runner ${gradleDir}
+              ${install} -m 0640 -o gha-runner-${name} -g gha-runner ${gradleFile} ${gradleDir}/gradle.properties
+            '';
       in
-      lib.flatten (lib.mapAttrsToList mkGradleRules enabledRunners);
+      lib.concatStringsSep "\n" (
+        lib.filter (s: s != "") (lib.mapAttrsToList mkGradleScript enabledRunners)
+      );
 
     services.github-runners = mapAttrs (name: runner: {
       enable = true;

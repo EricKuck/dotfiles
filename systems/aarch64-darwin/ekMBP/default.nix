@@ -51,6 +51,7 @@ with lib.custom;
       "utm"
       "zed"
       "obs"
+      "vivaldi"
       "BarutSRB/tap/omniwm"
     ];
 

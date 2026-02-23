@@ -1,8 +1,6 @@
 {
   lib,
   pkgs,
-  inputs,
-  system,
   config,
   ...
 }:
@@ -42,6 +40,10 @@ in
     };
 
     environment = {
+      systemPackages = with pkgs; [
+        kotlin
+      ];
+
       shellAliases = {
         gw = "gww";
       };

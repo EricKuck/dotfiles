@@ -91,12 +91,9 @@ in
 
       shelfmark = {
         containerConfig = {
-          image = "ghcr.io/calibrain/shelfmark-lite:latest";
+          image = "ghcr.io/calibrain/shelfmark:latest";
           name = "shelfmark";
           autoUpdate = "registry";
-          environments = {
-            EXT_BYPASSER_URL = "http://host.containers.internal:${toString osConfig.ports.byparr}";
-          };
           volumes = [
             "${SHELFMARK_CONTAINER_PATH}/config:/config"
             "${BOOKLORE_CONTAINER_PATH}/bookdrop:/books"
