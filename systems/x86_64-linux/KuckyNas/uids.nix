@@ -38,7 +38,6 @@ in
 
       profilarr = 3992;
       cleanuparr = 3993;
-      huntarr = 3994;
     };
 
     serviceOwners = mkOwners config.uids;

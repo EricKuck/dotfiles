@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 
@@ -90,6 +89,7 @@ in
     # Configure the standard Caddy service with our virtual hosts
     services.caddy.virtualHosts = mapAttrs (hostname: vhost: {
       extraConfig = vhost.extraConfig;
+      logFormat = null;
     }) cfg.virtualHosts;
 
     # Extract blackbox configuration for use by hostedUrls

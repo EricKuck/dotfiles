@@ -83,7 +83,6 @@ in
     prometheus-jellyfin-exporter = 9111;
     prometheus-mqtt-exporter = 9112;
     prowlarr = 9696;
-    huntarr = 9705;
     mealie = 9925;
     prometheus-alertmanager = 9995;
     loki = 9996;

@@ -7,7 +7,6 @@ let
   BAZARR_CONTAINER_PATH = "${osConfig.meta.containerData}/bazarr";
   PROFILARR_CONTAINER_PATH = "${osConfig.meta.containerData}/profilarr";
   CLEANUPARR_CONTAINER_PATH = "${osConfig.meta.containerData}/cleanuparr";
-  HUNTARR_CONTAINER_PATH = "${osConfig.meta.containerData}/huntarr";
   MYLAR3_CONTAINER_PATH = "${osConfig.meta.containerData}/mylar3";
   KAPOWARR_CONTAINER_PATH = "${osConfig.meta.containerData}/kapowarr";
   TORRENT_DL_PATH = "${osConfig.meta.containerData}/qbittorrent/downloads";
@@ -254,28 +253,6 @@ in
             "caddy.host=cleanuparr.kuck.ing"
           ];
           user = osConfig.serviceOwners.cleanuparr;
-        };
-        serviceConfig = {
-          Restart = "always";
-        };
-      };
-
-      huntarr = {
-        containerConfig = {
-          image = "ghcr.io/plexguide/huntarr:latest";
-          name = "huntarr";
-          autoUpdate = "registry";
-          volumes = [
-            "${HUNTARR_CONTAINER_PATH}/config:/config"
-          ];
-          publishPorts = [
-            "${toString osConfig.ports.huntarr}:9705"
-          ];
-          labels = [
-            "caddy.enable=true"
-            "caddy.host=huntarr.kuck.ing"
-          ];
-          user = osConfig.serviceOwners.huntarr;
         };
         serviceConfig = {
           Restart = "always";
