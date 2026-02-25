@@ -52,6 +52,7 @@ with lib.custom;
       "zed"
       "obs"
       "vivaldi"
+      "visualvm"
       "BarutSRB/tap/omniwm"
     ];
 

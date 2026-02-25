@@ -236,9 +236,10 @@ in
     environment = {
       shells = [ pkgs.fish ];
       systemPath = [ "/opt/homebrew/bin" ];
-      systemPackages = [
-        pkgs.custom.micswitch
-        pkgs.custom.litra-rs
+      systemPackages = with pkgs; [
+        podman
+        custom.micswitch
+        custom.litra-rs
       ];
       # Hack: https://github.com/ghostty-org/ghostty/discussions/2832
       variables.XDG_DATA_DIRS = [ "$GHOSTTY_SHELL_INTEGRATION_XDG_DIR" ];
@@ -282,7 +283,6 @@ in
         "jordanbaird-ice@beta"
         "visual-studio-code"
         "istat-menus"
-        "docker-desktop"
         "mullvad-vpn"
         "bettertouchtool"
         "karabiner-elements"
