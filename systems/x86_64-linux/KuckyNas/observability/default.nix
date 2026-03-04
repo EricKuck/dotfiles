@@ -43,7 +43,7 @@ in
     prometheus = {
       enable = true;
       port = config.ports.prometheus;
-      retentionTime = "1y";
+      retentionTime = "90d";
       globalConfig = {
         scrape_interval = "30s";
         scrape_timeout = "25s";
@@ -121,6 +121,22 @@ in
           };
           replication_factor = 1;
           path_prefix = "/tmp/loki";
+        };
+        compactor = {
+          working_directory = "/var/lib/loki/retention";
+          delete_request_store = "filesystem";
+          compaction_interval = "10m";
+          retention_enabled = true;
+          retention_delete_delay = "5m";
+          retention_delete_worker_count = 10;
+          delete_request_cancel_period = "5m";
+        };
+        limits_config = {
+          retention_period = "30d";
+          max_query_series = 100000;
+          reject_old_samples = true;
+          reject_old_samples_max_age = "7d";
+          deletion_mode = "filter-and-delete";
         };
         schema_config = {
           configs = [
