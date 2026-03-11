@@ -34,6 +34,7 @@ in
         curl
         wget
         jq
+        otree
         zip
         unzip
         git
@@ -50,7 +51,9 @@ in
         usbutils
         gnupg1
         chafa
-        codex
+        unstable.claude-code
+        unstable.github-copilot-cli
+        unstable.codex
         unstable.nix-init
       ];
 

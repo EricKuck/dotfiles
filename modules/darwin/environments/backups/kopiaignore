@@ -27,6 +27,7 @@
 .gemini
 .claude
 .codex
+.copilot
 .pub-cache
 Backups.backupdb
 Cache
@@ -51,6 +52,7 @@ log
 /Downloads/*.mov
 /.konan
 /.config/github-copilot
+/.config/opencode
 /.androidbin
 /go/pkg/mod
 /traces

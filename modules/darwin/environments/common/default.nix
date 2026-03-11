@@ -264,7 +264,6 @@ in
 
       taps = [
         "grishka/grishka"
-        "kgarner7/feishin"
         "lihaoyun6/tap"
       ];
 
@@ -287,7 +286,7 @@ in
         "bettertouchtool"
         "karabiner-elements"
         "hammerspoon"
-        "ghostty@tip"
+        "ghostty"
         "figma"
         "slack"
         "element"
@@ -299,8 +298,9 @@ in
         }
         "meetingbar"
         "neardrop"
-        "feishin"
       ];
+
+      brews = [ "opencode" ];
 
       masApps = {
         Gifski = 1351639930;
