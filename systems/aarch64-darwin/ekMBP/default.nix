@@ -37,7 +37,13 @@ with lib.custom;
   ];
 
   homebrew = {
-    taps = [ "BarutSRB/tap" ];
+    taps = [
+      "BarutSRB/tap"
+    ];
+
+    brews = [
+      "emin-ozata/homebrew-tap/lazycut"
+    ];
 
     casks = [
       "bambu-studio"
