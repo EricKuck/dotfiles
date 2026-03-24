@@ -5,6 +5,21 @@
   config,
   ...
 }:
+let
+  kuckyNasConfig = inputs.self.nixosConfigurations.KuckyNas.config;
+  kuckyNasIp = kuckyNasConfig.meta.ipAddress;
+  caddyHosts = builtins.attrNames kuckyNasConfig.services.caddy.virtualHosts;
+  hostLines = builtins.concatStringsSep "\n" (
+    builtins.map (host: "${kuckyNasIp} ${host}") caddyHosts
+  );
+  hostsFile = pkgs.writeText "kuckynas-hosts" ''
+    127.0.0.1       localhost
+    255.255.255.255 broadcasthost
+    ::1             localhost
+
+    ${hostLines}
+  '';
+in
 with lib.custom;
 {
   imports = [ inputs.sops-nix.darwinModules.sops ];
@@ -70,6 +85,10 @@ with lib.custom;
       PagerCall = 6740581987;
     };
   };
+
+  system.activationScripts.postActivation.text = ''
+    cp ${hostsFile} /etc/hosts
+  '';
 
   system.stateVersion = 6;
 }
