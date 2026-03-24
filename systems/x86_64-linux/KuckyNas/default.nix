@@ -190,8 +190,8 @@ in
       paperless_env.owner = config.meta.flake.owner;
       paperless_postgres_env.owner = config.meta.flake.owner;
       vaultwarden_env.owner = config.meta.flake.owner;
-      booklore_env.owner = config.meta.flake.owner;
-      booklore-db_env.owner = config.meta.flake.owner;
+      grimmory_env.owner = config.meta.flake.owner;
+      grimmory-db_env.owner = config.meta.flake.owner;
       notesnook_env.owner = config.meta.flake.owner;
       multi-scrobbler_env.owner = config.meta.flake.owner;
       bitwarden_mxroute_env.owner = config.meta.flake.owner;

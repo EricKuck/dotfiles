@@ -1,54 +1,53 @@
 { config, osConfig, ... }:
 let
-  BOOKLORE_CONTAINER_PATH = "${osConfig.meta.containerData}/booklore";
+  GRIMMORY_CONTAINER_PATH = "${osConfig.meta.containerData}/grimmory";
   SHELFMARK_CONTAINER_PATH = "${osConfig.meta.containerData}/shelfmark";
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {
   quadlets = {
-    networks.booklore.networkConfig.driver = "bridge";
+    networks.grimmory.networkConfig.driver = "bridge";
     containers = {
-      booklore = {
+      grimmory = {
         containerConfig = {
-          image = "docker.io/booklore/booklore:latest";
-          name = "booklore";
-          autoUpdate = "registry";
+          image = "docker.io/grimmory/grimmory:latest";
+          name = "grimmory";
           environments = {
             PUID = "1072";
             PGID = "1072";
-            DATABASE_URL = "jdbc:mariadb://booklore-db:3306/booklore";
+            DATABASE_URL = "jdbc:mariadb://grimmory-db:3306/booklore";
             DATABASE_USERNAME = "booklore";
-            BOOKLORE_PORT = toString osConfig.ports.booklore;
+            GRIMMORY_PORT = toString osConfig.ports.grimmory;
             SWAGGER_ENABLED = "false";
           };
-          environmentFiles = [ osConfig.sops.secrets.booklore_env.path ];
+          environmentFiles = [ osConfig.sops.secrets.grimmory_env.path ];
           volumes = [
-            "${BOOKLORE_CONTAINER_PATH}/data:/app/data"
+            "${GRIMMORY_CONTAINER_PATH}/data:/app/data"
             "/kuckyjar/media/Books:/books"
-            "${BOOKLORE_CONTAINER_PATH}/bookdrop:/bookdrop"
+            "${GRIMMORY_CONTAINER_PATH}/bookdrop:/bookdrop"
           ];
           publishPorts = [
-            "${toString osConfig.ports.booklore}:${toString osConfig.ports.booklore}"
+            "${toString osConfig.ports.grimmory}:6060"
           ];
-          networks = [ networks.booklore.ref ];
+          networks = [ networks.grimmory.ref ];
           labels = [
             "caddy.enable=true"
-            "caddy.host=booklore.kuck.ing"
+            "caddy.host=grimmory.kuck.ing"
           ];
         };
         serviceConfig = {
           Restart = "always";
         };
         unitConfig = {
-          Requires = [ containers.booklore-db.ref ];
-          After = [ containers.booklore-db.ref ];
+          Requires = [ containers.grimmory-db.ref ];
+          After = [ containers.grimmory-db.ref ];
         };
       };
 
-      booklore-db = {
+      grimmory-db = {
         containerConfig = {
           image = "lscr.io/linuxserver/mariadb:11.4.5";
-          name = "booklore-db";
+          name = "grimmory-db";
           healthCmd = "mariadb-admin ping -h localhost";
           healthInterval = "5s";
           healthRetries = 10;
@@ -59,11 +58,11 @@ in
             MYSQL_DATABASE = "booklore";
             MYSQL_USER = "booklore";
           };
-          environmentFiles = [ osConfig.sops.secrets.booklore-db_env.path ];
+          environmentFiles = [ osConfig.sops.secrets.grimmory-db_env.path ];
           volumes = [
-            "${BOOKLORE_CONTAINER_PATH}/db:/config"
+            "${GRIMMORY_CONTAINER_PATH}/db:/config"
           ];
-          networks = [ networks.booklore.ref ];
+          networks = [ networks.grimmory.ref ];
         };
         serviceConfig = {
           Restart = "always";
@@ -82,7 +81,7 @@ in
           publishPorts = [
             "${toString osConfig.ports.flaresolverr}:${toString osConfig.ports.flaresolverr}"
           ];
-          networks = [ networks.booklore.ref ];
+          networks = [ networks.grimmory.ref ];
         };
         serviceConfig = {
           Restart = "always";
@@ -96,12 +95,12 @@ in
           autoUpdate = "registry";
           volumes = [
             "${SHELFMARK_CONTAINER_PATH}/config:/config"
-            "${BOOKLORE_CONTAINER_PATH}/bookdrop:/books"
+            "${GRIMMORY_CONTAINER_PATH}/bookdrop:/books"
           ];
           publishPorts = [
             "${toString osConfig.ports.shelfmark}:8084"
           ];
-          networks = [ networks.booklore.ref ];
+          networks = [ networks.grimmory.ref ];
           labels = [
             "caddy.enable=true"
             "caddy.host=shelfmark.kuck.ing"

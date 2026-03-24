@@ -34,7 +34,7 @@ in
     radarr = 7878;
     paperless = 8010;
     unifi_comm = 8080;
-    booklore = 8082;
+    grimmory = 8082;
     shelfmark = 8084;
     mylar3 = 8090;
     kapowarr = 8091;
