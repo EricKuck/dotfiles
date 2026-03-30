@@ -37,6 +37,7 @@ in
         otree
         zip
         unzip
+        ninja
         git
         git-lfs
         lazygit

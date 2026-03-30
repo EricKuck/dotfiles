@@ -263,8 +263,9 @@ in
       };
 
       taps = [
-        "grishka/grishka"
-        "lihaoyun6/tap"
+        "grishka/grishka" # neardrop
+        "lihaoyun6/tap" # quickrecorder
+        "rtk-ai/tap" # icm
       ];
 
       # TODO: add autostart entries?
@@ -300,7 +301,11 @@ in
         "neardrop"
       ];
 
-      brews = [ "opencode" ];
+      brews = [
+        "opencode"
+        "rtk"
+        "icm"
+      ];
 
       masApps = {
         Gifski = 1351639930;
