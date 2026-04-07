@@ -231,10 +231,13 @@ in
       };
     };
 
-    programs.fish.enable = true;
+    programs.fish = {
+      package = pkgs.unstable.fish;
+      enable = true;
+    };
 
     environment = {
-      shells = [ pkgs.fish ];
+      shells = [ pkgs.unstable.fish ];
       systemPath = [ "/opt/homebrew/bin" ];
       systemPackages = with pkgs; [
         podman
@@ -280,7 +283,7 @@ in
           greedy = true;
         }
         "raycast"
-        "jordanbaird-ice@beta"
+        "thaw"
         "visual-studio-code"
         "istat-menus"
         "mullvad-vpn"

@@ -83,6 +83,7 @@ in
     programs = {
       fish = {
         enable = true;
+        package = pkgs.unstable.fish;
 
         functions = {
           set_fish_title = {
