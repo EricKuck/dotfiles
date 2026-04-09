@@ -17,6 +17,7 @@ in
           volumes = [
             "${CONTAINER_PATH}/config:/app/config"
             "/run/user/1000/podman/podman.sock:/var/run/podman.sock"
+            "/kuckyjar/.homepage-probe:/kuckyjar:ro"
           ];
           publishPorts = [
             "${toString osConfig.ports.homepage}:3010"

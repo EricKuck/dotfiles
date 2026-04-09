@@ -36,7 +36,9 @@ let
     buildToolsVersions = [ irlCiAndroidBuildTools ];
     platformVersions = [ "36" ];
     platformToolsVersion = "36.0.2";
-    ndkVersions = [ "29.0.14206865" ];
+    cmakeVersions = [ "3.22.1" ];
+    includeNDK = true;
+    ndkVersions = [ "28.2.13676358" ];
   };
 in
 {
@@ -421,9 +423,13 @@ in
           zulu21
           zulu25
           firebase-tools
+          python3
           gawk
           jq
           curl
+          ninja
+          gn
+          svgo
           stdenv.cc.cc.lib
         ];
         environment = {
