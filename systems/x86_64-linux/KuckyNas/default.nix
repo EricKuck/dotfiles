@@ -30,16 +30,6 @@ let
       }
     ) (builtins.filter (item: item.port != null) podmanCaddyUrls.all)
   );
-
-  irlCiAndroidBuildTools = "36.0.0";
-  irlCiAndroidComposition = pkgs.androidenv.composeAndroidPackages {
-    buildToolsVersions = [ irlCiAndroidBuildTools ];
-    platformVersions = [ "36" ];
-    platformToolsVersion = "36.0.2";
-    cmakeVersions = [ "3.22.1" ];
-    includeNDK = true;
-    ndkVersions = [ "28.2.13676358" ];
-  };
 in
 {
   imports = [
@@ -314,7 +304,7 @@ in
         plugins = [
           "github.com/caddy-dns/cloudflare@v0.2.1"
         ];
-        hash = "sha256-B5xXld1+IRUAQHm8zkHFqvRp8cqnervVL6XEos5VNkc=";
+        hash = "sha256-Pzfdwq6GGUarf9jWpjuHEk3hjhftGZb0SJPqEOErZSg=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {
@@ -414,36 +404,10 @@ in
       allowedEmailsFile = config.sops.secrets.mxroute-emails.path;
     };
 
-    custom.gha-runner.runners = {
-      irl1 = {
-        url = "https://github.com/Infinite-Retry";
-        androidPackages = irlCiAndroidComposition;
-        extraPackages = with pkgs; [
-          git-lfs
-          zulu21
-          zulu25
-          firebase-tools
-          python3
-          gawk
-          jq
-          curl
-          ninja
-          gn
-          svgo
-          stdenv.cc.cc.lib
-        ];
-        environment = {
-          "ANDROID_HOME" = "${irlCiAndroidComposition.androidsdk}/libexec/android-sdk";
-          "JAVA_HOME" = "${pkgs.zulu25}";
-          GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${irlCiAndroidComposition.androidsdk}/libexec/android-sdk/build-tools/${irlCiAndroidBuildTools}/aapt2";
-        };
-        gradleProperties = {
-          "org.gradle.java.installations.paths" = "${pkgs.zulu21},${pkgs.zulu25}";
-          "org.gradle.java.home" = "${pkgs.zulu25}";
-          "systemProp.jna.library.path" = lib.makeLibraryPath [ pkgs.udev ];
-        };
-      };
-    };
+  };
+
+  gha-runner.irl.runners = {
+    irl-linux-1.tokenFile = config.sops.secrets.gha-runner-irl-linux-1-token.path;
   };
 
   system = {

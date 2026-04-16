@@ -52,7 +52,6 @@ in
         usbutils
         gnupg1
         chafa
-        unstable.claude-code
         unstable.github-copilot-cli
         unstable.codex
         unstable.nix-init

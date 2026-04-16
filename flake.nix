@@ -33,6 +33,12 @@
     nix-inspect.url = "github:bluskript/nix-inspect";
 
     quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
+
+    irl-gha-runner = {
+      url = "github:Infinite-Retry/gha-runner-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nix-darwin.follows = "darwin";
+    };
   };
 
   outputs =
@@ -84,6 +90,7 @@
     lib.mkFlake {
       channels-config = {
         allowUnfree = true;
+        android_sdk.accept_license = true;
       };
 
       formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
@@ -94,8 +101,11 @@
 
       systems.modules.nixos = lib.snowfall.fs.get-files-recursive ./modules/system-common ++ [
         inputs.quadlet-nix.nixosModules.quadlet
+        inputs.irl-gha-runner.nixosModules.default
       ];
-      systems.modules.darwin = lib.snowfall.fs.get-files-recursive ./modules/system-common;
+      systems.modules.darwin = lib.snowfall.fs.get-files-recursive ./modules/system-common ++ [
+        inputs.irl-gha-runner.darwinModules.default
+      ];
 
       homes.modules = [ inputs.quadlet-nix.homeManagerModules.quadlet ];
     };

@@ -241,6 +241,7 @@ in
       systemPath = [ "/opt/homebrew/bin" ];
       systemPackages = with pkgs; [
         podman
+        unstable.mas
         custom.micswitch
         custom.litra-rs
       ];
@@ -302,6 +303,7 @@ in
         }
         "meetingbar"
         "neardrop"
+        "claude-code@latest"
       ];
 
       brews = [
