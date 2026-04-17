@@ -162,11 +162,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1776389359,
-        "narHash": "sha256-he/cQnLuRTGGsHPV8fIQNr7h9leZsLlp9ga3xhyYOlQ=",
+        "lastModified": 1776438937,
+        "narHash": "sha256-zD5GRSSiOwXmm154jbolEnYunJa1N6HOByZqqYq3U1Q=",
         "owner": "Infinite-Retry",
         "repo": "gha-runner-flake",
-        "rev": "639b3121c2b85eea8e12af4f3389367fb1f414ae",
+        "rev": "86a8dca7a305efcf57dd1717e648c1adb52906d2",
         "type": "github"
       },
       "original": {

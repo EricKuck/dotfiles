@@ -138,6 +138,7 @@ log
 /Library/Application\ Support/discord
 /Library/Application\ Support/obsidian
 /Library/Application\ Support/Zed
+/Library/Application\ Support/Element
 /Library/Containers/com.apple.*
 /Library/Containers/com.utmapp.UTM/Data
 /Library/Containers/com.utmapp.QEMUHelper
@@ -231,6 +232,7 @@ Library/Intents/Image
 /blenderkit_data
 /.thumbnails
 /.local/state
+/.local/share/opencode
 /.firebender
 /.junie
 /.gradle/nodejs
