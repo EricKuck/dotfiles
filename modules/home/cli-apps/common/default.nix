@@ -52,6 +52,7 @@ in
         usbutils
         gnupg1
         chafa
+        python3
         unstable.github-copilot-cli
         unstable.codex
         unstable.nix-init

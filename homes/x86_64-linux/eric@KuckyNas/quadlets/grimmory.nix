@@ -12,6 +12,7 @@ in
         containerConfig = {
           image = "docker.io/grimmory/grimmory:latest";
           name = "grimmory";
+          autoUpdate = "registry";
           environments = {
             PUID = "1072";
             PGID = "1072";
