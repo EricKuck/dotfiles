@@ -53,6 +53,7 @@ in
         gnupg1
         chafa
         python3
+        nodejs_22
         unstable.github-copilot-cli
         unstable.codex
         unstable.nix-init
