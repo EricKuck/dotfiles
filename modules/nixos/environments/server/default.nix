@@ -99,6 +99,50 @@ in
       };
     };
 
+    boot = {
+      kernelPackages = pkgs.linuxPackages_6_18;
+
+      blacklistedKernelModules = [
+        "esp4"
+        "esp6"
+        "rxrpc"
+        "dccp"
+        "sctp"
+        "rds"
+        "tipc"
+        "n-hdlc"
+        "ax25"
+        "netrom"
+        "x25"
+        "rose"
+        "decnet"
+        "econet"
+        "af_802154"
+        "ipx"
+        "appletalk"
+        "psnap"
+        "p8023"
+        "p8022"
+        "can"
+        "atm"
+        "cramfs"
+        "freevxfs"
+        "jffs2"
+        "hfs"
+        "hfsplus"
+        "udf"
+        "squashfs"
+        "floppy"
+        "phonet"
+        "ieee802154"
+        "6lowpan"
+        "vivid"
+        "bridge"
+        "stp"
+        "llc"
+      ];
+    };
+
     networking = {
       networkmanager.enable = true;
       useDHCP = lib.mkDefault true;

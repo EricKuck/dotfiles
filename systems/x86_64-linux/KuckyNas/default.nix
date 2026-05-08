@@ -83,7 +83,6 @@ in
     };
 
     kernelModules = [ "kvm-intel" ];
-    kernelPackages = pkgs.linuxPackages_6_18;
     kernelParams = [
       "zfs.zfs_arc_max=13958643712" # 13GB: 2GB + 1GB/TB in pool
       "zswap.enabled=1"
