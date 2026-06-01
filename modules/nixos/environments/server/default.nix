@@ -137,9 +137,6 @@ in
         "ieee802154"
         "6lowpan"
         "vivid"
-        "bridge"
-        "stp"
-        "llc"
       ];
     };
 
@@ -211,7 +208,7 @@ in
     services = {
       resolved = {
         enable = true;
-        fallbackDns = [ ];
+        settings.Resolve.FallbackDNS = [ ];
       };
 
       openssh = {

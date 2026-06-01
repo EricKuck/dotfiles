@@ -8,16 +8,16 @@
 let
   mautrix-gvoice = pkgs.buildGoModule {
     pname = "mautrix-gvoice";
-    version = "0.2511.0";
+    version = "0.2605.0";
 
     src = pkgs.fetchFromGitHub {
       owner = "EricKuck";
       repo = "mautrix-gvoice";
-      rev = "efb1c3c221a505fcc707875434fc59d195a025e1";
-      hash = "sha256-L7DtHuQaoL+3c66uW42YD8ZMM6ZjdOkC67+BwDt6WLw=";
+      rev = "988ae443369ced993e7d3d5036d3f5a50c098063";
+      hash = "sha256-u0DIPvwl35Q+m+Zg68zxoFd3q867VOvAamH8BlEBYac=";
     };
 
-    vendorHash = "sha256-jhPp1AjG8WI+z2ZMkuCXgi88pFl8lqLEZPeXzBcWXis=";
+    vendorHash = "sha256-iNOMX7gonvkQSH6r0tCtqD71fyUfQfHmclrWbH11XiU=";
 
     buildInputs = [ pkgs.olm ];
 

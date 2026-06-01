@@ -190,6 +190,7 @@ in
 
       yazi = {
         enable = true;
+        shellWrapperName = "y";
         theme = {
           flavor = {
             use = "catppuccin-frappe";

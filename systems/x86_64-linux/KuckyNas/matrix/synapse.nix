@@ -4,7 +4,7 @@
   ...
 }:
 let
-  synapse-admin = pkgs.synapse-admin-etkecc.withConfig {
+  synapse-admin = pkgs.ketesa.withConfig {
     restrictBaseUrl = [
       "https://matrix.kuck.ing"
     ];

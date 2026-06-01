@@ -110,6 +110,7 @@ in
         "kuckyjar"
         "backups"
       ];
+      forceImportRoot = false;
       package = pkgs.unstable.zfs_2_4; # TODO: re-evaluate when back on an LTS kernel
     };
   };
@@ -303,7 +304,7 @@ in
         plugins = [
           "github.com/caddy-dns/cloudflare@v0.2.1"
         ];
-        hash = "sha256-Pzfdwq6GGUarf9jWpjuHEk3hjhftGZb0SJPqEOErZSg=";
+        hash = "sha256-xz43pXTsnYmXZDAAUT+vTapoq3O/8br7igGwqZbjFdk=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {

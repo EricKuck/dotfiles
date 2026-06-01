@@ -34,7 +34,10 @@ in
 {
   imports = lib.fileset.toList (lib.fileset.fileFilter (file: file.name != "default.nix") ./.);
 
-  sops.secrets.alertmanager_pagerduty_key = { };
+  sops.secrets = {
+    alertmanager_pagerduty_key = { };
+    grafana_secret_key = { };
+  };
 
   systemd.services.alertmanager.serviceConfig.LoadCredential =
     "pagerduty_key:${config.sops.secrets.alertmanager_pagerduty_key.path}";
@@ -179,6 +182,7 @@ in
           addr = "localhost";
           http_port = config.ports.grafana;
         };
+        security.secret_key = config.sops.secrets.grafana_secret_key.path;
       };
 
       provision.datasources.settings.datasources = [

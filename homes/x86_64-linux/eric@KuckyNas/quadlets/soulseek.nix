@@ -1,7 +1,7 @@
 { config, osConfig, ... }:
 let
   CONTAINER_PATH = "${osConfig.meta.containerData}/soulseek";
-  inherit (config.virtualisation.quadlet) containers networks;
+  inherit (config.virtualisation.quadlet) containers;
 in
 {
   quadlets = {
