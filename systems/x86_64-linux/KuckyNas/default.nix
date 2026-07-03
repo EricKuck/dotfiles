@@ -111,7 +111,7 @@ in
         "backups"
       ];
       forceImportRoot = false;
-      package = pkgs.unstable.zfs_2_4; # TODO: re-evaluate when back on an LTS kernel
+      package = pkgs.zfs_2_4;
     };
   };
 
@@ -176,6 +176,7 @@ in
       immich_api_key.owner = config.meta.flake.owner;
       eric_icloud_username.owner = config.meta.flake.owner;
       karakeep_env.owner = config.meta.flake.owner;
+      gluetun-uk-key.owner = config.meta.flake.owner;
       immich_server_env.owner = config.meta.flake.owner;
       immich_db_env.owner = config.meta.flake.owner;
       rmfakecloud_env.owner = config.meta.flake.owner;
@@ -232,7 +233,7 @@ in
   };
 
   environment.systemPackages = with pkgs; [
-    unstable.zfs_2_4 # TODO: re-evaluate using unstable once back on LTS kernel
+    zfs_2_4
     unstable.icloudpd
     unstable.immich-go
   ];
@@ -304,7 +305,7 @@ in
         plugins = [
           "github.com/caddy-dns/cloudflare@v0.2.1"
         ];
-        hash = "sha256-xz43pXTsnYmXZDAAUT+vTapoq3O/8br7igGwqZbjFdk=";
+        hash = "sha256-pNIRthmPf+J6BPfJ51afBCWt66evnRs1+f9wv09EvK0=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {

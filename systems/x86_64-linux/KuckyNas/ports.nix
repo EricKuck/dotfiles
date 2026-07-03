@@ -24,7 +24,6 @@ in
     suggestarr = 3034;
     karakeep = 3091;
     unifi_stun = 3478;
-    searxng = 3479;
     navidrome = 4533;
     soulseek_web = 5030;
     jellyseerr = 5055;

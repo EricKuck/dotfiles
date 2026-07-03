@@ -84,7 +84,7 @@ in
     programs = {
       fish = {
         enable = true;
-        package = pkgs.unstable.fish;
+        package = pkgs.fish; # TODO: go back to unstable once home manager fixes bug
 
         functions = {
           set_fish_title = {

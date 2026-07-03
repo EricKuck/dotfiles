@@ -11,7 +11,7 @@ in
   services.custom.matrix-bridges.slack = bridgeLib.mkBridgeConfig {
     service = "slack";
     serviceName = "Slack";
-    package = pkgs.mautrix-slack;
+    package = pkgs.unstable.mautrix-slack;
     commandPrefix = "!slack";
     botAvatar = "mxc://maunium.net/TdemSetLinesAHcYjEaUZ";
 

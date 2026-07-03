@@ -232,12 +232,12 @@ in
     };
 
     programs.fish = {
-      package = pkgs.unstable.fish;
+      package = pkgs.fish;
       enable = true;
     };
 
     environment = {
-      shells = [ pkgs.unstable.fish ];
+      shells = [ pkgs.fish ];
       systemPath = [ "/opt/homebrew/bin" ];
       systemPackages = with pkgs; [
         podman

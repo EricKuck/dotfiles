@@ -13,7 +13,7 @@ in
     containers = {
       immich-server = {
         containerConfig = {
-          image = "ghcr.io/immich-app/immich-server:release";
+          image = "ghcr.io/immich-app/immich-server:v3";
           autoUpdate = "registry";
           name = "immich_server";
           environmentFiles = [ osConfig.sops.secrets.immich_server_env.path ];
@@ -49,7 +49,7 @@ in
 
       immich-machine-learning = {
         containerConfig = {
-          image = "ghcr.io/immich-app/immich-machine-learning:release";
+          image = "ghcr.io/immich-app/immich-machine-learning:v3";
           autoUpdate = "registry";
           name = "immich_machine_learning";
           environmentFiles = [ osConfig.sops.secrets.immich_server_env.path ];
@@ -69,7 +69,7 @@ in
 
       immich-redis = {
         containerConfig = {
-          image = "docker.io/valkey/valkey:9@sha256:3eeb09785cd61ec8e3be35f8804c8892080f3ca21934d628abc24ee4ed1698f6";
+          image = "docker.io/valkey/valkey:9@sha256:4963247afc4cd33c7d3b2d2816b9f7f8eeebab148d29056c2ca4d7cbc966f2d9";
           name = "immich_redis";
           healthCmd = "redis-cli ping || exit 1";
           networks = [ networks.immich.ref ];

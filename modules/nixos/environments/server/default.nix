@@ -170,7 +170,7 @@ in
             "wheel"
           ]
           ++ lib.optional cfg.quadlets.enable "podman";
-          shell = pkgs.unstable.fish;
+          shell = pkgs.fish;
           linger = true;
           autoSubUidGidRange = true;
           initialPassword = "pass";
@@ -200,7 +200,7 @@ in
 
     programs = {
       fish = {
-        package = pkgs.unstable.fish;
+        package = pkgs.fish;
         enable = true;
       };
     };

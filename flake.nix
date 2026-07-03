@@ -91,6 +91,7 @@
       channels-config = {
         allowUnfree = true;
         android_sdk.accept_license = true;
+        permittedInsecurePackages = [ "olm-3.2.16" ];
       };
 
       formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
