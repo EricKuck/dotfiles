@@ -19,7 +19,6 @@ in
   config = mkIf cfg.enable {
     home = {
       packages = with pkgs; [
-        inputs.nix-inspect.packages.${system}.default
         nixfmt
         nix-search-cli
         nvd

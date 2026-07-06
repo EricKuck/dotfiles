@@ -266,9 +266,12 @@ in
         lockfiles = true;
       };
 
+      onActivation.extraFlags = [
+        "--force-cleanup"
+      ];
+
       taps = [
         "grishka/grishka" # neardrop
-        "lihaoyun6/tap" # quickrecorder
         "rtk-ai/tap" # icm
       ];
 
@@ -283,7 +286,6 @@ in
           name = "intellij-idea@eap";
           greedy = true;
         }
-        "raycast"
         "thaw"
         "visual-studio-code"
         "istat-menus"
@@ -297,19 +299,15 @@ in
         "element"
         "cameracontroller"
         "discord"
-        {
-          name = "quickrecorder";
-          greedy = true;
-        }
         "meetingbar"
         "neardrop"
+        "macshot"
         "claude-code@latest"
       ];
 
       brews = [
         "opencode"
         "rtk"
-        "icm"
       ];
 
       masApps = {

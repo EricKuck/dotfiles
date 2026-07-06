@@ -47,10 +47,6 @@ with lib.custom;
     };
   };
 
-  gha-runner.irl.runners = {
-    irl-darwin-1.tokenFile = config.sops.secrets.gha-runner-irl-darwin-1-token.path;
-  };
-
   environment.systemPackages = with pkgs; [
     sops
   ];

@@ -30,9 +30,9 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
-    nix-inspect.url = "github:bluskript/nix-inspect";
-
-    quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
+    quadlet-nix = {
+      url = "github:SEIAROTg/quadlet-nix";
+    };
 
     irl-gha-runner = {
       url = "github:Infinite-Retry/gha-runner-flake";

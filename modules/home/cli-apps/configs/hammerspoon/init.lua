@@ -9,6 +9,35 @@ hs.hotkey.bind({"ctrl", "cmd"}, "h", hs.reload) -- Reload config
 hs.hotkey.bind(hyper, "a", function() hs.eventtap.keyStroke({"ctrl", "cmd", "shift"}, "4") end) -- Screenshot
 hs.hotkey.bind("cmd", "\\", function() hs.application.launchOrFocus("Bitwarden") end) -- Show bitwarden
 
+-- Griddle
+hs.loadSpoon("Griddle")
+spoon.Griddle:bindHotkeys({enter = {hyper, "o"}})
+spoon.Griddle.otherShortcuts.leftClick = "space"
+spoon.Griddle.otherShortcuts.exit = {"escape"}
+spoon.Griddle.fineMoveDistance = 6
+spoon.Griddle:start()
+
+-- Scrolling
+local function scrollVertically(y)
+  hs.eventtap.scrollWheel({0, y}, {})
+end
+
+local function repeatingScroll(mods, key, y)
+  local timer
+  hs.hotkey.new(mods, key,
+    function()  -- pressed
+      scrollVertically(y)
+      timer = hs.timer.doEvery(0.02, function() scrollVertically(y) end)
+    end,
+    function()  -- released
+      if timer then timer:stop(); timer = nil end
+    end
+  ):enable()
+end
+
+repeatingScroll(hyper, "i", 3)
+repeatingScroll(hyper, "k", -3)
+
 -- Force paste
 hs.hotkey.bind(hyper, "v", function() hs.eventtap.keyStrokes(hs.pasteboard.getContents()) end)
 
