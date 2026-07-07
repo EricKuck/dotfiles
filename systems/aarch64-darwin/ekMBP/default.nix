@@ -52,10 +52,6 @@ with lib.custom;
   ];
 
   homebrew = {
-    taps = [
-      "BarutSRB/tap"
-    ];
-
     brews = [
       "emin-ozata/homebrew-tap/lazycut"
     ];
@@ -74,7 +70,7 @@ with lib.custom;
       "obs"
       "vivaldi"
       "visualvm"
-      "BarutSRB/tap/omniwm"
+      "netnewswire"
     ];
 
     masApps = {
