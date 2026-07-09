@@ -17,8 +17,14 @@ in
   config = mkIf cfg.enable {
     homebrew = {
       taps = [
-        "pbreault/gww"
-        "borneygit/brew"
+        {
+          name = "pbreault/gww";
+          trusted = true;
+        }
+        {
+          name = "borneygit/brew";
+          trusted = true;
+        }
       ];
 
       brews = [

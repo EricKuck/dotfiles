@@ -271,8 +271,11 @@ in
       ];
 
       taps = [
-        "grishka/grishka" # neardrop
-        "rtk-ai/tap" # icm
+        # neardrop
+        {
+          name = "grishka/grishka";
+          trusted = true;
+        }
       ];
 
       # TODO: add autostart entries?
@@ -302,6 +305,7 @@ in
         "meetingbar"
         "neardrop"
         "macshot"
+        "vicinae"
         "claude-code@latest"
       ];
 
