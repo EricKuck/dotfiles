@@ -71,6 +71,7 @@ with lib.custom;
       "vivaldi"
       "visualvm"
       "netnewswire"
+      "openchamber"
     ];
 
     masApps = {

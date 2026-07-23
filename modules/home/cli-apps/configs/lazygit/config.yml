@@ -1,3 +1,6 @@
+git:
+  skipHookPrefix: ''
+
 gui:
   # Use the frappe catppuccin theme with blue accent
   theme:
@@ -23,3 +26,4 @@ gui:
 
   authorColors:
     '*': '#babbf1'
+

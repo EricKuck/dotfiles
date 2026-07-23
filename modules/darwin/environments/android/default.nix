@@ -16,17 +16,6 @@ in
 
   config = mkIf cfg.enable {
     homebrew = {
-      taps = [
-        {
-          name = "pbreault/gww";
-          trusted = true;
-        }
-        {
-          name = "borneygit/brew";
-          trusted = true;
-        }
-      ];
-
       brews = [
         "gradle-profiler"
         "pbreault/gww/gww"
@@ -42,6 +31,7 @@ in
           name = "android-studio-preview@canary";
           greedy = true;
         }
+        "livewire-kt/tap/livewire"
       ];
     };
 

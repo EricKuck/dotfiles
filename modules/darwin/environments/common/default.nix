@@ -245,8 +245,11 @@ in
         custom.micswitch
         custom.litra-rs
       ];
-      # Hack: https://github.com/ghostty-org/ghostty/discussions/2832
-      variables.XDG_DATA_DIRS = [ "$GHOSTTY_SHELL_INTEGRATION_XDG_DIR" ];
+      variables = {
+        XDG_CONFIG_HOME = "$HOME/.config";
+        # Hack: https://github.com/ghostty-org/ghostty/discussions/2832
+        XDG_DATA_DIRS = [ "$GHOSTTY_SHELL_INTEGRATION_XDG_DIR" ];
+      };
     };
 
     homebrew = {
@@ -268,14 +271,6 @@ in
 
       onActivation.extraFlags = [
         "--force-cleanup"
-      ];
-
-      taps = [
-        # neardrop
-        {
-          name = "grishka/grishka";
-          trusted = true;
-        }
       ];
 
       # TODO: add autostart entries?
@@ -303,7 +298,7 @@ in
         "cameracontroller"
         "discord"
         "meetingbar"
-        "neardrop"
+        "grishka/grishka/neardrop"
         "macshot"
         "vicinae"
         "claude-code@latest"
