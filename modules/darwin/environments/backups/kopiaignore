@@ -141,6 +141,7 @@ log
 /Library/Application\ Support/Zed
 /Library/Application\ Support/Element
 /Library/Application\ Support/OpenChamber
+/Library/Application\ Support/Aonsoku
 /Library/Containers/com.apple.*
 /Library/Containers/com.utmapp.UTM/Data
 /Library/Containers/com.utmapp.QEMUHelper
@@ -161,6 +162,7 @@ log
 /Library/Group\ Containers/group.com.docker
 /Library/Group\ Containers/5BD75267VR.group.de.janbolz.silicio.shared
 /Library/Group\ Containers/com.apple.*
+/Library/Group\ Containers/HUAQ24HBR6.dev.orbstack
 /Library/Saved\ Application\ State
 /Library/com.apple.*
 /Library/Developer
@@ -209,6 +211,8 @@ com.apple.Safari
 .gradle/wrapper
 .git
 /.m2
+/.devpod
+/.orbstack
 *.ipa
 *.apk
 *.hprof
@@ -237,6 +241,7 @@ Library/Intents/Image
 /.local/state
 /.local/share/opencode
 /.local/share/containers
+/.local/share/vicinae/clipboard-data
 /.firebender
 /.junie
 /.gradle/nodejs

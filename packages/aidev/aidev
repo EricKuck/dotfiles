@@ -77,7 +77,8 @@ fi
 
 # Resolve symlinks here as well as for the root below. $PWD keeps the logical
 # path, so on macOS a cwd under /tmp stays /tmp while the root resolves to
-# /private/tmp, and the relative-path arithmetic further down breaks.
+# /private/tmp; the container only sees the resolved root under its mount, so an
+# unresolved cwd would name a path that does not exist inside it.
 [[ -d "$start_dir" ]] || die "not a directory: $start_dir"
 start_dir="$(cd "$start_dir" && pwd -P)"
 
@@ -99,9 +100,10 @@ id="${id#-}"; id="${id%-}"; id="${id:0:48}"
 [[ -n "$id" ]] || id="workspace"
 ssh_host="${id}.devpod"
 
-# Where the caller's cwd lands inside the container.
-rel="${start_dir#"$root"}"; rel="${rel#/}"
-remote_dir="/workspaces/${id}${rel:+/$rel}"
+# The workspace is bind-mounted at its host path (see write_config's
+# workspaceMount), so the caller's cwd maps to the identical absolute path
+# inside the container -- which is what makes dragged-in file paths resolve.
+remote_dir="$start_dir"
 
 workspace_state() {
     devpod status "$id" --output json 2>/dev/null \
@@ -138,7 +140,9 @@ write_config() {
     "remoteUser": "eric",
     "containerUser": "eric",
     "updateRemoteUserUID": true,
-    "initializeCommand": "mkdir -p \"\$HOME/.devcontainer\" \"\$HOME/.local/share/opencode\" && : > \"\$HOME/.devcontainer/empty-gradle.properties\" && ( test -f \"\$HOME/.local/share/opencode/auth.json\" || printf '{}' > \"\$HOME/.local/share/opencode/auth.json\" )",
+    "workspaceFolder": "$root",
+    "workspaceMount": "source=\${localWorkspaceFolder},target=$root,type=bind,consistency=cached",
+    "initializeCommand": "mkdir -p \"\$HOME/.devcontainer\" \"\$HOME/.local/share/opencode\" && : > \"\$HOME/.devcontainer/empty-gradle.properties\" && ( test -f \"\$HOME/.local/share/opencode/auth.json\" || printf '{}' > \"\$HOME/.local/share/opencode/auth.json\" ) && ( CRED=\$(security find-generic-password -s 'Claude Code-credentials' -w 2>/dev/null) && [ -n \"\$CRED\" ] && mkdir -p \"\$HOME/.claude\" && printf '%s' \"\$CRED\" > \"\$HOME/.claude/.credentials.json\" && chmod 600 \"\$HOME/.claude/.credentials.json\" ) || true",
     "postCreateCommand": "git config --global core.autocrlf input && git config --global init.defaultBranch main && sudo chown \$(id -u):\$(id -g) \"\$HOME/.local\" \"\$HOME/.local/share\" \"\$HOME/.local/share/opencode\"",
     "remoteEnv": {
         "EDITOR": "vim",
