@@ -139,6 +139,7 @@ log
 /Library/Application\ Support/obsidian
 /Library/Application\ Support/Zed
 /Library/Application\ Support/Element
+/Library/Application\ Support/OpenChamber
 /Library/Containers/com.apple.*
 /Library/Containers/com.utmapp.UTM/Data
 /Library/Containers/com.utmapp.QEMUHelper
@@ -234,6 +235,7 @@ Library/Intents/Image
 /.thumbnails
 /.local/state
 /.local/share/opencode
+/.local/share/containers
 /.firebender
 /.junie
 /.gradle/nodejs
