@@ -238,7 +238,9 @@ in
 
     environment = {
       shells = [ pkgs.fish ];
-      systemPath = [ "/opt/homebrew/bin" ];
+      systemPath = [
+        "/opt/homebrew/bin"
+      ];
       systemPackages = with pkgs; [
         podman
         unstable.mas
@@ -301,11 +303,10 @@ in
         "grishka/grishka/neardrop"
         "macshot"
         "vicinae"
-        "claude-code@latest"
+        "orbstack"
       ];
 
       brews = [
-        "opencode"
         "rtk"
       ];
 

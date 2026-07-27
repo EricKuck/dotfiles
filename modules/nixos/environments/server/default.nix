@@ -195,7 +195,6 @@ in
       shpool
       lm_sensors
       sops
-      unstable.claude-code
     ];
 
     programs = {

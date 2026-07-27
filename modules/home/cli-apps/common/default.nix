@@ -9,6 +9,7 @@
 
 let
   inherit (lib) mkEnableOption mkIf;
+  inherit (lib.custom) aliasBin;
   cfg = config.custom.cli-apps.common;
 in
 {
@@ -53,8 +54,32 @@ in
         chafa
         python3
         nodejs_22
-        unstable.github-copilot-cli
-        unstable.codex
+        devpod
+        custom.aidev
+        (aliasBin {
+          inherit pkgs;
+          pkg = unstable.github-copilot-cli;
+          exe = "copilot";
+          alias = "copilot-host";
+        })
+        (aliasBin {
+          inherit pkgs;
+          pkg = unstable.codex;
+          exe = "codex";
+          alias = "codex-host";
+        })
+        (aliasBin {
+          inherit pkgs;
+          pkg = unstable.claude-code;
+          exe = "claude";
+          alias = "claude-host";
+        })
+        (aliasBin {
+          inherit pkgs;
+          pkg = unstable.opencode;
+          exe = "opencode";
+          alias = "opencode-host";
+        })
         unstable.nix-init
       ];
 

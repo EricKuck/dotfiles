@@ -1,0 +1,232 @@
+#!/usr/bin/env bash
+#
+# aidev - run an AI harness inside a devcontainer for the current project.
+#
+# Normally invoked through one of its harness symlinks, which drop you straight
+# into that harness in yolo mode, starting the container first if needed:
+#
+#   claude [args...]     codex [args...]
+#   copilot [args...]    opencode [args...]
+#
+# The workspace is managed directly with:
+#
+#   aidev up [dir]       start the container without attaching
+#   aidev status [dir]   print workspace id, state and ssh host
+#   aidev stop [dir]     stop the container, keep the workspace
+#   aidev rm [dir]       delete the workspace
+#   aidev rebuild [dir]  recreate the container from a fresh image pull
+#   aidev shell [dir]    escape hatch: interactive shell in the container
+#
+# The workspace is anchored at the git root, so every subdirectory of a repo
+# shares one container, and your cwd is preserved inside it.
+
+set -euo pipefail
+
+# Pinned runtime dependencies. Nix rewrites this at build time; left empty the
+# script still works from a checkout, using whatever is already on PATH.
+AIDEV_RUNTIME_PATH=""
+if [[ -n "$AIDEV_RUNTIME_PATH" ]]; then
+    export PATH="$AIDEV_RUNTIME_PATH:$PATH"
+fi
+
+IMAGE="${AIDEV_IMAGE:-ghcr.io/erickuck/ai-devcontainer:latest}"
+CONFIG_DIR=".aidev"
+OPENCODE_PERMS='{"edit":"allow","bash":"allow","webfetch":"allow"}'
+
+die() { printf 'aidev: %s\n' "$*" >&2; exit 1; }
+log() { printf '\033[1;34m==>\033[0m %s\n' "$*" >&2; }
+
+command -v devpod >/dev/null || die "devpod is not installed"
+
+# The yolo invocation for each harness. opencode has no such flag; it reads
+# OPENCODE_PERMISSION from the environment instead.
+harness_flags() {
+    case "$1" in
+        claude)   printf '%s\0' --dangerously-skip-permissions ;;
+        codex)    printf '%s\0' --dangerously-bypass-approvals-and-sandbox ;;
+        copilot)  printf '%s\0' --allow-all ;;
+        opencode) ;;
+        *) die "unknown harness: $1" ;;
+    esac
+}
+
+# ---------------------------------------------------------------- dispatch
+#
+# Invoked as `claude`/`codex`/... via symlink, or as `aidev <subcommand>`.
+
+self="$(basename "$0")"
+harness=""
+subcommand=""
+
+if [[ "$self" != "aidev" ]]; then
+    harness="$self"
+else
+    case "${1:-}" in
+        up|status|stop|rm|rebuild|shell) subcommand="$1"; shift ;;
+        -h|--help|"") sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        *) die "unknown command: $1" ;;
+    esac
+fi
+
+# Harness args are passed through; subcommands take an optional directory.
+if [[ -n "$harness" ]]; then
+    start_dir="$PWD"
+else
+    start_dir="${1:-$PWD}"
+fi
+
+# Resolve symlinks here as well as for the root below. $PWD keeps the logical
+# path, so on macOS a cwd under /tmp stays /tmp while the root resolves to
+# /private/tmp, and the relative-path arithmetic further down breaks.
+[[ -d "$start_dir" ]] || die "not a directory: $start_dir"
+start_dir="$(cd "$start_dir" && pwd -P)"
+
+# ------------------------------------------------------------ workspace root
+#
+# Anchor on the git root so subdirectories of a repo reuse one container
+# instead of each spawning their own.
+
+root="$(git -C "$start_dir" rev-parse --show-toplevel 2>/dev/null || true)"
+[[ -n "$root" ]] || root="$start_dir"
+root="$(cd "$root" && pwd -P)"
+
+[[ "$root" != "$HOME" && "$root" != "/" ]] \
+    || die "refusing to use $root as a workspace; run this inside a project"
+
+id="$(basename "$root" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-')"
+while [[ "$id" == *--* ]]; do id="${id//--/-}"; done
+id="${id#-}"; id="${id%-}"; id="${id:0:48}"
+[[ -n "$id" ]] || id="workspace"
+ssh_host="${id}.devpod"
+
+# Where the caller's cwd lands inside the container.
+rel="${start_dir#"$root"}"; rel="${rel#/}"
+remote_dir="/workspaces/${id}${rel:+/$rel}"
+
+workspace_state() {
+    devpod status "$id" --output json 2>/dev/null \
+        | jq -r '.state // "NotFound"' 2>/dev/null || echo NotFound
+}
+
+# The id comes from the directory name alone, so two projects sharing a
+# basename would otherwise quietly attach to one container -- and you would be
+# editing the wrong checkout with no indication. Refuse instead.
+workspace_source() {
+    devpod list --output json 2>/dev/null \
+        | jq -r --arg id "$id" '.[] | select(.id == $id) | .source.localFolder // empty' \
+            2>/dev/null || true
+}
+
+claimed="$(workspace_source)"
+if [[ -n "$claimed" && "$claimed" != "$root" ]]; then
+    die "workspace '$id' already belongs to $claimed
+    run 'aidev rm' there first, or rename one of the directories"
+fi
+
+# ------------------------------------------------------------------- config
+#
+# DevPod will only read a devcontainer.json from inside the project, so this is
+# generated into .aidev/ and hidden from git. Nothing here runs in-container
+# beyond the one-time git config; the yolo flags travel over ssh instead.
+
+write_config() {
+    mkdir -p "$root/$CONFIG_DIR"
+    cat > "$root/$CONFIG_DIR/devcontainer.json" <<JSON
+{
+    "name": "$id",
+    "image": "$IMAGE",
+    "remoteUser": "eric",
+    "containerUser": "eric",
+    "updateRemoteUserUID": true,
+    "initializeCommand": "mkdir -p \"\$HOME/.devcontainer\" \"\$HOME/.local/share/opencode\" && : > \"\$HOME/.devcontainer/empty-gradle.properties\" && ( test -f \"\$HOME/.local/share/opencode/auth.json\" || printf '{}' > \"\$HOME/.local/share/opencode/auth.json\" )",
+    "postCreateCommand": "git config --global core.autocrlf input && git config --global init.defaultBranch main && sudo chown \$(id -u):\$(id -g) \"\$HOME/.local\" \"\$HOME/.local/share\" \"\$HOME/.local/share/opencode\"",
+    "remoteEnv": {
+        "EDITOR": "vim",
+        "GH_TOKEN": "\${localEnv:GH_TOKEN}",
+        "OPENCODE_PERMISSION": "$(printf '%s' "$OPENCODE_PERMS" | sed 's/"/\\"/g')"
+    },
+    "mounts": [
+        "source=\${localEnv:HOME}/.claude,target=/home/eric/.claude,type=bind,consistency=cached",
+        "source=\${localEnv:HOME}/.claude.json,target=/home/eric/.claude.json,type=bind,consistency=cached",
+        "source=\${localEnv:HOME}/.config/opencode,target=/home/eric/.config/opencode,type=bind,consistency=cached",
+        "source=\${localEnv:HOME}/.local/share/opencode/auth.json,target=/home/eric/.local/share/opencode/auth.json,type=bind,consistency=cached",
+        "source=\${localEnv:HOME}/.codex,target=/home/eric/.codex,type=bind,consistency=cached",
+        "source=\${localEnv:HOME}/.gradle,target=/home/eric/.gradle,type=bind,consistency=cached",
+        "source=\${localEnv:HOME}/.m2,target=/home/eric/.m2,type=bind,consistency=cached",
+        "source=\${localEnv:HOME}/.devcontainer/empty-gradle.properties,target=/home/eric/.gradle/gradle.properties,type=bind,readonly"
+    ]
+}
+JSON
+
+    if git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
+        local exclude
+        exclude="$(cd "$root" && git rev-parse --absolute-git-dir)/info/exclude"
+        mkdir -p "$(dirname "$exclude")"
+        grep -qx "/$CONFIG_DIR/" "$exclude" 2>/dev/null \
+            || echo "/$CONFIG_DIR/" >> "$exclude"
+    fi
+}
+
+ensure_up() {
+    local state
+    state="$(workspace_state)"
+    [[ "$state" == "Running" ]] && return 0
+    write_config
+    log "starting $id ($state)"
+    devpod up "$root" --id "$id" \
+        --devcontainer-path "$CONFIG_DIR/devcontainer.json" \
+        --ide none >&2
+}
+
+# --------------------------------------------------------------- subcommands
+
+case "$subcommand" in
+    status)  printf '%s\t%s\t%s\t%s\n' "$id" "$(workspace_state)" "$ssh_host" "$root"; exit 0 ;;
+    stop)    exec devpod stop "$id" ;;
+    rm)      devpod delete "$id" --force; rm -rf "${root:?}/$CONFIG_DIR"; exit 0 ;;
+    up)      ensure_up; log "$id ready at $ssh_host"; exit 0 ;;
+    rebuild)
+        write_config
+        log "rebuilding $id"
+        devpod up "$root" --id "$id" \
+            --devcontainer-path "$CONFIG_DIR/devcontainer.json" \
+            --ide none --recreate >&2
+        exit 0
+        ;;
+    shell)   ensure_up; exec ssh -t "$ssh_host" "cd $(printf '%q' "$remote_dir") && exec \$SHELL -l" ;;
+esac
+
+# ------------------------------------------------------------------- harness
+
+ensure_up
+
+ssh_opts=(-t)
+
+# Copilot authenticates with GH_TOKEN, and the container has no gh credentials
+# of its own. Mint a fresh token from the host keyring at launch and forward it
+# over SendEnv, which keeps it inside the ssh protocol channel rather than on a
+# command line where `ps` could read it.
+if [[ "$harness" == "copilot" ]]; then
+    command -v gh >/dev/null || die "gh is not installed; copilot needs it for GH_TOKEN"
+    GH_TOKEN="$(gh auth token 2>/dev/null || true)"
+    [[ -n "$GH_TOKEN" ]] || die "no GitHub token available; run 'gh auth login' first"
+    export GH_TOKEN
+    ssh_opts+=(-o SendEnv=GH_TOKEN)
+fi
+
+# Build the remote command: cd to the mirrored cwd, then exec the harness with
+# its yolo flags plus whatever the caller passed. Everything is %q-quoted so
+# arguments containing spaces survive the trip through ssh's remote shell.
+remote="cd $(printf '%q' "$remote_dir") && exec env"
+remote+=" $(printf '%q' "OPENCODE_PERMISSION=$OPENCODE_PERMS")"
+remote+=" $(printf '%q' "$harness")"
+
+while IFS= read -r -d '' flag; do
+    remote+=" $(printf '%q' "$flag")"
+done < <(harness_flags "$harness")
+
+for arg in "$@"; do
+    remote+=" $(printf '%q' "$arg")"
+done
+
+exec ssh "${ssh_opts[@]}" "$ssh_host" "$remote"

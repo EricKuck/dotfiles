@@ -48,6 +48,7 @@ log
 *.stl
 *.3mf
 *.gcode
+/OrbStack
 /Desktop/*.mov
 /Downloads/*.mov
 /.konan
