@@ -30,8 +30,12 @@ if [[ -n "$AIDEV_RUNTIME_PATH" ]]; then
 fi
 
 IMAGE="${AIDEV_IMAGE:-ghcr.io/erickuck/ai-devcontainer:latest}"
-CONFIG_DIR=".aidev"
+CONFIG_DIR=".devcontainer"
 OPENCODE_PERMS='{"edit":"allow","bash":"allow","webfetch":"allow"}'
+
+# Upstream config cache – refreshed explicitly on rebuild so everyday runs
+# stay fast and offline-friendly.
+AIDEV_CACHE_DIR="${HOME}/.cache/aidev"
 
 die() { printf 'aidev: %s\n' "$*" >&2; exit 1; }
 log() { printf '\033[1;34m==>\033[0m %s\n' "$*" >&2; }
@@ -46,6 +50,7 @@ harness_flags() {
         codex)    printf '%s\0' --dangerously-bypass-approvals-and-sandbox ;;
         copilot)  printf '%s\0' --allow-all ;;
         opencode) ;;
+        pi) ;;
         *) die "unknown harness: $1" ;;
     esac
 }
@@ -100,9 +105,9 @@ id="${id#-}"; id="${id%-}"; id="${id:0:48}"
 [[ -n "$id" ]] || id="workspace"
 ssh_host="${id}.devpod"
 
-# The workspace is bind-mounted at its host path (see write_config's
-# workspaceMount), so the caller's cwd maps to the identical absolute path
-# inside the container -- which is what makes dragged-in file paths resolve.
+# The upstream devcontainer.json uses ${localWorkspaceFolder} for its bind-
+# mount, so the caller's cwd maps to the identical absolute path inside the
+# container -- which is what makes dragged-in file paths resolve.
 remote_dir="$start_dir"
 
 workspace_state() {
@@ -127,40 +132,36 @@ fi
 
 # ------------------------------------------------------------------- config
 #
-# DevPod will only read a devcontainer.json from inside the project, so this is
-# generated into .aidev/ and hidden from git. Nothing here runs in-container
-# beyond the one-time git config; the yolo flags travel over ssh instead.
+# The upstream devcontainer.json, initialize.sh, and post-create.sh are cached
+# in ~/.cache/aidev/ and copied verbatim into the project's .devcontainer/
+# every time.  The upstream files contain ${localWorkspaceFolder} for the bind-
+# mount, so every project gets the correct path with zero patching.
+#
+# Refreshed explicitly via `aidev rebuild`.
+
+AIDEV_UPSTREAM_URL="https://raw.githubusercontent.com/EricKuck/ai-devcontainer/main/.devcontainer"
+
+refresh_upstream_config() {
+    mkdir -p "$AIDEV_CACHE_DIR"
+    log "fetching upstream devcontainer config"
+    curl -sfL "$AIDEV_UPSTREAM_URL/devcontainer.json" > "$AIDEV_CACHE_DIR/devcontainer.json"
+    curl -sfL "$AIDEV_UPSTREAM_URL/initialize.sh"     > "$AIDEV_CACHE_DIR/initialize.sh"
+    curl -sfL "$AIDEV_UPSTREAM_URL/post-create.sh"    > "$AIDEV_CACHE_DIR/post-create.sh"
+}
 
 write_config() {
     mkdir -p "$root/$CONFIG_DIR"
-    cat > "$root/$CONFIG_DIR/devcontainer.json" <<JSON
-{
-    "name": "$id",
-    "image": "$IMAGE",
-    "remoteUser": "eric",
-    "containerUser": "eric",
-    "updateRemoteUserUID": true,
-    "workspaceFolder": "$root",
-    "workspaceMount": "source=\${localWorkspaceFolder},target=$root,type=bind,consistency=cached",
-    "initializeCommand": "mkdir -p \"\$HOME/.devcontainer\" \"\$HOME/.local/share/opencode\" && : > \"\$HOME/.devcontainer/empty-gradle.properties\" && ( test -f \"\$HOME/.local/share/opencode/auth.json\" || printf '{}' > \"\$HOME/.local/share/opencode/auth.json\" ) && ( CRED=\$(security find-generic-password -s 'Claude Code-credentials' -w 2>/dev/null) && [ -n \"\$CRED\" ] && mkdir -p \"\$HOME/.claude\" && printf '%s' \"\$CRED\" > \"\$HOME/.claude/.credentials.json\" && chmod 600 \"\$HOME/.claude/.credentials.json\" ) || true",
-    "postCreateCommand": "git config --global core.autocrlf input && git config --global init.defaultBranch main && sudo chown \$(id -u):\$(id -g) \"\$HOME/.local\" \"\$HOME/.local/share\" \"\$HOME/.local/share/opencode\"",
-    "remoteEnv": {
-        "EDITOR": "vim",
-        "GH_TOKEN": "\${localEnv:GH_TOKEN}",
-        "OPENCODE_PERMISSION": "$(printf '%s' "$OPENCODE_PERMS" | sed 's/"/\\"/g')"
-    },
-    "mounts": [
-        "source=\${localEnv:HOME}/.claude,target=/home/eric/.claude,type=bind,consistency=cached",
-        "source=\${localEnv:HOME}/.claude.json,target=/home/eric/.claude.json,type=bind,consistency=cached",
-        "source=\${localEnv:HOME}/.config/opencode,target=/home/eric/.config/opencode,type=bind,consistency=cached",
-        "source=\${localEnv:HOME}/.local/share/opencode/auth.json,target=/home/eric/.local/share/opencode/auth.json,type=bind,consistency=cached",
-        "source=\${localEnv:HOME}/.codex,target=/home/eric/.codex,type=bind,consistency=cached",
-        "source=\${localEnv:HOME}/.gradle,target=/home/eric/.gradle,type=bind,consistency=cached",
-        "source=\${localEnv:HOME}/.m2,target=/home/eric/.m2,type=bind,consistency=cached",
-        "source=\${localEnv:HOME}/.devcontainer/empty-gradle.properties,target=/home/eric/.gradle/gradle.properties,type=bind,readonly"
-    ]
-}
-JSON
+
+    # On first run the cache won't exist yet; fetch it now.
+    if [[ ! -f "$AIDEV_CACHE_DIR/devcontainer.json" ]]; then
+        refresh_upstream_config
+    fi
+
+    # Copy verbatim – the upstream paths match the .devcontainer/ convention.
+    cp "$AIDEV_CACHE_DIR/devcontainer.json" "$root/$CONFIG_DIR/"
+    cp "$AIDEV_CACHE_DIR/initialize.sh"     "$root/$CONFIG_DIR/"
+    cp "$AIDEV_CACHE_DIR/post-create.sh"    "$root/$CONFIG_DIR/"
+    chmod +x "$root/$CONFIG_DIR/initialize.sh" "$root/$CONFIG_DIR/post-create.sh"
 
     if git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
         local exclude
@@ -177,9 +178,7 @@ ensure_up() {
     [[ "$state" == "Running" ]] && return 0
     write_config
     log "starting $id ($state)"
-    devpod up "$root" --id "$id" \
-        --devcontainer-path "$CONFIG_DIR/devcontainer.json" \
-        --ide none >&2
+    devpod up "$root" --id "$id" --ide none >&2
 }
 
 # --------------------------------------------------------------- subcommands
@@ -187,14 +186,30 @@ ensure_up() {
 case "$subcommand" in
     status)  printf '%s\t%s\t%s\t%s\n' "$id" "$(workspace_state)" "$ssh_host" "$root"; exit 0 ;;
     stop)    exec devpod stop "$id" ;;
-    rm)      devpod delete "$id" --force; rm -rf "${root:?}/$CONFIG_DIR"; exit 0 ;;
+    rm)
+        devpod delete "$id" --force
+        # Only remove files we put there – .devcontainer/ may have user content.
+        rm -f "$root/$CONFIG_DIR/devcontainer.json" \
+              "$root/$CONFIG_DIR/initialize.sh" \
+              "$root/$CONFIG_DIR/post-create.sh"
+        rmdir "$root/$CONFIG_DIR" 2>/dev/null || true
+        exit 0
+        ;;
     up)      ensure_up; log "$id ready at $ssh_host"; exit 0 ;;
     rebuild)
+        # Implicitly rm first so the workspace is clean.
+        devpod delete "$id" --force
+        rm -f "$root/$CONFIG_DIR/devcontainer.json" \
+              "$root/$CONFIG_DIR/initialize.sh" \
+              "$root/$CONFIG_DIR/post-create.sh"
+        rmdir "$root/$CONFIG_DIR" 2>/dev/null || true
+
+        refresh_upstream_config
+        log "pulling latest image: $IMAGE"
+        docker pull "$IMAGE" >/dev/null 2>&1 || log "docker pull skipped (daemon not running?)"
         write_config
         log "rebuilding $id"
-        devpod up "$root" --id "$id" \
-            --devcontainer-path "$CONFIG_DIR/devcontainer.json" \
-            --ide none --recreate >&2
+        devpod up "$root" --id "$id" --ide none --recreate >&2
         exit 0
         ;;
     shell)   ensure_up; exec ssh -t "$ssh_host" "cd $(printf '%q' "$remote_dir") && exec \$SHELL -l" ;;

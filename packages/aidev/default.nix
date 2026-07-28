@@ -29,6 +29,7 @@ let
     "codex"
     "copilot"
     "opencode"
+    "pi"
   ];
 in
 stdenvNoCC.mkDerivation {
