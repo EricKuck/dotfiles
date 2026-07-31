@@ -286,7 +286,7 @@ in
           name = "intellij-idea@eap";
           greedy = true;
         }
-        "thaw"
+        "thaw@beta"
         "visual-studio-code"
         "istat-menus"
         "mullvad-vpn"
