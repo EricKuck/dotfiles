@@ -54,6 +54,7 @@ with lib.custom;
   homebrew = {
     brews = [
       "emin-ozata/homebrew-tap/lazycut"
+      "pi-coding-agent"
     ];
 
     casks = [
@@ -72,6 +73,7 @@ with lib.custom;
       "visualvm"
       "netnewswire"
       "supacode"
+      "claude-code@latest"
     ];
 
     masApps = {

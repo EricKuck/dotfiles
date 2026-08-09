@@ -50,7 +50,7 @@ set -g __prompt_arrow_color_success a6d189
 # set -g __prompt_color_error be5046
 # set -g __prompt_arrow_color_success cccccc
 
-set -g __prompt_sections 'host|pwd|git|nixshell||time'
+set -g __prompt_sections 'host|pwd|git|nixshell|aiboxshell|time'
 set -g __prompt_right_sections status-runtime
 
 set -g __prompt_colors \
@@ -342,6 +342,8 @@ function __prompt_print_prompt --description "prints an entire prompt given <sec
                     set item_output (__prompt_print_git)
                 case nixshell
                     set item_output (__prompt_print_nixshell)
+                case aiboxshell
+                    set item_output (__prompt_print_aiboxshell)
                 case time
                     set item_output (__prompt_print_time)
                 case status
@@ -405,6 +407,11 @@ function __prompt_begin_section --description "prints the dividing arrow"
 end
 
 function __prompt_print_host
+    if set -q AIBOX_SHELL
+        echo -n aibox
+        return
+    end
+
     switch (uname -a)
         case "*Darwin*"
             printf "$__prompt_symbol_macos"
@@ -445,6 +452,12 @@ end
 function __prompt_print_nixshell
     if test -n "$IN_NIX_SHELL"
         echo -sn nix-shell
+    end
+end
+
+function __prompt_print_aiboxshell
+    if set -q AIBOX_SHELL
+        echo -sn 'aibox shell'
     end
 end
 

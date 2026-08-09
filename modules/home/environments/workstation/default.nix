@@ -21,8 +21,6 @@ in
       };
     };
 
-    home.sessionPath = [ "${config.home.homeDirectory}/.orbstack/bin" ];
-
     home.packages = with pkgs; [
       poppler-utils
       imagemagickBig

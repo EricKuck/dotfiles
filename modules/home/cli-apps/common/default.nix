@@ -55,19 +55,7 @@ in
         python3
         nodejs_22
         devpod
-        custom.aidev
-        (aliasBin {
-          inherit pkgs;
-          pkg = unstable.claude-code;
-          exe = "claude";
-          alias = "claude-host";
-        })
-        (aliasBin {
-          inherit pkgs;
-          pkg = unstable.pi-coding-agent;
-          exe = "pi";
-          alias = "pi-host";
-        })
+        custom.aibox
         unstable.nix-init
       ];
 

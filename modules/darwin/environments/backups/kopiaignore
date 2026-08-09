@@ -55,6 +55,7 @@ log
 /.config/github-copilot
 /.config/opencode
 /.androidbin
+/.aibox
 /go/pkg/mod
 /traces
 /Library/Assistant

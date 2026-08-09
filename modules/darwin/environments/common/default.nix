@@ -303,7 +303,6 @@ in
         "grishka/grishka/neardrop"
         "macshot"
         "vicinae"
-        "orbstack"
       ];
 
       brews = [

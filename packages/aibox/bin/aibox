@@ -1,0 +1,420 @@
+#!/usr/bin/env bash
+#
+# aibox - run an AI harness inside a macOS Seatbelt sandbox for the current
+# project. Same filesystem allow-listing as the prior containerized setup (workspace
+# read-write; agent config/cred and build caches read-write; system and
+# toolchain read-only; everything else denied), plus live add/remove of the
+# directories the agent can see. No network isolation.
+#
+# Normally invoked through a harness symlink, which drops you into that harness
+# in yolo mode, sandboxed for the current directory:
+#
+#   claude [args...]     pi [args...]
+#
+# Manage visibility and sessions with:
+#
+#   aibox allow <dir>    make <dir> visible read-write to the running session
+#   aibox deny <dir>     revoke a directory
+#   aibox status [dir]   show workspace sessions and visible dirs
+#   aibox list           list every workspace that has state
+#   aibox rm [dir|path]  remove stopped workspace state
+#   aibox shell          escape hatch: a sandboxed interactive shell
+#
+# Each workspace is anchored at the directory where it is started; running from
+# a subdirectory sandboxes only that subtree.
+
+set -euo pipefail
+
+# Pinned runtime dependencies. Nix rewrites this at build time; left empty the
+# script still works from a checkout using whatever is already on PATH.
+AIBOX_RUNTIME_PATH=""
+if [[ -n "$AIBOX_RUNTIME_PATH" ]]; then
+    export PATH="$AIBOX_RUNTIME_PATH:$PATH"
+fi
+
+here="$(cd "$(dirname "$0")" && pwd -P)"
+
+die() { printf 'aibox: %s\n' "$*" >&2; exit 1; }
+
+# Locate the native core. Installed side by side under Nix; from a checkout it is
+# under target/.
+resolve_host() {
+    local c
+    for c in "${AIBOX_HOST:-}" \
+             "$here/aibox-host" \
+             "$here/../target/debug/aibox-host" \
+             "$here/../target/release/aibox-host"; do
+        [[ -n "$c" && -x "$c" ]] && { printf '%s' "$c"; return 0; }
+    done
+    command -v aibox-host 2>/dev/null && return 0
+    return 1
+}
+HOST="$(resolve_host)" || die "cannot find the aibox-host binary (build it, or set AIBOX_HOST)"
+
+STATE_ROOT="${AIBOX_STATE_ROOT:-$HOME/.aibox/state}"
+# One audit database for every workspace and session. It lives at the state
+# root, which the profile hard-denies, so a sandboxed harness can neither read
+# nor rewrite it, and `aibox rm` of a workspace does not take its history with
+# it.
+DENIAL_LOG="${AIBOX_DENIAL_LOG:-$STATE_ROOT/denials.db}"
+
+# The yolo invocation for each harness. pi has no such flag.
+harness_flags() {
+    case "$1" in
+        claude) printf '%s\0' --dangerously-skip-permissions ;;
+        pi) ;;
+        *) die "unknown harness: $1" ;;
+    esac
+}
+
+# Resolve the REAL harness binary, skipping this wrapper so a `claude` symlink
+# does not re-invoke itself. Prints an absolute path.
+resolve_harness() {
+    local name="$1" dir p
+    local -a dirs
+    IFS=: read -r -a dirs <<< "$PATH"
+    for dir in "${dirs[@]}"; do
+        [[ -z "$dir" || "$dir" == "$here" ]] && continue
+        p="$dir/$name"
+        [[ -x "$p" ]] || continue
+        [[ "$p" -ef "$0" ]] && continue          # same file as the wrapper
+        printf '%s' "$p"; return 0
+    done
+    return 1
+}
+
+# Mirror the Claude Code credential out of the login keychain into
+# ~/.claude/.credentials.json, outside the sandbox, so the sandboxed harness
+# never needs keychain access (which the profile denies by design -- the same
+# trick the devcontainer's post-create.sh uses). Only seeds when missing; claude
+# refreshes the file itself thereafter, so we never clobber a fresher token.
+bootstrap_claude_credentials() {
+    local cred_file="$HOME/.claude/.credentials.json"
+    [[ -f "$cred_file" ]] && return 0
+    command -v security >/dev/null 2>&1 || return 0
+    local cred
+    cred="$(security find-generic-password -s 'Claude Code-credentials' -w 2>/dev/null || true)"
+    [[ -n "$cred" ]] || return 0
+    mkdir -p "$HOME/.claude"
+    printf '%s' "$cred" > "$cred_file"
+    chmod 600 "$cred_file"
+}
+
+# ---------------------------------------------------------------- dispatch
+
+self="$(basename "$0")"
+harness=""
+subcommand=""
+
+if [[ "$self" != "aibox" ]]; then
+    harness="$self"
+else
+    case "${1:-}" in
+        allow|deny|status|rm|shell) subcommand="$1"; shift ;;
+        list|ls)                 subcommand="list"; shift ;;
+        -h|--help|"")            sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        *)                       die "unknown command: ${1:-}" ;;
+    esac
+fi
+
+# --------------------------------------------------------- session probing
+
+# The control sockets are network-reachable from the sandbox, so filesystem
+# permissions are not sufficient authorization. Each session has its own
+# capability, kept beneath the workspace state root that the profile hard-denies.
+control_secret_for() {
+    local dir="$1" secret_file="$1/control.secret" secret
+    [[ -r "$secret_file" ]] || return 1
+    secret="$(<"$secret_file")"
+    [[ -n "$secret" ]] || return 1
+    printf '%s' "$secret"
+}
+
+# A session's socket does not live in its state directory: sun_path is limited
+# to ~104 bytes and state mirrors the whole absolute workspace path, so the
+# endpoint goes to TMPDIR and the session records where. The fallbacks reach
+# sessions started before that record existed -- the derived TMPDIR name for
+# recent ones, the in-state path for the original layout.
+session_sock_for() {
+    local dir="$1" candidate recorded=""
+    [[ -r "$dir/sock" ]] && recorded="$(<"$dir/sock")"
+    for candidate in "$recorded" "${TMPDIR:-/tmp}/aibox-${dir##*/}.sock" "$dir/ctl"; do
+        [[ -n "$candidate" && -S "$candidate" ]] && { printf '%s' "$candidate"; return 0; }
+    done
+    printf '%s' "${recorded:-$dir/ctl}"
+}
+
+ctl_at() {
+    local dir="$1"; shift
+    local secret
+    secret="$(control_secret_for "$dir")" || return 3
+    "$HOST" ctl "$(session_sock_for "$dir")" "$secret" "$@"
+}
+
+broker_alive_at() { ctl_at "$1" LIST >/dev/null 2>&1; }
+
+# `list` spans every workspace and must work from anywhere, so it runs before the
+# per-workspace resolution below. Workspace state mirrors the absolute workspace
+# path beneath STATE_ROOT; `allowed` identifies each state directory.
+if [[ "$subcommand" == "list" ]]; then
+    [[ $# -eq 0 ]] || die "usage: aibox list"
+    [[ -d "$STATE_ROOT" ]] || exit 0
+    while IFS= read -r -d '' manifest; do
+        workspace_dir="${manifest%/allowed}"
+        workspace="${workspace_dir#"$STATE_ROOT"}"
+        running=0; total=0
+        for s in "$workspace_dir/sessions"/*/; do
+            [[ -d "$s" ]] || continue
+            total=$((total + 1))
+            broker_alive_at "${s%/}" && running=$((running + 1))
+        done
+        printf '%s\t%s/%s running\n' "$workspace" "$running" "$total"
+    done < <(/usr/bin/find "$STATE_ROOT" -type f -name allowed -print0)
+    exit 0
+fi
+
+# Commands resolve to a canonical absolute workspace path. `rm` also accepts
+# that full path after a workspace has been deleted, so stale state is removable
+# without an abbreviated identifier.
+root=""
+if [[ "$subcommand" == "rm" && $# -gt 1 ]]; then
+    die "usage: aibox rm [dir|absolute-workspace-path]"
+elif [[ ( "$subcommand" == "status" || "$subcommand" == "rm" ) && $# -eq 1 ]]; then
+    if [[ -d "$1" ]]; then
+        root="$(cd "$1" 2>/dev/null && pwd -P)" || die "not a directory: $1"
+    elif [[ "$subcommand" == "rm" && "$1" = /* ]]; then
+        root="$1"
+    else
+        die "not a directory or absolute workspace path: $1"
+    fi
+else
+    root="$(pwd -P)"
+fi
+# A deleted workspace path cannot be canonicalized, but must not escape the
+# state root through lexical traversal when used by `aibox rm`.
+case "$root" in
+    *'/../'*|*/..|*'/./'*|*/.) die "workspace path must not contain . or .. components" ;;
+esac
+[[ "$root" != "$HOME" && "$root" != "/" ]] \
+    || die "refusing to use $root as a workspace; run this inside a project"
+workspace_dir="$STATE_ROOT$root"
+sessions_dir="$workspace_dir/sessions"
+manifest="$workspace_dir/allowed"
+session_id=""
+session_dir=""
+sock=""
+profile=""
+control_secret_file=""
+
+prepare_workspace() {
+    mkdir -p "$STATE_ROOT" "$workspace_dir" "$sessions_dir"
+    chmod 700 "$STATE_ROOT" "$workspace_dir" "$sessions_dir"
+    touch "$manifest"
+    chmod 600 "$manifest"
+}
+
+new_session_id() {
+    command -v uuidgen >/dev/null 2>&1 || die "uuidgen is required to create a session id"
+    uuidgen | tr -d '-' | cut -c1-12
+}
+
+prepare_session() {
+    session_id="$(new_session_id)"
+    [[ -n "$session_id" ]] || die "uuidgen returned an empty session id"
+    session_dir="$sessions_dir/$session_id"
+    # Unix-domain sockets have a ~104-byte path limit. Keep this ephemeral
+    # endpoint short while state itself retains the full workspace path.
+    sock="${TMPDIR:-/tmp}/aibox-$session_id.sock"
+    rm -f "$sock"
+    profile="$session_dir/profile.sb"
+    control_secret_file="$session_dir/control.secret"
+    mkdir -p "$session_dir"
+    chmod 700 "$session_dir"
+    # Every liveness check, broadcast, and rm guard finds the session through
+    # this, so it must be written before the broker starts answering.
+    (umask 077; printf '%s\n' "$sock" > "$session_dir/sock")
+}
+
+new_control_secret() {
+    local secret
+    command -v uuidgen >/dev/null 2>&1 || die "uuidgen is required to create a control secret"
+    secret="$(uuidgen | tr -d '-')"
+    [[ -n "$secret" ]] || die "uuidgen returned an empty control secret"
+    (umask 077; printf '%s\n' "$secret" > "$control_secret_file")
+    chmod 600 "$control_secret_file"
+}
+
+manifest_add() {
+    local path="$1"
+    grep -Fqx -- "$path" "$manifest" 2>/dev/null || printf '%s\n' "$path" >> "$manifest"
+}
+
+manifest_remove() {
+    local path="$1"
+    (umask 077; grep -Fvx -- "$path" "$manifest" > "$manifest.tmp" 2>/dev/null || :)
+    mv "$manifest.tmp" "$manifest"
+    chmod 600 "$manifest"
+}
+
+broadcast() {
+    local message="$1" dir reply failed=0
+    for dir in "$sessions_dir"/*/; do
+        [[ -d "$dir" ]] || continue
+        dir="${dir%/}"
+        broker_alive_at "$dir" || continue
+        reply="$(ctl_at "$dir" "$message")" || reply="ERR session unavailable"
+        if [[ "$reply" != OK* ]]; then
+            printf 'aibox: session %s: %s\n' "$(basename "$dir")" "${reply#ERR }" >&2
+            failed=1
+        fi
+    done
+    return "$failed"
+}
+
+running_session_count() {
+    local dir count=0
+    for dir in "$sessions_dir"/*/; do
+        [[ -d "$dir" ]] || continue
+        broker_alive_at "${dir%/}" && count=$((count + 1))
+    done
+    printf '%s' "$count"
+}
+
+legacy_broker_alive() {
+    local secret
+    secret="$(control_secret_for "$workspace_dir")" || return 1
+    "$HOST" ctl "$workspace_dir/control.sock" "$secret" LIST >/dev/null 2>&1
+}
+
+# The harness creates this file through its existing hooks while it is working.
+# A host watcher turns that state into a caffeinate assertion, then removes the
+# assertion as soon as the turn ends or the broker exits.
+activity_dir="$HOME/.aibox/activity"
+activity_file=""
+caffeinate_bin="${AIBOX_CAFFEINATE:-/usr/bin/caffeinate}"
+keepawake_caffeinated=""
+
+keepawake_release() {
+    [[ -n "${keepawake_caffeinated:-}" ]] || return 0
+    kill "$keepawake_caffeinated" 2>/dev/null || true
+    keepawake_caffeinated=""
+}
+
+keepawake_watch() {
+    local watched_pid="$1" interval="${AIBOX_ACTIVITY_POLL_SECONDS:-5}"
+    [[ "$interval" =~ ^[0-9]+([.][0-9]+)?$ ]] || interval=5
+    trap 'keepawake_release; rm -f "$activity_file"' EXIT
+    trap 'exit 0' TERM INT
+    while kill -0 "$watched_pid" 2>/dev/null; do
+        if [[ -e "$activity_file" ]]; then
+            if [[ -z "${keepawake_caffeinated:-}" ]] \
+                || ! kill -0 "$keepawake_caffeinated" 2>/dev/null; then
+                "$caffeinate_bin" -i -w "$watched_pid" &
+                keepawake_caffeinated=$!
+            fi
+        else
+            keepawake_release
+        fi
+        sleep "$interval"
+    done
+}
+
+keepawake_setup() {
+    [[ -x "$caffeinate_bin" ]] || return 0
+    activity_file="$activity_dir/$session_id.busy"
+    mkdir -p "$activity_dir"
+    chmod 700 "$activity_dir"
+    rm -f "$activity_file"
+    export AIBOX_ACTIVITY_FILE="$activity_file"
+    keepawake_watch "$$" &
+}
+
+# ------------------------------------------------------------- management
+
+case "$subcommand" in
+    rm)
+        [[ -d "$workspace_dir" ]] || die "no aibox state for workspace '$root'"
+        live="$(running_session_count)"
+        if (( live > 0 )) || legacy_broker_alive; then
+            die "workspace '$root' still has live session(s); stop them before removing its state"
+        fi
+        rm -rf -- "$workspace_dir"
+        printf 'removed workspace state: %s\n' "$root"
+        exit 0
+        ;;
+    allow|deny)
+        [[ $# -ge 1 ]] || die "usage: aibox $subcommand <dir>"
+        target="$(cd "$1" 2>/dev/null && pwd -P)" || die "not a directory: $1"
+        prepare_workspace
+        verb="$(tr '[:lower:]' '[:upper:]' <<< "$subcommand")"
+        [[ "$subcommand" == allow ]] && past="allowed" || past="denied"
+        live="$(running_session_count)"
+        broadcast "$verb $target" || die "could not update every live session"
+        if [[ "$subcommand" == "allow" ]]; then manifest_add "$target"; else manifest_remove "$target"; fi
+        if (( live > 0 )); then
+            printf '%s (live, %s session(s)): %s\n' "$past" "$live" "$target"
+        else
+            printf '%s (next session): %s\n' "$past" "$target"
+        fi
+        exit 0
+        ;;
+    status)
+        printf 'workspace: %s\nsessions:\n' "$root"
+        total=0
+        for dir in "$sessions_dir"/*/; do
+            [[ -d "$dir" ]] || continue
+            total=$((total + 1))
+            if broker_alive_at "${dir%/}"; then state=running; else state=stopped; fi
+            printf '  %s\t%s\n' "$(basename "${dir%/}")" "$state"
+        done
+        (( total > 0 )) || echo '  (none)'
+        printf 'visible (dynamic):\n'
+        if [[ -s "$manifest" ]]; then sed 's/^/  /' "$manifest"; else echo "  (none)"; fi
+        printf 'denials (all workspaces): %s\n' "$DENIAL_LOG"
+        exit 0
+        ;;
+esac
+
+# ------------------------------------------------------------------ launch
+
+# Build the harness argv: for a harness, its yolo flags then the caller's args;
+# for `shell`, a login shell with no flags.
+launch_argv=()
+if [[ "$subcommand" == "shell" ]]; then
+    # Shared Fish config renders a distinct prompt only for this explicit
+    # sandboxed shell, not for regular aibox harness sessions.
+    export AIBOX_SHELL=1
+    launch_argv=("$SHELL" -l)
+else
+    real="$(resolve_harness "$harness")" \
+        || die "cannot find the real '$harness' on PATH (only the aibox wrapper)"
+    launch_argv=("$real")
+    while IFS= read -r -d '' flag; do launch_argv+=("$flag"); done < <(harness_flags "$harness")
+    launch_argv+=("$@")
+fi
+
+prepare_workspace
+prepare_session
+new_control_secret
+bootstrap_claude_credentials
+
+# Create the activity directory before generating the profile so it is part of
+# the static allow-list for a harness session.
+[[ -z "$harness" ]] || keepawake_setup
+
+profile_args=("$root" --protect "$STATE_ROOT")
+# Sessions record aggregated Seatbelt denials to one shared sqlite database;
+# brokers elect a single writer for it. Denials are machine-wide events, so the
+# database is not per-workspace and its entries identify the denied process,
+# not the session; the broker drops the ones its own profile would have allowed,
+# which is how macOS's sandboxed daemons stay out of the log. The workspace's
+# enclosing repository -- its .git and .claude, wherever they sit relative to
+# the workspace, worktrees included -- is resolved by the profile generator.
+export AIBOX_DENIAL_LOG="$DENIAL_LOG"
+(umask 077; "$HOST" profile "${profile_args[@]}" > "$profile")
+chmod 600 "$profile"
+
+# Every launch owns a separate broker and terminal, while all brokers replay
+# and receive the workspace-wide manifest of dynamic grants.
+cd "$root"
+exec "$HOST" broker "$sock" "$profile" "$manifest" "$(<"$control_secret_file")" -- "${launch_argv[@]}"
