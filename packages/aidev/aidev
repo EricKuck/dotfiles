@@ -5,8 +5,7 @@
 # Normally invoked through one of its harness symlinks, which drop you straight
 # into that harness in yolo mode, starting the container first if needed:
 #
-#   claude [args...]     codex [args...]
-#   copilot [args...]    opencode [args...]
+#   claude [args...]     pi [args...]
 #
 # The workspace is managed directly with:
 #
@@ -31,7 +30,8 @@ fi
 
 IMAGE="${AIDEV_IMAGE:-ghcr.io/erickuck/ai-devcontainer:latest}"
 CONFIG_DIR=".devcontainer"
-OPENCODE_PERMS='{"edit":"allow","bash":"allow","webfetch":"allow"}'
+# Fallback config directory for a repository that tracks .devcontainer/ itself.
+ALT_CONFIG_DIR=".aidev"
 
 # Upstream config cache – refreshed explicitly on rebuild so everyday runs
 # stay fast and offline-friendly.
@@ -42,14 +42,10 @@ log() { printf '\033[1;34m==>\033[0m %s\n' "$*" >&2; }
 
 command -v devpod >/dev/null || die "devpod is not installed"
 
-# The yolo invocation for each harness. opencode has no such flag; it reads
-# OPENCODE_PERMISSION from the environment instead.
+# The yolo invocation for each harness. pi has no such flag.
 harness_flags() {
     case "$1" in
-        claude)   printf '%s\0' --dangerously-skip-permissions ;;
-        codex)    printf '%s\0' --dangerously-bypass-approvals-and-sandbox ;;
-        copilot)  printf '%s\0' --allow-all ;;
-        opencode) ;;
+        claude) printf '%s\0' --dangerously-skip-permissions ;;
         pi) ;;
         *) die "unknown harness: $1" ;;
     esac
@@ -57,7 +53,7 @@ harness_flags() {
 
 # ---------------------------------------------------------------- dispatch
 #
-# Invoked as `claude`/`codex`/... via symlink, or as `aidev <subcommand>`.
+# Invoked as `claude`/`pi` via symlink, or as `aidev <subcommand>`.
 
 self="$(basename "$0")"
 harness=""
@@ -149,6 +145,20 @@ workspace_state() {
         | jq -r '.state // "NotFound"' 2>/dev/null || echo NotFound
 }
 
+# aidev owns its config directory: it regenerates every file in there on each
+# run and hides the directory in .git/info/exclude. A project that ships its own
+# .devcontainer/ for VS Code -- a common shape -- would have its committed
+# scripts silently reverted to the upstream cache and any file added there made
+# invisible to git status. Generate into $ALT_CONFIG_DIR instead and point
+# DevPod at it, so a tracked .devcontainer/ is left alone.
+if git -C "$root" rev-parse --git-dir >/dev/null 2>&1 \
+    && [[ -n "$(git -C "$root" ls-files -- "$CONFIG_DIR" 2>/dev/null | head -1)" ]]; then
+    CONFIG_DIR="$ALT_CONFIG_DIR"
+    devcontainer_path_args=(--devcontainer-path "$CONFIG_DIR/devcontainer.json")
+else
+    devcontainer_path_args=()
+fi
+
 # Refuse the unlikely case where two paths abbreviate to the same id rather
 # than quietly attaching to the wrong workspace.
 workspace_source() {
@@ -174,8 +184,11 @@ fi
 #
 # Refreshed explicitly via `aidev rebuild`.
 
+# The upstream sources live in `devcontainer/`, not `.devcontainer/`, so that
+# aidev's own generated `.devcontainer/` never collides with them in a checkout
+# of that repository.
 AIDEV_UPSTREAM_REPO="https://github.com/EricKuck/ai-devcontainer.git"
-AIDEV_UPSTREAM_URL="https://raw.githubusercontent.com/EricKuck/ai-devcontainer/main/.devcontainer"
+AIDEV_UPSTREAM_URL="https://raw.githubusercontent.com/EricKuck/ai-devcontainer/main/devcontainer"
 
 refresh_upstream_config() {
     mkdir -p "$AIDEV_CACHE_DIR"
@@ -191,7 +204,7 @@ rebuild_image() {
         --pull \
         --no-cache \
         --tag "$IMAGE" \
-        "$AIDEV_UPSTREAM_REPO#main:.devcontainer"
+        "$AIDEV_UPSTREAM_REPO#main:devcontainer"
 }
 
 write_config() {
@@ -204,12 +217,23 @@ write_config() {
         refresh_upstream_config
     fi
 
+    if [[ "$CONFIG_DIR" != ".devcontainer" ]]; then
+        log "$root tracks .devcontainer/ in git; generating into $CONFIG_DIR/ instead"
+    fi
+
+    # The lifecycle hooks are workspace-relative, so they have to follow the
+    # config directory when it moves off .devcontainer/.
     jq \
         --arg image "$IMAGE" \
         --arg container_name "$container_name" \
+        --arg config_dir "$CONFIG_DIR" \
         '.image = $image
          | .name = $container_name
-         | .runArgs = ((.runArgs // []) + ["--name", $container_name])' \
+         | .runArgs = ((.runArgs // []) + ["--name", $container_name])
+         | (if has("initializeCommand")
+            then .initializeCommand = $config_dir + "/initialize.sh" else . end)
+         | (if has("postCreateCommand")
+            then .postCreateCommand = $config_dir + "/post-create.sh" else . end)' \
         "$AIDEV_CACHE_DIR/devcontainer.json" > "$root/$CONFIG_DIR/devcontainer.json"
     cp "$AIDEV_CACHE_DIR/initialize.sh"  "$root/$CONFIG_DIR/"
     cp "$AIDEV_CACHE_DIR/post-create.sh" "$root/$CONFIG_DIR/"
@@ -231,7 +255,133 @@ ensure_up() {
     [[ "$state" == "Running" ]] && return 0
     write_config
     log "starting $id ($state)"
-    devpod up "$root" --id "$id" --ide none >&2
+    devpod up "$root" --id "$id" --ide none \
+        ${devcontainer_path_args[@]+"${devcontainer_path_args[@]}"} >&2
+}
+
+# ------------------------------------------------------------ supacode bridge
+#
+# Supacode drives an agent session over two independent channels.
+#
+# Presence and notifications are OSC 3008 escape sequences the agent hooks write
+# to the tty, so they ride the ssh connection for free. The hooks themselves are
+# already in the container - Supacode installs them into ~/.claude and ~/.pi,
+# both of which the devcontainer bind-mounts - and they gate themselves on
+# SUPACODE_SURFACE_ID, so forwarding it is what wakes them up.
+#
+# The `supacode` CLI instead speaks JSON over a unix socket owned by the mac
+# app, which only reaches the container as a reverse forward.
+#
+# SUPACODE_SOCKET_PATH is deliberately NOT forwarded. The hooks append the
+# agent's pid to their presence signal whenever it is set, and the app probes
+# that pid against the host process table, where a container pid either pins a
+# badge that never clears or reaps a live one. The bridge travels as
+# SUPACODE_BRIDGE_SOCKET, which only the CLI reads.
+
+SUPACODE_VARS=(
+    SUPACODE_SURFACE_ID
+    SUPACODE_TAB_ID
+    SUPACODE_WORKTREE_ID
+    SUPACODE_REPO_ID
+    SUPACODE_ROOT_PATH
+    SUPACODE_WORKTREE_PATH
+)
+
+# Reverse-forwarded socket files outlive the session that created them. Sweeping
+# them in the remote command costs nothing; a second ssh round trip would.
+supacode_sweep="find /tmp -maxdepth 1 -name 'supacode-bridge-*.sock' -mtime +1 -delete 2>/dev/null; "
+
+ssh_opts=(-t)
+remote_env=()
+
+# Fills ssh_opts and remote_env for a session launched from a Supacode
+# terminal. Outside Supacode none of these are set and this is a no-op.
+supacode_session_setup() {
+    local var
+    for var in "${SUPACODE_VARS[@]}"; do
+        [[ -n "${!var:-}" ]] && remote_env+=("$var=${!var}")
+    done
+
+    [[ -S "${SUPACODE_SOCKET_PATH:-}" ]] || return 0
+
+    # Unique per invocation, so concurrent sessions in one container never
+    # collide on the bind and a leftover file never blocks a new forward.
+    local bridge="/tmp/supacode-bridge-$$-${RANDOM}.sock"
+    ssh_opts+=(-R "$bridge:$SUPACODE_SOCKET_PATH")
+    remote_env+=("SUPACODE_BRIDGE_SOCKET=$bridge")
+}
+
+# ------------------------------------------------------- keep the mac awake
+#
+# The agent runs in the container but the power assertion has to be held on the
+# mac, and the container has no way to reach the host by design. The signal
+# crosses as a file in a bind-mounted directory, the same trick the clipboard
+# bridge uses: the harness hooks touch it when a turn starts and delete it when
+# the turn ends, and the watcher below mirrors it onto a `caffeinate` child.
+#
+# Hooks create the file on prompt/tool-use and remove it only on stop, so the
+# gaps between tool calls inside one turn never flap the assertion.
+#
+# `caffeinate -i` blocks idle *system* sleep only: the display still sleeps on
+# its usual schedule and closing the lid still sleeps the machine.
+
+AIDEV_ACTIVITY_DIR="${HOME}/.aidev/activity"
+# Absolute path, so the bind mount resolves identically on both sides.
+activity_file="$AIDEV_ACTIVITY_DIR/${id}-$$.busy"
+
+# Global rather than a local of the watcher: the EXIT trap fires after the
+# function has returned, where a local is already out of scope and `set -u`
+# would abort the trap and leak the caffeinate it was meant to kill.
+keepawake_caffeinated=""
+
+keepawake_release() {
+    [[ -n "${keepawake_caffeinated:-}" ]] || return 0
+    kill "$keepawake_caffeinated" 2>/dev/null || true
+    keepawake_caffeinated=""
+}
+
+# Polls the session's activity file for as long as `watched_pid` lives. That pid
+# is aidev's own, which `exec ssh` below turns into the ssh process, so the
+# watcher retires exactly when the session ends and takes the flag with it.
+keepawake_watch() {
+    local watched_pid="$1"
+    trap 'keepawake_release; rm -f "$activity_file"' EXIT
+    trap 'exit 0' TERM INT
+    while kill -0 "$watched_pid" 2>/dev/null; do
+        if [[ -e "$activity_file" ]]; then
+            if [[ -z "${keepawake_caffeinated:-}" ]] \
+                || ! kill -0 "$keepawake_caffeinated" 2>/dev/null; then
+                # `-w` is the backstop: caffeinate exits with the ssh session even
+                # if this watcher is SIGKILLed and never runs its trap.
+                /usr/bin/caffeinate -i -w "$watched_pid" &
+                keepawake_caffeinated=$!
+            fi
+        else
+            keepawake_release
+        fi
+        sleep 5
+    done
+}
+
+# Arms the watcher for this session. A stale flag from a killed predecessor is
+# cleared first so the mac never starts out pinned awake.
+keepawake_setup() {
+    [[ -x /usr/bin/caffeinate ]] || return 0
+    mkdir -p "$AIDEV_ACTIVITY_DIR"
+    rm -f "$activity_file"
+    remote_env+=("AIDEV_ACTIVITY_FILE=$activity_file")
+    keepawake_watch "$$" &
+}
+
+# Renders remote_env as %q-quoted assignments for the remote `env` call.
+remote_env_args() {
+    local kv out=""
+    if (( ${#remote_env[@]} > 0 )); then
+        for kv in "${remote_env[@]}"; do
+            out+=" $(printf '%q' "$kv")"
+        done
+    fi
+    printf '%s' "$out"
 }
 
 # --------------------------------------------------------------- subcommands
@@ -261,35 +411,31 @@ case "$subcommand" in
         rebuild_image
         write_config
         log "rebuilding $id"
-        devpod up "$root" --id "$id" --ide none --recreate >&2
+        devpod up "$root" --id "$id" --ide none --recreate \
+            ${devcontainer_path_args[@]+"${devcontainer_path_args[@]}"} >&2
         exit 0
         ;;
-    shell)   ensure_up; exec ssh -t "$ssh_host" "cd $(printf '%q' "$remote_dir") && exec \$SHELL -l" ;;
+    shell)
+        ensure_up
+        supacode_session_setup
+        exec ssh "${ssh_opts[@]}" "$ssh_host" \
+            "${supacode_sweep}cd $(printf '%q' "$remote_dir") && exec env$(remote_env_args) \"\$SHELL\" -l"
+        ;;
 esac
 
 # ------------------------------------------------------------------- harness
 
 ensure_up
-
-ssh_opts=(-t)
-
-# Copilot authenticates with GH_TOKEN, and the container has no gh credentials
-# of its own. Mint a fresh token from the host keyring at launch and forward it
-# over SendEnv, which keeps it inside the ssh protocol channel rather than on a
-# command line where `ps` could read it.
-if [[ "$harness" == "copilot" ]]; then
-    command -v gh >/dev/null || die "gh is not installed; copilot needs it for GH_TOKEN"
-    GH_TOKEN="$(gh auth token 2>/dev/null || true)"
-    [[ -n "$GH_TOKEN" ]] || die "no GitHub token available; run 'gh auth login' first"
-    export GH_TOKEN
-    ssh_opts+=(-o SendEnv=GH_TOKEN)
-fi
+supacode_session_setup
+# Only the harness path arms this: `aidev shell` is an interactive shell, not an
+# agent turn, and nothing there would ever clear the flag.
+keepawake_setup
 
 # Build the remote command: cd to the mirrored cwd, then exec the harness with
 # its yolo flags plus whatever the caller passed. Everything is %q-quoted so
 # arguments containing spaces survive the trip through ssh's remote shell.
-remote="cd $(printf '%q' "$remote_dir") && exec env"
-remote+=" $(printf '%q' "OPENCODE_PERMISSION=$OPENCODE_PERMS")"
+remote="${supacode_sweep}cd $(printf '%q' "$remote_dir") && exec env"
+remote+="$(remote_env_args)"
 remote+=" $(printf '%q' "$harness")"
 
 while IFS= read -r -d '' flag; do

@@ -248,3 +248,4 @@ Library/Intents/Image
 /.gradle/yarn
 /.gradle/binaryen
 /.skiko
+/.supacode

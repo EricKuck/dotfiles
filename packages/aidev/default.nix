@@ -4,7 +4,6 @@
   devpod,
   jq,
   git,
-  gh,
   openssh,
   coreutils,
   gnugrep,
@@ -16,7 +15,6 @@ let
     devpod
     jq
     git
-    gh
     openssh
     coreutils
     gnugrep
@@ -26,9 +24,6 @@ let
   # Each name dispatches on argv[0] back into the same script.
   harnesses = [
     "claude"
-    "codex"
-    "copilot"
-    "opencode"
     "pi"
   ];
 in
@@ -70,9 +65,9 @@ stdenvNoCC.mkDerivation {
   meta = {
     description = "Run AI coding harnesses inside a per-project devcontainer";
     longDescription = ''
-      Provides claude, codex, copilot and opencode wrappers that start (or
-      reuse) a DevPod devcontainer anchored at the current git root and drop
-      straight into that harness with permission prompts disabled.
+      Provides claude and pi wrappers that start (or reuse) a DevPod
+      devcontainer anchored at the current git root and drop straight into
+      that harness with permission prompts disabled.
     '';
     homepage = "https://github.com/EricKuck/ai-devcontainer";
     license = lib.licenses.mit;

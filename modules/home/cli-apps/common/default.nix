@@ -58,27 +58,15 @@ in
         custom.aidev
         (aliasBin {
           inherit pkgs;
-          pkg = unstable.github-copilot-cli;
-          exe = "copilot";
-          alias = "copilot-host";
-        })
-        (aliasBin {
-          inherit pkgs;
-          pkg = unstable.codex;
-          exe = "codex";
-          alias = "codex-host";
-        })
-        (aliasBin {
-          inherit pkgs;
           pkg = unstable.claude-code;
           exe = "claude";
           alias = "claude-host";
         })
         (aliasBin {
           inherit pkgs;
-          pkg = unstable.opencode;
-          exe = "opencode";
-          alias = "opencode-host";
+          pkg = unstable.pi-coding-agent;
+          exe = "pi";
+          alias = "pi-host";
         })
         unstable.nix-init
       ];

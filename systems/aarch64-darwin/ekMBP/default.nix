@@ -71,13 +71,11 @@ with lib.custom;
       "vivaldi"
       "visualvm"
       "netnewswire"
-      "openchamber"
+      "supacode"
     ];
 
     masApps = {
       Tailscale = 1475387142;
-      WireGuard = 1451685025;
-      Infuse = 1136220934;
       "MQTT Explorer" = 1455214828;
       PagerCall = 6740581987;
     };
