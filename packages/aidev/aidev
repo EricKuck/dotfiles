@@ -11,6 +11,8 @@
 #
 #   aidev up [dir]       start the container without attaching
 #   aidev status [dir]   print workspace id, state and ssh host
+#   aidev list           list every workspace by the directory it belongs to
+#   aidev ls             alias for list
 #   aidev stop [dir]     stop the container, keep the workspace
 #   aidev rm [dir]       delete the workspace
 #   aidev rebuild [dir]  rebuild the image and recreate the container
@@ -64,9 +66,29 @@ if [[ "$self" != "aidev" ]]; then
 else
     case "${1:-}" in
         up|status|stop|rm|rebuild|shell) subcommand="$1"; shift ;;
+        list|ls) subcommand="list"; shift ;;
         -h|--help|"") sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) die "unknown command: $1" ;;
     esac
+fi
+
+# Listing spans every workspace, so it runs before the per-workspace resolution
+# below rather than from the subcommand dispatch: that path refuses to treat
+# $HOME as a workspace root, and `aidev list` has to work from anywhere.
+if [[ "$subcommand" == "list" ]]; then
+    [[ $# -eq 0 ]] || die "usage: aidev list"
+    workspaces="$(devpod list --output json 2>/dev/null || true)"
+    if [[ -n "$workspaces" ]]; then
+        # `<directory>\t<id>`: the directory first because that is how you think
+        # about a workspace, the id second because `rm` accepts it and it is the
+        # only handle that still works once the directory is deleted. A workspace
+        # with no local folder (e.g. created straight from a git URL) shows "-"
+        # rather than dropping out of the listing.
+        printf '%s' "$workspaces" \
+            | jq -r '.[] | [(.source.localFolder // "-"), .id] | @tsv' \
+            | sort
+    fi
+    exit 0
 fi
 
 # Harness args are passed through; subcommands take an optional directory.
@@ -76,21 +98,56 @@ else
     start_dir="${1:-$PWD}"
 fi
 
-# Resolve symlinks so the mounted path is the same inside and outside the
-# container. In particular, macOS resolves /tmp beneath /private/tmp.
-[[ -d "$start_dir" ]] || die "not a directory: $start_dir"
-start_dir="$(cd "$start_dir" && pwd -P)"
+# Commands that only ever act on an already-existing workspace take a selector
+# rather than a live directory: a workspace id as printed by `aidev ls`, or the
+# directory it belongs to. That directory need not still exist -- deleting a
+# project must not strand its container -- so the `-d` guard below is scoped to
+# the commands that actually have to mount something.
+case "$subcommand" in
+    rm|stop|status) takes_selector=1 ;;
+    *)              takes_selector=0 ;;
+esac
 
-# ------------------------------------------------------------ workspace root
-#
-# The requested directory is the workspace root. Do not widen it to the git
-# root: starting aidev from a subdirectory intentionally creates a distinct
-# container whose mount contains only that subtree.
+# Looks a workspace up in DevPod's registry by id or by the directory it belongs
+# to, printing `<id>\t<localFolder>`. aidev creates workspaces under the derived
+# id below, but one created by anything else carries whatever id its creator
+# chose, so deriving an id would simply miss it.
+registered_workspace() {
+    devpod list --output json 2>/dev/null \
+        | jq -r --arg sel "$1" \
+            '[.[] | select(.id == $sel or .source.localFolder == $sel)][0]
+             | if . then [.id, (.source.localFolder // "")] | @tsv else empty end' \
+            2>/dev/null || true
+}
 
-root="$start_dir"
+# Set here only when the selector resolved against the registry; otherwise it is
+# derived further below, once `workspace_id` is defined.
+id=""
 
-[[ "$root" != "$HOME" && "$root" != "/" ]] \
-    || die "refusing to use $root as a workspace; run this inside a project"
+if (( takes_selector )) && [[ ! -d "$start_dir" ]]; then
+    entry="$(registered_workspace "$start_dir")"
+    [[ -n "$entry" ]] || die "no workspace matches '$start_dir'
+    it is neither an existing directory nor a workspace id; run 'aidev ls'"
+    id="${entry%%$'\t'*}"
+    root="${entry#*$'\t'}"
+    start_dir="$root"
+else
+    # Resolve symlinks so the mounted path is the same inside and outside the
+    # container. In particular, macOS resolves /tmp beneath /private/tmp.
+    [[ -d "$start_dir" ]] || die "not a directory: $start_dir"
+    start_dir="$(cd "$start_dir" && pwd -P)"
+
+    # -------------------------------------------------------- workspace root
+    #
+    # The requested directory is the workspace root. Do not widen it to the git
+    # root: starting aidev from a subdirectory intentionally creates a distinct
+    # container whose mount contains only that subtree.
+
+    root="$start_dir"
+
+    [[ "$root" != "$HOME" && "$root" != "/" ]] \
+        || die "refusing to use $root as a workspace; run this inside a project"
+fi
 
 # Build a readable id from the full path using fish-style abbreviation: each
 # parent directory contributes its initial and the final directory stays whole.
@@ -132,7 +189,15 @@ workspace_id() {
     printf '%s' "$candidate"
 }
 
-id="$(workspace_id)"
+# A selector command prefers whatever id DevPod already registered for this
+# directory, so it can act on a workspace aidev did not create. The creation
+# paths keep deriving, so they never silently adopt and reconfigure someone
+# else's workspace.
+if [[ -z "$id" ]] && (( takes_selector )); then
+    entry="$(registered_workspace "$root")"
+    [[ -z "$entry" ]] || id="${entry%%$'\t'*}"
+fi
+[[ -n "$id" ]] || id="$(workspace_id)"
 ssh_host="${id}.devpod"
 
 # The upstream devcontainer.json uses ${localWorkspaceFolder} for its bind-
@@ -392,16 +457,23 @@ case "$subcommand" in
     rm)
         devpod delete "$id" --force
         # Only remove files we put there – .devcontainer/ may have user content.
-        rm -f "$root/$CONFIG_DIR/devcontainer.json" \
-              "$root/$CONFIG_DIR/initialize.sh" \
-              "$root/$CONFIG_DIR/post-create.sh"
-        rmdir "$root/$CONFIG_DIR" 2>/dev/null || true
+        # The guard is load-bearing now that a selector can name a workspace whose
+        # directory is gone: an empty or missing $root would aim these deletes at
+        # /.devcontainer instead.
+        if [[ -n "$root" && -d "$root" ]]; then
+            rm -f "$root/$CONFIG_DIR/devcontainer.json" \
+                  "$root/$CONFIG_DIR/initialize.sh" \
+                  "$root/$CONFIG_DIR/post-create.sh"
+            rmdir "$root/$CONFIG_DIR" 2>/dev/null || true
+        fi
         exit 0
         ;;
     up)      ensure_up; log "$id ready at $ssh_host"; exit 0 ;;
     rebuild)
-        # Implicitly rm first so the workspace is clean.
-        devpod delete "$id" --force
+        # Implicitly rm first so the workspace is clean. Unlike `rm`, a missing
+        # workspace is not an error here: rebuild's job is to end up with a fresh
+        # container, and starting from nothing already satisfies that.
+        devpod delete "$id" --force || true
         rm -f "$root/$CONFIG_DIR/devcontainer.json" \
               "$root/$CONFIG_DIR/initialize.sh" \
               "$root/$CONFIG_DIR/post-create.sh"
