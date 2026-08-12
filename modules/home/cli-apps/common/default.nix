@@ -54,8 +54,8 @@ in
         chafa
         python3
         nodejs_22
-        devpod
         custom.aibox
+        unstable.herdr
         unstable.nix-init
       ];
 

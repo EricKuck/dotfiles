@@ -97,3 +97,6 @@ hs.camera.setWatcherCallback(function(camera, state)
   toggleLights()
 end)
 hs.camera.startWatcher()
+
+-- herdr <-> ghostty smart key routing (added by setup)
+dofile(hs.configdir .. "/herdr-ghostty.lua")
