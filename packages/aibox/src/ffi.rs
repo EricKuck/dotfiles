@@ -53,6 +53,7 @@ pub fn dlclose(handle: *mut c_void) -> c_int {
 
 extern "C" {
     pub fn socketpair(domain: c_int, ty: c_int, protocol: c_int, sv: *mut c_int) -> c_int;
+    pub fn pipe(fds: *mut c_int) -> c_int;
     pub fn poll(fds: *mut pollfd, nfds: c_uint, timeout: c_int) -> c_int;
     pub fn dlsym(handle: *mut c_void, symbol: *const c_char) -> *mut c_void;
     pub fn read(fd: c_int, buf: *mut c_void, count: size_t) -> ssize_t;

@@ -4,7 +4,7 @@
 // control socket. When the session exits, so does the broker.
 
 use crate::ffi;
-use crate::proto::{read_line, write_all};
+use crate::proto::{b64_encode, read_line, write_all};
 use crate::sandbox::Sandbox;
 use crate::sqlite::{Database, DenialRow};
 use std::fs::{File, OpenOptions};
@@ -776,8 +776,13 @@ fn allow(sb: &Sandbox, broker_fd: i32, dir: &str) -> Result<String, String> {
     let token = sb
         .issue(&real_s)
         .ok_or_else(|| format!("issue failed for {real_s}"))?;
-    write_all(broker_fd, &format!("CONSUME {token} {real_s}\n"))
-        .map_err(|_| "launcher gone".to_string())?;
+    // The token embeds the target path (spaces included); base64 keeps the
+    // first-space split in the launcher exact.
+    write_all(
+        broker_fd,
+        &format!("CONSUME {} {real_s}\n", b64_encode(token.as_bytes())),
+    )
+    .map_err(|_| "launcher gone".to_string())?;
     match read_line(broker_fd) {
         Ok(Some(reply)) if reply.starts_with("OK") => Ok(real_s),
         Ok(Some(reply)) => Err(reply),

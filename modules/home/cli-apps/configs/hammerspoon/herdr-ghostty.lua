@@ -64,14 +64,6 @@ local function isHerdrForeground()
     return false
 end
 
-local function ghosttyNewTab()
-    hs.applescript.applescript([[
-        tell application "Ghostty"
-            set w to front window
-            new tab in w
-        end tell]])
-end
-
 local function ghosttySplit(dir)
     hs.applescript.applescript(string.format([[
         tell application "Ghostty"
@@ -86,9 +78,7 @@ local function herdrCommand(action)
         return false
     end
     local cmd
-    if action == "tab" then
-        cmd = HERDR .. " tab create --focus"
-    elseif action == "split-right" then
+    if action == "split-right" then
         cmd = HERDR .. " pane split --direction right --focus"
     else
         cmd = HERDR .. " pane split --direction down --focus"
@@ -156,11 +146,7 @@ local function route(action)
         if isHerdrForeground() then
             herdrCommand(action)
         else
-            if action == "tab" then
-                ghosttyNewTab()
-            else
-                ghosttySplit(action == "split-right" and "right" or "down")
-            end
+            ghosttySplit(action == "split-right" and "right" or "down")
         end
     end)
     if not ok then
@@ -169,8 +155,40 @@ local function route(action)
     end
 end
 
--- macOS virtual key codes: T = 17, P = 35, W = 13
-local T_KEY, P_KEY, W_KEY = 17, 35, 13
+-- cmd+[1-9]: switch to workspace N, mirroring herdr's prefix+shift+1..9 keybinding.
+local function herdrFocusWorkspace(n)
+    if not HERDR then
+        if DEBUG then hs.alert.show("herdr-workspace: herdr binary not found") end
+        return
+    end
+
+    local out, ok = hs.execute(HERDR .. " workspace list", true)
+    if not ok or not out then
+        if DEBUG then hs.alert.show("herdr-workspace: workspace list failed") end
+        return
+    end
+    local data = hs.json.decode(tostring(out))
+    if not data or not data.result or not data.result.workspaces then
+        if DEBUG then hs.alert.show("herdr-workspace: bad workspace list response") end
+        return
+    end
+
+    local target
+    for _, w in ipairs(data.result.workspaces) do
+        if w.number == n then target = w break end
+    end
+    if not target then
+        if DEBUG then hs.alert.show("herdr-workspace: no workspace " .. n) end
+        return
+    end
+
+    if DEBUG then hs.alert.show("cmd+" .. n .. " → herdr: focus workspace '" .. target.label .. "'") end
+    hs.execute(HERDR .. " workspace focus " .. target.workspace_id, true)
+end
+
+-- macOS virtual key codes: P = 35, W = 13; number row 1-9 (ANSI: 18-21, 23, 22, 26, 28, 25)
+local P_KEY, W_KEY = 35, 13
+local DIGIT_KEYS = { [18]=1, [19]=2, [20]=3, [21]=4, [23]=5, [22]=6, [26]=7, [28]=8, [25]=9 }
 
 if _G.herdrGhosttyTap then _G.herdrGhosttyTap:stop() end
 
@@ -193,10 +211,21 @@ _G.herdrGhosttyTap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, functi
         return nil
     end
 
+    -- cmd+[1-9]: consume ONLY when herdr is foreground (pass through otherwise so
+    -- the shell / other apps keep their own cmd+digit handling).
+    local ws = DIGIT_KEYS[key]
+    if ws and not mods.shift then
+        local app = hs.application.frontmostApplication()
+        if not app or app:name() ~= "Ghostty" then return nil end
+        if isHerdrForeground() then
+            hs.timer.doAfter(0, function() herdrFocusWorkspace(ws) end)
+            return true
+        end
+        return nil
+    end
+
     local action
-    if key == T_KEY and not mods.shift then
-        action = "tab"
-    elseif key == P_KEY and not mods.shift then
+    if key == P_KEY and not mods.shift then
         action = "split-right"
     elseif key == P_KEY and mods.shift then
         action = "split-down"
@@ -216,5 +245,5 @@ _G.herdrGhosttyTap:start()
 if not _G.herdrGhosttyTap:isEnabled() then
     hs.alert.show("herdr-router: eventtap FAILED — grant Hammerspoon Accessibility permission (System Settings → Privacy & Security → Accessibility), then reload")
 elseif DEBUG then
-    hs.alert.show("herdr-router v6: loaded (herdr at " .. tostring(HERDR or "NOT FOUND") .. ")")
+    hs.alert.show("herdr-router v7: loaded (herdr at " .. tostring(HERDR or "NOT FOUND") .. ")")
 end

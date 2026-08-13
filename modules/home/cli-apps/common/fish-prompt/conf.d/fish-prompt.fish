@@ -510,7 +510,9 @@ function fish_prompt
     set -l prompt_length (__prompt_visual_length "$left_prompt$right_prompt")
     set -l padding (math "$COLUMNS - $prompt_length")
     echo -n $left_prompt
-    printf "%-"$padding"s" " "
+    if test $padding -gt 0
+        printf "%-"$padding"s" " "
+    end
     echo -n $right_prompt
 
     if test "$__prompt_last_status" -ne 0

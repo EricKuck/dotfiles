@@ -4,7 +4,7 @@
 // shared sandbox label, the already-running harness gains directories live.
 
 use crate::ffi;
-use crate::proto::{read_line, write_all};
+use crate::proto::{b64_decode, read_line, write_all};
 use crate::sandbox::Sandbox;
 use std::process::Command;
 
@@ -74,20 +74,26 @@ pub fn run(args: &[String]) -> i32 {
 }
 
 fn handle_line(sb: &Sandbox, fd: i32, line: &str, grants: &mut Vec<Grant>) {
-    // "CONSUME <token> <dir...>" -- token first because a directory may contain
-    // spaces while the token never does.
+    // "CONSUME <b64-token> <dir...>" -- the token is base64 (it embeds the
+    // target path, spaces included, so it may itself contain spaces; the base64
+    // form never does), the directory may contain spaces and is taken verbatim.
     if let Some(rest) = line.strip_prefix("CONSUME ") {
         match rest.split_once(' ') {
-            Some((token, dir)) => match sb.consume(token) {
-                Some(h) => {
-                    grants.push(Grant {
-                        dir: dir.to_string(),
-                        handle: h,
-                    });
-                    let _ = write_all(fd, &format!("OK {h}\n"));
-                }
+            Some((token_b64, dir)) => match b64_decode(token_b64).and_then(|t| String::from_utf8(t).ok()) {
+                Some(token) => match sb.consume(&token) {
+                    Ok(h) => {
+                        grants.push(Grant {
+                            dir: dir.to_string(),
+                            handle: h,
+                        });
+                        let _ = write_all(fd, &format!("OK {h}\n"));
+                    }
+                    Err(errno) => {
+                        let _ = write_all(fd, &format!("ERR consume-failed errno={errno}\n"));
+                    }
+                },
                 None => {
-                    let _ = write_all(fd, "ERR consume-failed\n");
+                    let _ = write_all(fd, "ERR malformed\n");
                 }
             },
             None => {

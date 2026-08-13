@@ -71,9 +71,15 @@ const RW_HOME: &[&str] = &[
     ".local/share/fish",
     ".gradle",
     ".m2",
+    "go",
     ".clipboard-images",
     ".aibox/activity",
-    "Library/Android/sdk"
+    "Library/Android/sdk",
+    "Library/Application Support/kotlin",
+    "Library/org.swift.swiftpm",
+    "Library/Caches/org.swift.swiftpm",
+    "Library/Caches/go-build",
+    ".konan",
 ];
 
 // Toolchain caches and local app data need persistent write access. These are

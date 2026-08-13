@@ -9,7 +9,12 @@ cargo build --manifest-path "$here/Cargo.toml" >/dev/null 2>&1
 bin="$here/target/debug/aibox-host"
 
 ws="$HOME/aibox-e2e-ws";   rm -rf "$ws";     mkdir -p "$ws"
-outdir="$HOME/aibox-e2e-out"; rm -rf "$outdir"; mkdir -p "$outdir"
+# E2E_SPACED=1 exercises the same grant through a target whose path contains
+# spaces -- the case that historically broke live allows (the extension token
+# embeds the path, so the launcher must receive it base64-encoded for the
+# first-space split to be unambiguous).
+if [[ "${E2E_SPACED:-0}" == 1 ]]; then outdir="$HOME/aibox e2e out dir"; else outdir="$HOME/aibox-e2e-out"; fi
+rm -rf "$outdir"; mkdir -p "$outdir"
 probe="$outdir/probe"
 log="$ws/log"; : > "$log"
 manifest="$here/target/e2e-manifest"; : > "$manifest"
@@ -58,3 +63,6 @@ echo
 echo "=== transitions in full log ==="
 awk 'NR==1{p=$2} $2!=p{print "  line "$1": "p" -> "$2; p=$2} END{}' "$log"
 echo "(DENIED->OK on ALLOW, OK->DENIED on DENY confirms live grant/revoke)"
+if [[ "${E2E_SPACED:-0}" == 1 ]]; then
+  echo "(ran with a space-containing target path; grant via the base64 token transport)"
+fi
