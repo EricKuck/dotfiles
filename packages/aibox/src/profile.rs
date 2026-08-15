@@ -80,6 +80,7 @@ const RW_HOME: &[&str] = &[
     "Library/Caches/org.swift.swiftpm",
     "Library/Caches/go-build",
     ".konan",
+    ".skiko",
 ];
 
 // Toolchain caches and local app data need persistent write access. These are

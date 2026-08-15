@@ -4,6 +4,7 @@
 /iOS/**/Snapshots
 /kmp/**/.kotlin
 /kmp/**/spmKmpPlugin
+/kmp/**/snapshots
 
 # Everything else
 *.sock
