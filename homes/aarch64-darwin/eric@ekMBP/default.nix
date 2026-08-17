@@ -24,6 +24,7 @@ with lib.custom;
       tailscale
       scrcpy
       rclone
+      platformio
     ];
 
     # NEVER change this value after the initial install, for any reason,

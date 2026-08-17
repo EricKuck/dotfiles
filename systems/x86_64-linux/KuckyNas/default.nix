@@ -234,6 +234,7 @@ in
 
   environment.systemPackages = with pkgs; [
     zfs_2_4
+    lynx
     unstable.icloudpd
     unstable.immich-go
   ];
