@@ -114,14 +114,14 @@ in
                 return
               end
 
-              set -l dir (pwd | string replace "$HOME" '~')
-              set -l parts (string split '/' $dir)
+              set -l dir (pwd | string replace -- "$HOME" '~')
+              set -l parts (string split -- '/' $dir)
               set -l shortened_path false
 
-              while test (string length $dir) -gt 25; and test (count $parts) -gt 2
+              while test (string length -- $dir) -gt 25; and test (count $parts) -gt 2
                 set shortened_path true
-                set dir (string join '/' $parts[2..-1])
-                set parts (string split '/' $dir)
+                set dir (string join -- '/' $parts[2..-1])
+                set parts (string split -- '/' $dir)
               end
 
               if $shortened_path
