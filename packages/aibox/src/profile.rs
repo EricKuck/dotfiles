@@ -27,6 +27,8 @@ const RO_HOME: &[&str] = &[
     ".bash_profile",
     ".profile",
     ".inputrc",
+    ".orca/agent-hooks",
+    "Library/Application Support/orca",
 ];
 
 // Crown-jewel secrets, hard-denied regardless of any allow -- including the
@@ -584,12 +586,16 @@ mod tests {
     }
 
     #[test]
-    fn shell_startup_files_are_read_only_when_present() {
+    fn shell_startup_files_and_orca_hook_scripts_are_read_only_when_present() {
         let home = std::env::temp_dir().join(format!("aibox-profile-home-{}", std::process::id()));
-        std::fs::create_dir_all(&home).unwrap();
+        std::fs::create_dir_all(home.join(".orca/agent-hooks")).unwrap();
         std::fs::write(home.join(".zshenv"), "").unwrap();
         let sb = generate("/tmp/ws", &home.to_string_lossy(), &[], &[]);
         assert!(sb.contains(&format!("(literal \"{}/.zshenv\")", home.display())));
+        assert!(sb.contains(&format!(
+            "(subpath \"{}/.orca/agent-hooks\")",
+            home.display()
+        )));
         std::fs::remove_dir_all(&home).unwrap();
     }
 

@@ -33,7 +33,8 @@ aibox (CLI)
 - **Static protections** are baked into the generated Seatbelt profile as
   `subpath`/`literal`/`regex` rules: the workspace is read-write; the agent
   config/cred dirs (`~/.claude`, `~/.claude.json`, `~/.pi`, `~/.codex`, opencode
-  dirs), activity bridge, toolchain caches (`~/.cargo`, `~/.npm`, `~/.gradle`,
+  dirs), read-only Orca managed hook scripts (`~/.orca/agent-hooks`), activity bridge,
+  toolchain caches (`~/.cargo`, `~/.npm`, `~/.gradle`,
   `~/.m2`), RTK app data (`~/Library/Application Support/rtk`), and Homebrew
   (`/opt/homebrew`) are read-write; the credential files inside the caches
   (`~/.cargo/credentials`, `~/.cargo/credentials.toml`,
@@ -86,17 +87,6 @@ so it cannot ask the broker to widen itself.
   to -- an earlier version matched `.git` by path component
   (`(regex #".*/\\.git(/.*)?$")`), which reached every checkout on the machine,
   including ones sitting inside otherwise-denied directories.
-- **Supacode:** the app is a peer process on the same machine rather than the
-  far side of a container, so a session started from a Supacode terminal needs
-  no bridge: `$SUPACODE_SOCKET_PATH` connects straight through and the presence
-  hooks write their OSC sequences to the same pty. Two things do need help. The
-  `supacode` CLI and the terminfo entry for `$TERM` live inside the app bundle,
-  covered by the `/Applications` rule above. And the presence hooks resolve
-  their own pid and tty with `ps`, which Seatbelt refuses to exec because
-  Apple's `/bin/ps` is setuid root; the Nix build puts a non-setuid `ps` ahead
-  of it on the session's PATH. Without that, presence still arrives but carries
-  no pid, and the app cannot sweep the badge of an agent that died without
-  signalling.
 - **Keep awake:** harness sessions receive `AIBOX_ACTIVITY_FILE` under
   `~/.aibox/activity`. Existing agent hooks touch it during a turn; a host-side
   watcher maps it to `caffeinate -i` and clears the assertion when the turn or
@@ -165,7 +155,6 @@ so it cannot ask the broker to widen itself.
 | `test-e2e.sh` | proves live grant/revoke through the core |
 | `test-cli.sh` | proves the same through the CLI |
 | `test-worktree.sh` | proves linked-worktree Git access |
-| `test-supacode.sh` | proves app-bundle read access and `/dev` listing |
 | `test-keepawake.sh` | proves the activity-to-caffeinate bridge with a fake host tool |
 | `test-shell.sh` | proves Fish persistence, read-only rustup access, and secret exclusion |
 | `test-multisession.sh` | proves concurrent workspace sessions share live grants |

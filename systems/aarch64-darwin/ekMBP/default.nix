@@ -72,7 +72,7 @@ with lib.custom;
       "vivaldi"
       "visualvm"
       "netnewswire"
-      "supacode"
+      "stablyai/orca/orca"
       "claude-code@latest"
     ];
 
