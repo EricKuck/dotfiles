@@ -53,15 +53,6 @@ let
         ${pkgs.envsubst}/bin/envsubst < ${settingsFileUnsubstituted} > ${settingsFile}
         chown mautrix-${name}:mautrix-${name} ${settingsFile}
 
-        # Generate appservice registration if it doesn't exist
-        if [ ! -f "${registrationFile}" ]; then
-          ${bridge.package}/bin/${bridge.executable} \
-            -c ${settingsFile} \
-            -g -r ${registrationFile}
-          chown mautrix-${name}:mautrix-${name} ${registrationFile}
-          chmod 640 ${registrationFile}
-        fi
-
         # Extract tokens from registration and update config
         if [ -f "${registrationFile}" ]; then
           AS_TOKEN=$(${pkgs.yq}/bin/yq -r '.as_token' ${registrationFile})
@@ -270,15 +261,40 @@ in
               chown mautrix-${name}:mautrix-${name} ${settingsFile}
               chmod 600 ${settingsFile}
 
-              # Generate appservice registration if it doesn't exist
+              packageVersion="${bridge.package}"
+              versionFile="${dataDir}/.package-version"
+
+              needsRegen=false
               if [ ! -f "${registrationFile}" ]; then
+                needsRegen=true
+              elif [ ! -f "$versionFile" ] || [ "$(cat "$versionFile")" != "$packageVersion" ]; then
+                echo "Package version changed, regenerating registration for ${name}..."
+                needsRegen=true
+              fi
+
+              if [ "$needsRegen" = true ]; then
+                # Preserve existing tokens so Synapse keeps working after regeneration
+                if [ -f "${registrationFile}" ]; then
+                  AS_TOKEN=$(${pkgs.yq}/bin/yq -r '.as_token' ${registrationFile})
+                  HS_TOKEN=$(${pkgs.yq}/bin/yq -r '.hs_token' ${registrationFile})
+                  ${pkgs.yq}/bin/yq -y ".appservice.as_token = \"$AS_TOKEN\" | .appservice.hs_token = \"$HS_TOKEN\"" ${settingsFile} > ${settingsFile}.tmp
+                  mv ${settingsFile}.tmp ${settingsFile}
+                  chown mautrix-${name}:mautrix-${name} ${settingsFile}
+                  chmod 600 ${settingsFile}
+                fi
+
                 ${bridge.package}/bin/${bridge.executable} \
                   -c ${settingsFile} \
                   -g -r ${registrationFile}
                 chown mautrix-${name}:mautrix-${name} ${registrationFile}
                 chmod 640 ${registrationFile}
 
-                # Extract tokens from registration and update config
+                echo "$packageVersion" > "$versionFile"
+                chown mautrix-${name}:mautrix-${name} "$versionFile"
+              fi
+
+              # Always extract tokens from registration and update config
+              if [ -f "${registrationFile}" ]; then
                 AS_TOKEN=$(${pkgs.yq}/bin/yq -r '.as_token' ${registrationFile})
                 HS_TOKEN=$(${pkgs.yq}/bin/yq -r '.hs_token' ${registrationFile})
                 ${pkgs.yq}/bin/yq -y ".appservice.as_token = \"$AS_TOKEN\" | .appservice.hs_token = \"$HS_TOKEN\"" ${settingsFile} > ${settingsFile}.tmp
