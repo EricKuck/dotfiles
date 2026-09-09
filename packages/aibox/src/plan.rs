@@ -685,10 +685,11 @@ mod tests {
             &Scratch::default(),
         )
         .is_err());
+        let elsewhere = format!("/aibox-unmounted-{}/state", std::process::id());
         assert!(generate(
             &ws.to_string_lossy(),
             &home.to_string_lossy(),
-            &[base.join("elsewhere").to_string_lossy().into_owned()],
+            &[elsewhere],
             &[],
             &Scratch::default(),
         )
