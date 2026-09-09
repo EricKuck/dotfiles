@@ -10,6 +10,8 @@ use crate::ffi;
 use std::ffi::{CStr, CString};
 use std::io::Error as IoError;
 use std::os::raw::{c_char, c_void};
+use std::path::Path;
+use std::process::Command;
 
 pub const EXT_CLASS: &str = "com.apple.app-sandbox.read-write";
 
@@ -53,7 +55,36 @@ fn sym(name: &str) -> *mut c_void {
 }
 
 impl Sandbox {
-    pub fn load() -> Self {
+    // The broker's side, outside the sandbox: only an unsandboxed process may
+    // issue tokens.
+    pub fn host() -> Result<Self, String> {
+        Ok(Self::load())
+    }
+
+    // The launcher's side, inside the sandbox.
+    pub fn guest() -> Result<Self, String> {
+        Ok(Self::load())
+    }
+
+    // The sandboxed session: sandbox-exec applies the profile to the launcher
+    // and everything it spawns.
+    pub fn session_command(
+        &self,
+        profile: &Path,
+        launcher: &Path,
+        harness: &[String],
+    ) -> Result<Command, String> {
+        let mut c = Command::new("/usr/bin/sandbox-exec");
+        c.arg("-f")
+            .arg(profile)
+            .arg(launcher)
+            .arg("launch")
+            .arg("--")
+            .args(harness);
+        Ok(c)
+    }
+
+    fn load() -> Self {
         let i = sym("sandbox_extension_issue_file");
         let c = sym("sandbox_extension_consume");
         let r = sym("sandbox_extension_release");
@@ -67,36 +98,44 @@ impl Sandbox {
     }
 
     // Issues a read-write token for path. Must run OUTSIDE the sandbox.
-    pub fn issue(&self, path: &str) -> Option<String> {
-        let f = self.issue?;
-        let cls = CString::new(EXT_CLASS).ok()?;
-        let p = CString::new(path).ok()?;
+    pub fn issue(&self, path: &str) -> Result<String, String> {
+        let f = self.issue.ok_or("sandbox_extension_issue_file unavailable")?;
+        let cls = CString::new(EXT_CLASS).map_err(|e| e.to_string())?;
+        let p = CString::new(path).map_err(|e| e.to_string())?;
         unsafe {
             let tok = f(cls.as_ptr(), p.as_ptr(), ISSUE_FLAGS);
             if tok.is_null() {
-                return None;
+                return Err(format!("issue failed for {path}"));
             }
             let s = CStr::from_ptr(tok).to_string_lossy().into_owned();
             ffi::free(tok as *mut c_void);
-            Some(s)
+            Ok(s)
         }
     }
 
+    // Nothing outside the sandbox holds state for a grant: the token is
+    // consumed by the launcher, which is also what releases it.
+    pub fn revoke(&self, _dir: &str) {}
+
     // Consumes a token, returning the handle used to release it later. Runs
-    // INSIDE the sandbox. Returns Err(errno) on failure.
-    pub fn consume(&self, token: &str) -> Result<i64, i32> {
-        let f = self.consume.ok_or(0)?;
-        let t = CString::new(token).map_err(|_| 0)?;
+    // INSIDE the sandbox. The directory is not needed here -- the token
+    // carries it -- but the Linux side binds onto it, so both take it.
+    pub fn consume(&self, token: &str, _dir: &str) -> Result<i64, String> {
+        let f = self
+            .consume
+            .ok_or("sandbox_extension_consume unavailable")?;
+        let t = CString::new(token).map_err(|e| e.to_string())?;
         let h = unsafe { f(t.as_ptr()) };
         if h >= 0 {
             Ok(h)
         } else {
             // Capture errno immediately before any other syscall can reset it.
-            Err(IoError::last_os_error().raw_os_error().unwrap_or(-1))
+            let errno = IoError::last_os_error().raw_os_error().unwrap_or(-1);
+            Err(format!("errno={errno}"))
         }
     }
 
-    pub fn release(&self, handle: i64) {
+    pub fn release(&self, handle: i64, _dir: &str) {
         if let Some(f) = self.release {
             unsafe {
                 f(handle);

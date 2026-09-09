@@ -11,7 +11,7 @@ outdir="$HOME/aibox-multi-out"; rm -rf "$outdir"; mkdir -p "$outdir"
 export AIBOX_STATE_ROOT="$HOME/.aibox/test-multi-state"; rm -rf "$AIBOX_STATE_ROOT"
 
 cat > "$ws/claude" <<EOF
-#!/bin/bash
+#!/usr/bin/env bash
 label="\${!#}"
 log="$ws/\$label.log"
 for i in \$(seq 1 40); do

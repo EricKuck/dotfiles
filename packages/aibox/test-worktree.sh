@@ -24,7 +24,7 @@ git -C "$main" commit -qm initial
 git -C "$main" worktree add -q "$ws"
 
 cat > "$ws/claude" <<'EOF'
-#!/bin/bash
+#!/usr/bin/env bash
 if GIT_CONFIG_GLOBAL=/dev/null git -C "$PWD" status --porcelain >/dev/null 2>&1; then
     printf 'git-ok\n' > "$PWD/result"
 else

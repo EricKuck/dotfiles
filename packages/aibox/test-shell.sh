@@ -20,14 +20,22 @@ printf 'cargo-tool\n' > "$test_home/.cargo/bin/tool"
 printf 'secret-token\n' > "$test_home/.cargo/credentials.toml"
 printf 'default_toolchain = "stable"\n' > "$test_home/.rustup/settings.toml"
 printf 'secret-token\n' > "$test_home/.rustup/credentials.toml"
-HOME="$test_home" "$host" profile "$ws" > "$base/profile.sb"
-grep -Fxq '(debug deny)' "$base/profile.sb"
-grep -Fq "(subpath \"$test_home/.rustup\")" "$base/profile.sb"
-grep -Fq "(subpath \"$test_home/.rustup/credentials.toml\")" "$base/profile.sb"
+HOME="$test_home" "$host" profile "$ws" > "$base/policy"
+# The two backends spell the same policy differently: Seatbelt allows a subpath
+# and denies a deeper one, bubblewrap binds a tree and masks a path inside it.
+if [[ "$(uname -s)" == Darwin ]]; then
+    grep -Fxq '(debug deny)' "$base/policy"
+    grep -Fq "(subpath \"$test_home/.rustup\")" "$base/policy"
+    grep -Fq "(subpath \"$test_home/.rustup/credentials.toml\")" "$base/policy"
+else
+    grep -Fxq "$test_home/.rustup" "$base/policy"
+    grep -Fxq "$test_home/.rustup/credentials.toml" "$base/policy"
+    grep -Fxq '/dev/null' "$base/policy"
+fi
 
 fake_fish="$ws/fish"
 cat > "$fake_fish" <<'EOF'
-#!/bin/bash
+#!/usr/bin/env bash
 printf 'universal=1\n' > "$HOME/.config/fish/fish_variables"
 printf 'history entry\n' > "$HOME/.local/share/fish/fish_history"
 cat "$HOME/.cargo/env.fish" > "$PWD/cargo-env"

@@ -6,6 +6,9 @@
 #   tools/trace.sh <label> <command> [args...]
 set -euo pipefail
 
+# Seatbelt only: this reads the macOS unified log / drives sandbox-exec.
+[[ "$(uname -s)" == Darwin ]] || { echo "$(basename "$0"): macOS only" >&2; exit 0; }
+
 label="${1:?usage: trace.sh <label> <command> [args...]}"; shift
 trace="/tmp/aibox-trace-$label.sb"; rm -f "$trace"
 ws="$(mktemp -d "$HOME/aibox-trace-ws.XXXXXX")"

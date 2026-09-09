@@ -1,7 +1,9 @@
-// The sandbox root process. sandbox-exec launches this inside the profile; it
-// consumes/releases extension tokens pushed over the inherited socketpair fd,
-// then runs the harness as its child. Because consumed extensions apply to the
-// shared sandbox label, the already-running harness gains directories live.
+// The sandbox root process. The jail launches this inside the sandbox; it
+// applies and releases the grants pushed over the inherited socketpair fd,
+// then runs the harness as its child. On macOS a consumed extension applies to
+// the shared sandbox label; on Linux the bind lands in the mount namespace the
+// harness is forked into. Either way the already-running harness gains
+// directories live.
 
 use crate::ffi;
 use crate::proto::{b64_decode, read_line, write_all};
@@ -37,9 +39,20 @@ pub fn run(args: &[String]) -> i32 {
     // The harness must not inherit the control channel.
     ffi::set_cloexec(fd);
 
-    let sb = Sandbox::load();
+    let sb = match Sandbox::guest() {
+        Ok(sb) => sb,
+        Err(e) => {
+            eprintln!("aibox launch: {e}");
+            return 1;
+        }
+    };
 
-    let mut child = match Command::new(&harness[0]).args(&harness[1..]).spawn() {
+    // The harness must inherit whatever the guest set up, so it is spawned
+    // only once that is in place.
+    let mut command = Command::new(&harness[0]);
+    command.args(&harness[1..]);
+    hide_agent_sockets(&mut command);
+    let mut child = match command.spawn() {
         Ok(c) => c,
         Err(e) => {
             eprintln!("aibox launch: spawn harness: {e}");
@@ -68,9 +81,27 @@ pub fn run(args: &[String]) -> i32 {
     };
 
     for g in &grants {
-        sb.release(g.handle);
+        sb.release(g.handle, &g.dir);
     }
     code
+}
+
+// The credential agents are unreachable from inside either sandbox -- Seatbelt
+// denies the connect, the mount plan covers the socket -- but a variable that
+// still names one turns that into a hang or a puzzling failure deep inside
+// whatever tool followed it. Clearing them takes the ordinary "no agent"
+// path instead, and stops advertising where the socket was. DOCKER_HOST is
+// left alone when it names a TCP endpoint, which is reachable and not a
+// credential channel.
+fn hide_agent_sockets(command: &mut Command) {
+    for name in ["SSH_AUTH_SOCK", "SSH_AGENT_PID", "GPG_AGENT_INFO"] {
+        command.env_remove(name);
+    }
+    if let Ok(host) = std::env::var("DOCKER_HOST") {
+        if host.starts_with("unix:") || host.starts_with('/') {
+            command.env_remove("DOCKER_HOST");
+        }
+    }
 }
 
 fn handle_line(sb: &Sandbox, fd: i32, line: &str, grants: &mut Vec<Grant>) {
@@ -80,7 +111,7 @@ fn handle_line(sb: &Sandbox, fd: i32, line: &str, grants: &mut Vec<Grant>) {
     if let Some(rest) = line.strip_prefix("CONSUME ") {
         match rest.split_once(' ') {
             Some((token_b64, dir)) => match b64_decode(token_b64).and_then(|t| String::from_utf8(t).ok()) {
-                Some(token) => match sb.consume(&token) {
+                Some(token) => match sb.consume(&token, dir) {
                     Ok(h) => {
                         grants.push(Grant {
                             dir: dir.to_string(),
@@ -88,8 +119,8 @@ fn handle_line(sb: &Sandbox, fd: i32, line: &str, grants: &mut Vec<Grant>) {
                         });
                         let _ = write_all(fd, &format!("OK {h}\n"));
                     }
-                    Err(errno) => {
-                        let _ = write_all(fd, &format!("ERR consume-failed errno={errno}\n"));
+                    Err(e) => {
+                        let _ = write_all(fd, &format!("ERR consume-failed {e}\n"));
                     }
                 },
                 None => {
@@ -103,7 +134,7 @@ fn handle_line(sb: &Sandbox, fd: i32, line: &str, grants: &mut Vec<Grant>) {
     } else if let Some(dir) = line.strip_prefix("RELEASE ") {
         match grants.iter().position(|g| g.dir == dir) {
             Some(pos) => {
-                sb.release(grants[pos].handle);
+                sb.release(grants[pos].handle, &grants[pos].dir);
                 grants.swap_remove(pos);
                 let _ = write_all(fd, "OK\n");
             }

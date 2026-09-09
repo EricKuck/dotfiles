@@ -53,6 +53,7 @@ in
         gnupg1
         chafa
         python3
+        shellcheck
         nodejs_22
         custom.aibox
         unstable.herdr

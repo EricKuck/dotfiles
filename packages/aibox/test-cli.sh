@@ -19,7 +19,7 @@ export AIBOX_STATE_ROOT="$HOME/.aibox/test-cli-state"; rm -rf "$AIBOX_STATE_ROOT
 # Stand-in harness lives INSIDE the workspace so the sandbox can exec it, and on
 # PATH so the wrapper resolves it as the "real" claude.
 cat > "$ws/claude" <<EOF
-#!/bin/bash
+#!/usr/bin/env bash
 for i in \$(seq 1 24); do
   if echo x > "$probe" 2>/dev/null; then echo "\$i OK" >> "$log"; else echo "\$i DENIED" >> "$log"; fi
   sleep 0.3

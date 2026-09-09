@@ -6,11 +6,15 @@
 // Dynamic directories never appear here -- they arrive at runtime as consumed
 // read-write extensions, honored by the final rule.
 
+use crate::repo;
 use crate::sandbox::EXT_CLASS;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 // Read-only home files the toolchain needs (git config, honored by git and rg).
-// Applications mirrors the /Applications rule below for per-user installs. The
+// ~/.orca/agent-hooks holds the hook scripts every harness turn executes.
+// ~/.rustup is deliberately not here but read-write below: rustup installs a
+// toolchain into it whenever a repo's rust-toolchain.toml names one it does not
+// have. Applications mirrors the /Applications rule below for per-user installs. The
 // shell startup files are load-bearing for every `sh -c` the harness runs: zsh
 // sources .zshenv even non-interactively, so without it each subshell trips a
 // denial before it does any work.
@@ -18,7 +22,7 @@ const RO_HOME: &[&str] = &[
     ".gitconfig",
     ".config/git",
     ".config/delta",
-    ".rustup",
+    ".terminfo",
     "Applications",
     ".zshenv",
     ".zshrc",
@@ -28,7 +32,6 @@ const RO_HOME: &[&str] = &[
     ".profile",
     ".inputrc",
     ".orca/agent-hooks",
-    "Library/Application Support/orca",
 ];
 
 // Crown-jewel secrets, hard-denied regardless of any allow -- including the
@@ -49,6 +52,9 @@ const SENSITIVE_HOME: &[&str] = &[
     ".netrc",
     ".git-credentials",
     ".npmrc",
+    ".pypirc",
+    ".config/op",
+    ".config/containers",
     "Library/Keychains",
     ".gradle/gradle.properties",
     ".m2/settings.xml",
@@ -59,55 +65,111 @@ const SENSITIVE_HOME: &[&str] = &[
     ".rustup/credentials.toml",
     ".rustup/secrets",
     ".rustup/secrets.toml",
+    ".gem/credentials",
+    ".bundle/config",
+    "Library/Application Support/pypoetry/auth.toml",
 ];
 
-// Config/cred/cache locations mirrored from the devcontainer, relative to $HOME.
+// Config/cred/cache locations that must persist, relative to $HOME. Emitted
+// whether or not they exist: $HOME itself is not writable, so a toolchain that
+// creates its cache on first run needs the rule to be there already -- cargo
+// writes ~/.cargo on the first fetch, npm creates ~/.npm lazily, gradle creates
+// ~/.gradle. The credential files that sit inside these are carved back out in
+// SENSITIVE_HOME.
 const RW_HOME: &[&str] = &[
+    // Agents and aibox itself.
     ".claude",
     ".claude.json",
     ".pi",
     ".codex",
     ".config/opencode",
-    ".config/fish",
     ".local/share/opencode",
+    ".config/fish",
     ".local/share/fish",
-    ".gradle",
-    ".m2",
-    "go",
     ".clipboard-images",
     ".aibox/activity",
-    "Library/Android/sdk",
-    "Library/Application Support/kotlin",
-    "Library/org.swift.swiftpm",
-    "Library/Caches/org.swift.swiftpm",
-    "Library/Caches/go-build",
+    "Library/Application Support/rtk",
+    // Orca's hook channel, and only that. Its userData directory is NOT
+    // granted: the agent hooks need the endpoint file and the spool they fall
+    // back to when the app is not listening, while the rest of that directory
+    // holds the app's cookies, its ai-vault, its session authority key and the
+    // account credentials it manages -- none of which an agent has any use for.
+    "Library/Application Support/orca/agent-hooks",
+    // JVM: gradle, maven, the kotlin daemon, sdkman-managed JDKs. ~/.java is
+    // where java.util.prefs lands when the JDK has no macOS preferences store.
+    ".gradle",
+    ".m2",
+    ".java",
+    ".sdkman",
     ".konan",
     ".skiko",
-];
-
-// Toolchain caches and local app data need persistent write access. These are
-// emitted even when absent so tools can create them on first use: cargo writes
-// its registry cache to ~/.cargo on the first fetch, and npm creates ~/.npm
-// lazily (the credential files inside both are carved out in SENSITIVE_HOME).
-const RW_HOME_ALWAYS: &[&str] = &[
-    ".cargo",
+    "Library/Application Support/kotlin",
+    // Android. ~/.android holds the AVDs, the emulator state and the adb key
+    // that authorizes a device; without it adb re-prompts on every device.
+    ".android",
+    "Library/Android/sdk",
+    "Android/Sdk",
+    // Apple: Xcode derived data, simulator device sets, provisioning profiles,
+    // SwiftPM and CocoaPods. ~/Library/Developer covers DerivedData,
+    // CoreSimulator, CoreDevice and XCTestDevices in one rule; the signing keys
+    // themselves live in the keychain, which stays denied.
+    "Library/Developer",
+    "Library/MobileDevice",
+    "Library/Caches/com.apple.dt.Xcode",
+    ".swiftpm",
+    "Library/org.swift.swiftpm",
+    "Library/Caches/org.swift.swiftpm",
+    ".cocoapods",
+    "Library/Caches/CocoaPods",
+    // Python: interpreters, pip/uv/poetry caches, and the --user prefix.
+    ".pyenv",
+    ".conda",
+    ".ipython",
+    ".jupyter",
+    ".config/pip",
+    "Library/Caches/pip",
+    ".cache/uv",
+    ".local/share/uv",
+    ".local/bin",
+    ".local/lib",
+    "Library/Application Support/pypoetry",
+    "Library/Caches/pypoetry",
+    // Node: the package managers, their version managers and their caches.
     ".npm",
+    ".nvm",
+    ".fnm",
+    ".volta",
+    ".bun",
+    ".deno",
+    ".yarn",
+    ".config/yarn",
+    "Library/Caches/Yarn",
+    ".corepack",
+    ".node-gyp",
+    "Library/Caches/node-gyp",
+    "Library/pnpm",
+    ".local/share/pnpm",
+    ".pnpm-store",
+    "Library/Caches/ms-playwright",
+    // Rust.
+    ".cargo",
+    ".rustup",
+    "Library/Caches/Mozilla.sccache",
+    // Go.
+    "go",
+    "Library/Caches/go-build",
+    // Ruby, which iOS work reaches through cocoapods and fastlane.
+    ".gem",
+    ".bundle",
+    // Shared.
     ".cache/nix",
-    "Library/Application Support/rtk",
+    ".ccache",
 ];
 const RW_ABSOLUTE: &[&str] = &["/opt/homebrew"];
 
-// Directories an enclosing repository shares with the workspace. A workspace
-// nested BELOW the repo root (~/.config/nix/packages/aibox inside the
-// ~/.config/nix repo) resolves both of these above its own subtree: git reads
-// .git on every command, and the harness and its tooling read project settings
-// from .claude. Granting them by name leaves the rest of the repository denied
-// -- its files, its listing, and any sibling secret.
-const REPO_SHARED: &[&str] = &[".git", ".claude"];
-
-// Non-file operations the profile allows outright, exactly as emitted. No
-// network isolation by design. ipc-posix-shm is needed by CoreFoundation
-// preferences and the notification center.
+// Non-file operations the profile allows outright, exactly as emitted.
+// ipc-posix-shm is needed by CoreFoundation preferences and the notification
+// center. Network operations are NOT here; see the socket rules below.
 //
 // The denial filter matches against this same table, so a rule can never be
 // allowed here and still be recorded as an aibox denial.
@@ -118,10 +180,45 @@ const ALLOWED_OPS: &[&str] = &[
     "signal",
     "iokit*",
     "system*",
-    "network*",
     "ipc-posix-shm*",
     "pseudo-tty",
 ];
+
+// Connecting to a unix domain socket is a network-outbound operation carrying
+// the socket's path, NOT a file operation -- so a blanket (allow network*)
+// hands out every agent socket on the machine (ssh-agent, gpg-agent, the Docker
+// daemon, which is root) straight past the SENSITIVE_HOME denies below. IP
+// traffic stays unrestricted: the workspace is the unit of containment, not the
+// machine. Binding and accepting stay unrestricted too, because creating the
+// socket file is already governed by file-write*. Only connecting out is
+// allow-listed, and this is that list.
+const CONNECT_LITERAL: &[&str] = &[
+    "/private/var/run/mDNSResponder",
+    "/private/var/run/syslog",
+    // usbmuxd is how xcrun devicectl, ios-deploy and libimobiledevice reach a
+    // physical iOS device.
+    "/private/var/run/usbmuxd",
+];
+const CONNECT_SUBPATH: &[&str] = &[
+    // Local development services put their sockets here (postgres, mysql,
+    // redis), and the per-user temp directory is where node, python and
+    // CoreSimulator put theirs.
+    "/private/tmp",
+    "/private/var/folders",
+    "/nix/var/nix/daemon-socket",
+];
+
+// Home-relative sockets, allowed the same way. The simulator's launchd_sim and
+// its per-device services listen inside the device's own data directory.
+const CONNECT_HOME: &[&str] = &["Library/Developer/CoreSimulator"];
+
+// launchd vends the per-user agent sockets out of directories it owns, one of
+// which sits inside the /private/tmp allow above -- SSH_AUTH_SOCK is
+// /private/var/run/com.apple.launchd.<random>/Listeners, and the same shape
+// appears under /private/tmp. Named in both places so that widening a temp
+// directory later cannot quietly hand the agents back.
+const LAUNCHD_SOCKET_DIRS: &[&str] = &["/private/tmp", "/private/var/run"];
+const LAUNCHD_SOCKET_PREFIX: &str = "com.apple.launchd.";
 
 // CoreFoundation reads the global preference domain when it initializes, so
 // every Rust, Node and CLI tool in the sandbox trips this before running any
@@ -161,13 +258,30 @@ const RO_LITERAL: &[&str] = &["/", "/dev", "/dev/zero", "/dev/random", "/dev/ura
 // Temp directories, read-write (programs write temp files and read them back).
 const RW_TMP: &[&str] = &["/private/tmp", "/private/var/folders"];
 
+// Finder and the atomic-save APIs stage into a .TemporaryItems directory at the
+// root of whatever volume the file lives on, which is often not the workspace's
+// -- a project on an external disk stages at /Volumes/<name>/.TemporaryItems.
+// Matching the segment wherever it appears is the only rule that covers them
+// all. Two things keep that from being as broad as it reads: Seatbelt matches
+// the RESOLVED path, so a symlink named .TemporaryItems cannot reach through
+// this into a denied directory, and the hard-denies at the end still outrank
+// it, so no .TemporaryItems under ~/.ssh or the state root is reachable.
+const TEMPORARY_ITEMS_REGEX: &str = "/\\.TemporaryItems(/|$)";
+const TEMPORARY_ITEMS_SEGMENT: &str = ".TemporaryItems";
+
 // Terminal + std device files, read-write. stdio is a pty (/dev/ttysNNN);
 // programs fstat these fds at startup, so metadata access here is load-bearing.
 const RW_DEV_LITERAL: &[&str] = &["/dev/null", "/dev/tty", "/dev/ptmx", "/dev/dtracehelper"];
 const IOCTL_LITERAL: &[&str] = &["/dev/null", "/dev/dtracehelper"];
 const TTY_REGEX: &str = "^/dev/ttys[0-9]+$";
 
-pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[String]) -> String {
+pub fn generate(
+    workspace: &str,
+    home: &str,
+    protected: &[String],
+    extra_rw: &[String],
+    sockets: &[String],
+) -> String {
     // Emit Seatbelt denials to the macOS unified log. Every broker streams
     // those events into its session's structured denial log.
     let mut s = String::from("(version 1)\n(debug deny)\n(deny default)\n\n");
@@ -178,6 +292,29 @@ pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[S
     s.push_str(&format!(
         "(allow user-preference-read (preference-domain \"{ALLOWED_PREFERENCE_DOMAIN}\"))\n\n"
     ));
+
+    s.push_str("(allow network-bind)\n(allow network-inbound)\n");
+    s.push_str("(allow network-outbound (remote ip \"*:*\"))\n");
+    s.push_str("(allow network-outbound\n");
+    for path in CONNECT_LITERAL {
+        s.push_str(&format!("  (literal \"{path}\")\n"));
+    }
+    for path in CONNECT_SUBPATH {
+        s.push_str(&format!("  (subpath \"{path}\")\n"));
+    }
+    for rel in CONNECT_HOME {
+        s.push_str(&format!(
+            "  (subpath \"{}\")\n",
+            escape(&format!("{home}/{rel}"))
+        ));
+    }
+    // A project's own socket -- a dev server, a test fixture -- is as much part
+    // of the workspace as its files.
+    s.push_str(&format!("  (subpath \"{}\")\n", escape(workspace)));
+    for path in extra_rw {
+        s.push_str(&format!("  (subpath \"{}\")\n", escape(path)));
+    }
+    s.push_str(")\n\n");
 
     s.push_str("(allow file-read*\n");
     for path in RO_ABSOLUTE {
@@ -197,6 +334,9 @@ pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[S
     }
     s.push_str("  (subpath \"/dev/fd\")\n");
     s.push_str(&format!("  (regex #\"{TTY_REGEX}\"))\n"));
+    s.push_str(&format!(
+        "(allow file-read* file-write* (regex #\"{TEMPORARY_ITEMS_REGEX}\"))\n"
+    ));
     s.push_str("(allow file-ioctl\n");
     for path in IOCTL_LITERAL {
         s.push_str(&format!("  (literal \"{path}\")\n"));
@@ -215,27 +355,19 @@ pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[S
     for path in extra_rw {
         s.push_str(&format!("  (subpath \"{}\")\n", escape(path)));
     }
-    for rel in RW_HOME_ALWAYS {
-        s.push_str(&format!(
-            "  (subpath \"{}\")\n",
-            escape(&format!("{home}/{rel}"))
-        ));
-    }
     for path in RW_ABSOLUTE {
         s.push_str(&format!("  (subpath \"{}\")\n", escape(path)));
     }
     for rel in RW_HOME {
         let full = format!("{home}/{rel}");
-        let p = Path::new(&full);
-        if !p.exists() {
-            continue;
-        }
-        // A file (e.g. .claude.json) must be a literal; subpath only matches dirs.
-        if p.is_dir() {
-            s.push_str(&format!("  (subpath \"{}\")\n", escape(&full)));
+        // A file (.claude.json) must be a literal; subpath only matches dirs.
+        // A path that is not there yet is one the toolchain has still to create.
+        let kind = if Path::new(&full).is_file() {
+            "literal"
         } else {
-            s.push_str(&format!("  (literal \"{}\")\n", escape(&full)));
-        }
+            "subpath"
+        };
+        s.push_str(&format!("  ({kind} \"{}\")\n", escape(&full)));
     }
     s.push_str(")\n\n");
 
@@ -247,9 +379,9 @@ pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[S
     // instead grants exactly the repo this workspace belongs to, and lets
     // .claude ride the same rule -- a project's settings live beside its .git
     // and are read on the same every-command cadence.
-    if let Some(root) = repo_root(workspace) {
+    if let Some(root) = repo::root(workspace) {
         s.push_str("(allow file-read* file-write*\n");
-        for name in REPO_SHARED {
+        for name in repo::SHARED {
             s.push_str(&format!(
                 "  (subpath \"{}\")\n",
                 escape(&root.join(name).to_string_lossy())
@@ -265,7 +397,7 @@ pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[S
                 "  (literal \"{}\")\n",
                 escape(&git.to_string_lossy())
             ));
-            if let Some(common) = worktree_common_git(&git) {
+            if let Some(common) = repo::worktree_common_git(&git) {
                 s.push_str(&format!(
                     "  (subpath \"{}\")\n",
                     escape(&common.to_string_lossy())
@@ -302,9 +434,13 @@ pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[S
         s.push_str(")\n\n");
     }
 
-    // The one widening mechanism: consumed read-write extensions.
+    // The one widening mechanism: consumed read-write extensions. Sockets ride
+    // the same grant, so `aibox allow` on a directory makes the sockets inside
+    // it connectable -- which is what that command already means on Linux,
+    // where a bind carries a socket in along with everything else. The denies
+    // below still outrank it, so no grant can re-open ~/.ssh or the state root.
     s.push_str(&format!(
-        "(allow file-read* file-write* (extension \"{EXT_CLASS}\"))\n\n"
+        "(allow file-read* file-write* network-outbound (extension \"{EXT_CLASS}\"))\n\n"
     ));
 
     // Hard-deny the secrets. file-read-metadata is named EXPLICITLY: SBPL lets a
@@ -312,7 +448,9 @@ pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[S
     // to the global `(allow file-read-metadata)` and leak these paths' existence.
     // A deeper subpath also out-specifies the ~/.gradle and ~/.m2 rw allows, so
     // the secret files inside them are carved out while the caches stay writable.
-    s.push_str("(deny file-read* file-read-metadata file-write* file-ioctl\n");
+    // network-outbound is in this list for the same reason it is restricted at
+    // all: ~/.docker holds Docker Desktop's daemon socket, ~/.gnupg its agent's.
+    s.push_str("(deny file-read* file-read-metadata file-write* file-ioctl network-outbound\n");
     for rel in SENSITIVE_HOME {
         s.push_str(&format!(
             "  (subpath \"{}\")\n",
@@ -325,36 +463,53 @@ pub fn generate(workspace: &str, home: &str, protected: &[String], extra_rw: &[S
         s.push_str(&format!("  (subpath \"{}\")\n", escape(path)));
     }
     s.push_str(")\n");
+
+    // The session's own control socket sits in the per-user temp directory the
+    // rule above allows. It is authorized by a capability kept in the denied
+    // state root, so reaching it buys nothing -- but nothing inside needs it
+    // either: the launcher talks to the broker over an inherited socketpair.
+    s.push_str(&format!(
+        "(deny network-outbound (regex #\"{}\")\n",
+        launchd_socket_regex()
+    ));
+    for path in sockets {
+        s.push_str(&format!("  (literal \"{}\")\n", escape(&canonical(path))));
+    }
+    s.push_str(")\n");
     s
 }
 
-// The nearest ancestor of the workspace holding a .git, the workspace itself
-// included. None when the workspace is not inside a repository at all.
-fn repo_root(workspace: &str) -> Option<PathBuf> {
-    let mut dir = Some(Path::new(workspace));
-    while let Some(d) = dir {
-        if d.join(".git").exists() {
-            return Some(d.to_path_buf());
-        }
-        dir = d.parent();
+// Seatbelt matches literals against the resolved path, and macOS keeps /tmp,
+// /var and /etc as symlinks into /private. The socket itself does not exist yet
+// when the profile is written, so its directory is what gets resolved.
+fn canonical(path: &str) -> String {
+    let p = Path::new(path);
+    match (p.parent(), p.file_name()) {
+        (Some(dir), Some(name)) => match std::fs::canonicalize(dir) {
+            Ok(dir) => dir.join(name).to_string_lossy().into_owned(),
+            Err(_) => path.to_string(),
+        },
+        _ => path.to_string(),
     }
-    None
 }
 
-// The main repository's .git, read out of a linked worktree's .git file.
-fn worktree_common_git(git: &Path) -> Option<PathBuf> {
-    let text = std::fs::read_to_string(git).ok()?;
-    let target = text.lines().next()?.trim().strip_prefix("gitdir:")?.trim();
-    let mut dir = Path::new(target);
-    if !dir.is_absolute() {
-        return None;
-    }
-    // The recorded gitdir points at <main>/.git/worktrees/<name>; walk back up
-    // to the .git that contains it.
-    while dir.file_name()? != Path::new(".git").as_os_str() {
-        dir = dir.parent()?;
-    }
-    Some(dir.to_path_buf())
+// Matches any path inside a launchd-vended per-user socket directory.
+fn launchd_socket_regex() -> String {
+    let dirs: Vec<String> = LAUNCHD_SOCKET_DIRS.iter().map(|d| regex_escape(d)).collect();
+    format!(
+        "^({})/{}",
+        dirs.join("|"),
+        regex_escape(LAUNCHD_SOCKET_PREFIX)
+    )
+}
+
+// Mirrors launchd_socket_regex for the denial filter.
+fn is_launchd_socket(path: &str) -> bool {
+    LAUNCHD_SOCKET_DIRS.iter().any(|dir| {
+        path.strip_prefix(dir)
+            .and_then(|rest| rest.strip_prefix('/'))
+            .is_some_and(|rest| rest.starts_with(LAUNCHD_SOCKET_PREFIX))
+    })
 }
 
 // True when the profile allows this operation on this path outright, which
@@ -380,9 +535,23 @@ pub fn would_allow(operation: &str, path: &str) -> bool {
         // The unified log lowercases the domain it reports.
         return path.eq_ignore_ascii_case(ALLOWED_PREFERENCE_DOMAIN);
     }
+    if operation == "network-bind" || operation == "network-inbound" {
+        return true;
+    }
+    if operation == "network-outbound" {
+        // An endpoint that is not a path is an IP address and port.
+        if !path.starts_with('/') {
+            return true;
+        }
+        return !is_launchd_socket(path)
+            && (CONNECT_LITERAL.contains(&path) || under_any(path, CONNECT_SUBPATH));
+    }
     let read = operation.starts_with("file-read");
     let write = operation.starts_with("file-write");
     if read && (RO_LITERAL.contains(&path) || under_any(path, RO_ABSOLUTE)) {
+        return true;
+    }
+    if (read || write) && is_temporary_items(path) {
         return true;
     }
     if (read || write)
@@ -403,6 +572,11 @@ fn under(path: &str, prefix: &str) -> bool {
 
 fn under_any(path: &str, prefixes: &[&str]) -> bool {
     prefixes.iter().any(|prefix| under(path, prefix))
+}
+
+// Mirrors TEMPORARY_ITEMS_REGEX: the segment, whole, anywhere in the path.
+fn is_temporary_items(path: &str) -> bool {
+    path.split('/').any(|seg| seg == TEMPORARY_ITEMS_SEGMENT)
 }
 
 fn is_tty(path: &str) -> bool {
@@ -433,13 +607,14 @@ pub fn run(args: &[String]) -> i32 {
     let ws = match args.first() {
         Some(w) if Path::new(w).is_absolute() => w,
         _ => {
-            eprintln!("usage: aibox profile <workspace-abs-path> [--protect <abs-dir>] [--rw <abs-dir>]...");
+            eprintln!("usage: aibox profile <workspace-abs-path> [--protect <abs-dir>] [--rw <abs-dir>] [--sock <abs-path>]...");
             return 2;
         }
     };
 
     let mut protected = Vec::new();
     let mut extra_rw = Vec::new();
+    let mut sockets = Vec::new();
     let mut i = 1;
     while i < args.len() {
         let option = &args[i];
@@ -456,6 +631,7 @@ pub fn run(args: &[String]) -> i32 {
         match option.as_str() {
             "--protect" => protected.push(path.clone()),
             "--rw" => extra_rw.push(path.clone()),
+            "--sock" => sockets.push(path.clone()),
             _ => {
                 eprintln!("aibox profile: unknown option {option}");
                 return 2;
@@ -464,13 +640,14 @@ pub fn run(args: &[String]) -> i32 {
     }
 
     let home = std::env::var("HOME").unwrap_or_default();
-    print!("{}", generate(ws, &home, &protected, &extra_rw));
+    print!("{}", generate(ws, &home, &protected, &extra_rw, &sockets));
     0
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{generate, repo_root, worktree_common_git, would_allow};
+    use super::{generate, would_allow};
+    use crate::repo::{root as repo_root, worktree_common_git};
     use std::path::Path;
 
     #[test]
@@ -491,6 +668,46 @@ mod tests {
         assert!(!would_allow(
             "user-preference-write",
             "com.apple.messages.commsafety"
+        ));
+    }
+
+    // The hole this closed: connect(2) on a unix socket is network-outbound, so
+    // (allow network*) reached every agent socket on the machine regardless of
+    // what the file rules said about the keys behind them.
+    #[test]
+    fn restricts_unix_sockets_while_leaving_ip_traffic_alone() {
+        assert!(would_allow("network-outbound", "17.253.144.10:443"));
+        assert!(would_allow("network-bind", "0.0.0.0:8080"));
+        assert!(would_allow("network-inbound", "0.0.0.0:8080"));
+        assert!(would_allow("network-outbound", "/private/var/run/mDNSResponder"));
+        assert!(would_allow("network-outbound", "/private/tmp/.s.PGSQL.5432"));
+        assert!(would_allow(
+            "network-outbound",
+            "/private/var/folders/h8/x/T/pymp-abc/listener"
+        ));
+        assert!(would_allow("network-outbound", "/private/var/run/usbmuxd"));
+
+        assert!(!would_allow(
+            "network-outbound",
+            "/private/var/run/com.apple.launchd.AnYCxjG4Es/Listeners"
+        ));
+        assert!(!would_allow(
+            "network-outbound",
+            "/private/tmp/com.apple.launchd.0KnX7LEp2i/Listeners"
+        ));
+        assert!(!would_allow("network-outbound", "/private/var/run/docker.sock"));
+    }
+
+    // SBPL is last-match-wins, so the carve-outs are worthless above the allow.
+    #[test]
+    fn denies_sockets_after_it_allows_them() {
+        let sb = generate("/tmp/ws", "/Users/nobody", &[], &[], &[]);
+        assert!(!sb.contains("(allow network*)"));
+        let allow = sb.find("(allow network-outbound\n").expect("socket allow");
+        let deny = sb.find("(deny network-outbound (regex").expect("launchd deny");
+        assert!(allow < deny);
+        assert!(sb.contains(
+            "(deny file-read* file-read-metadata file-write* file-ioctl network-outbound\n"
         ));
     }
 
@@ -545,7 +762,7 @@ mod tests {
 
         assert_eq!(repo_root(&nested.to_string_lossy()).unwrap(), tmp);
 
-        let sb = generate(&nested.to_string_lossy(), "/Users/nobody", &[], &[]);
+        let sb = generate(&nested.to_string_lossy(), "/Users/nobody", &[], &[], &[]);
         assert!(sb.contains(&format!("(subpath \"{}/.git\")", tmp.display())));
         assert!(sb.contains(&format!("(subpath \"{}/.claude\")", tmp.display())));
         // The universal rule this replaced granted every .git on the machine.
@@ -569,7 +786,7 @@ mod tests {
         let common = worktree_common_git(&ws.join(".git")).unwrap();
         assert_eq!(common, tmp.join("main/.git"));
 
-        let sb = generate(&ws.to_string_lossy(), "/Users/nobody", &[], &[]);
+        let sb = generate(&ws.to_string_lossy(), "/Users/nobody", &[], &[], &[]);
         assert!(sb.contains(&format!("(subpath \"{}/main/.git\")", tmp.display())));
         assert!(sb.contains(&format!("(literal \"{}/.git\")", ws.display())));
 
@@ -580,8 +797,9 @@ mod tests {
     fn workspace_outside_any_repository_grants_nothing_extra() {
         let tmp = std::env::temp_dir().join(format!("aibox-profile-bare-{}", std::process::id()));
         std::fs::create_dir_all(&tmp).unwrap();
-        let sb = generate(&tmp.to_string_lossy(), "/Users/nobody", &[], &[]);
-        assert!(!sb.contains(".claude\")"));
+        let sb = generate(&tmp.to_string_lossy(), "/Users/nobody", &[], &[], &[]);
+        assert!(!sb.contains(&format!("{}/.claude\")", tmp.display())));
+        assert!(!sb.contains(&format!("{}/.git\")", tmp.display())));
         std::fs::remove_dir_all(&tmp).unwrap();
     }
 
@@ -590,7 +808,7 @@ mod tests {
         let home = std::env::temp_dir().join(format!("aibox-profile-home-{}", std::process::id()));
         std::fs::create_dir_all(home.join(".orca/agent-hooks")).unwrap();
         std::fs::write(home.join(".zshenv"), "").unwrap();
-        let sb = generate("/tmp/ws", &home.to_string_lossy(), &[], &[]);
+        let sb = generate("/tmp/ws", &home.to_string_lossy(), &[], &[], &[]);
         assert!(sb.contains(&format!("(literal \"{}/.zshenv\")", home.display())));
         assert!(sb.contains(&format!(
             "(subpath \"{}/.orca/agent-hooks\")",
@@ -599,9 +817,52 @@ mod tests {
         std::fs::remove_dir_all(&home).unwrap();
     }
 
+    // Everything beside the hook channel in Orca's userData directory -- its
+    // cookies and their encryption key, the vault, the session authority key,
+    // the agent account credentials -- was readable under an earlier grant of
+    // the whole directory.
+    #[test]
+    fn grants_orcas_hook_channel_and_nothing_beside_it() {
+        let home = std::env::temp_dir().join(format!("aibox-profile-orca-{}", std::process::id()));
+        let orca = home.join("Library/Application Support/orca");
+        std::fs::create_dir_all(orca.join("agent-hooks")).unwrap();
+        std::fs::create_dir_all(orca.join("ai-vault")).unwrap();
+        std::fs::write(orca.join("Cookies"), "").unwrap();
+
+        let sb = generate("/tmp/ws", &home.to_string_lossy(), &[], &[], &[]);
+        assert!(sb.contains(&format!("(subpath \"{}/agent-hooks\")", orca.display())));
+        assert!(!sb.contains(&format!("(subpath \"{}\")", orca.display())));
+        assert!(!sb.contains("ai-vault"));
+        assert!(!sb.contains("Cookies"));
+        std::fs::remove_dir_all(&home).unwrap();
+    }
+
+    #[test]
+    fn allows_finder_staging_wherever_the_volume_puts_it() {
+        assert!(would_allow(
+            "file-write-create",
+            "/Volumes/Backup/.TemporaryItems/folders.501/x"
+        ));
+        assert!(would_allow(
+            "file-read-data",
+            "/Users/eric/Code/.TemporaryItems/a"
+        ));
+        // A whole path segment, not a prefix of one.
+        assert!(!would_allow("file-read-data", "/Users/eric/.TemporaryItemsX/a"));
+        assert!(!would_allow("file-read-data", "/Users/eric/Code/a"));
+
+        // The crown-jewel deny is emitted last and so still outranks it.
+        let sb = generate("/tmp/ws", "/Users/nobody", &[], &[], &[]);
+        let allow = sb.find(".TemporaryItems(/|$)").expect("staging allow");
+        let deny = sb
+            .find("(deny file-read* file-read-metadata")
+            .expect("hard deny");
+        assert!(allow < deny);
+    }
+
     #[test]
     fn emits_a_scoped_preference_rule() {
-        let sb = generate("/tmp/ws", "/Users/nobody", &[], &[]);
+        let sb = generate("/tmp/ws", "/Users/nobody", &[], &[], &[]);
         assert!(sb.contains(
             "(allow user-preference-read (preference-domain \"kCFPreferencesAnyApplication\"))"
         ));

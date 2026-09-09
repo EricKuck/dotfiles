@@ -18,7 +18,7 @@ rm -f "$log"
 
 fake_caffeinate="$base/caffeinate"
 cat > "$fake_caffeinate" <<EOF
-#!/bin/bash
+#!/usr/bin/env bash
 printf 'start %s\\n' "\$*" >> "$log"
 trap 'exit 0' TERM INT
 while :; do sleep 1; done
@@ -27,7 +27,7 @@ chmod +x "$fake_caffeinate"
 export AIBOX_CAFFEINATE="$fake_caffeinate"
 
 cat > "$ws/claude" <<'EOF'
-#!/bin/bash
+#!/usr/bin/env bash
 [[ -n "${AIBOX_ACTIVITY_FILE:-}" ]] || exit 11
 touch "$AIBOX_ACTIVITY_FILE" || exit 12
 # Leave the flag up long enough to cover a heavily loaded host's watcher tick.
@@ -41,5 +41,11 @@ export PATH="$ws:$PATH"
 cleanup() { rm -rf "$base"; }
 trap cleanup EXIT
 ( cd "$ws" && HOME="$test_home" "$here/bin/claude" )
-grep -q '^start -i -w ' "$log"
+# caffeinate watches the pid; systemd-inhibit holds the assertion for as long
+# as the command it wraps runs.
+if [[ "$(uname -s)" == Darwin ]]; then
+    grep -q '^start -i -w ' "$log"
+else
+    grep -q '^start --what=idle:sleep ' "$log"
+fi
 echo 'keep-awake bridge: OK'

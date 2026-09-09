@@ -29,6 +29,9 @@
 # part that neither layer can fix if it fails.
 set -euo pipefail
 
+# Seatbelt only: this reads the macOS unified log / drives sandbox-exec.
+[[ "$(uname -s)" == Darwin ]] || { echo "$(basename "$0"): macOS only" >&2; exit 0; }
+
 here="$(cd "$(dirname "$0")" && pwd)"
 cargo build --manifest-path "$here/Cargo.toml" >/dev/null 2>&1
 host="$here/target/debug/aibox-host"

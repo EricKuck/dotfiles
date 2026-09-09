@@ -29,7 +29,7 @@ cli rm "$workspace" | grep -qx "removed workspace state: $workspace"
 [[ -z "$(cli list)" ]]
 
 cat > "$ws/claude" <<'EOF'
-#!/bin/bash
+#!/usr/bin/env bash
 sleep 30
 EOF
 chmod +x "$ws/claude"

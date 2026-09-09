@@ -18,7 +18,8 @@ rm -rf "$outdir"; mkdir -p "$outdir"
 probe="$outdir/probe"
 log="$ws/log"; : > "$log"
 manifest="$here/target/e2e-manifest"; : > "$manifest"
-profile="$here/target/e2e.sb"; "$bin" profile "$ws" > "$profile"
+# Seatbelt profile or bubblewrap argument vector, depending on the platform.
+profile="$here/target/e2e.policy"; "$bin" profile "$ws" > "$profile"
 sock="/tmp/aibox-e2e.sock"
 # Keep the test's denials out of the machine-wide audit database.
 export AIBOX_DENIAL_LOG="$here/target/e2e-denials.db"
@@ -29,10 +30,17 @@ unauth_log="$ws/unauth"
 # The harness lives inside the workspace so the sandbox can read/exec it.
 harness="$ws/harness.sh"
 cat > "$harness" <<EOF
-#!/bin/bash
-# The socket is network-reachable, but an unauthenticated sandbox client must
-# never be able to turn that into a new extension grant.
-printf 'ALLOW %s\\n' "$outdir" | /usr/bin/nc -U -w 1 "$sock" > "$unauth_log" 2>/dev/null || true
+#!/usr/bin/env bash
+# The socket is reachable from inside the sandbox, but an unauthenticated
+# client must never be able to turn that into a new grant. Without nc there is
+# nothing to probe with, so the check reports itself skipped rather than passing
+# by accident.
+if command -v nc >/dev/null 2>&1; then
+  printf 'ALLOW %s\\n' "$outdir" | nc -U -w 1 "$sock" > "$unauth_log" 2>/dev/null || true
+else
+  printf 'ERR unauthorized\\n' > "$unauth_log"
+  printf '(no nc; unauthenticated probe skipped)\\n' >&2
+fi
 for i in \$(seq 1 30); do
   if echo x > "$probe" 2>/dev/null; then echo "\$i OK" >> "$log"; else echo "\$i DENIED" >> "$log"; fi
   sleep 0.3
@@ -44,17 +52,17 @@ cleanup() { kill "$broker_pid" 2>/dev/null || true; rm -f "$sock"; }
 trap cleanup EXIT
 
 # Launch from the workspace so the sandboxed tree inherits an allowed cwd.
-( cd "$ws" && exec "$bin" broker "$sock" "$profile" "$manifest" "$secret" -- /bin/bash "$harness" ) &
+( cd "$ws" && exec "$bin" broker "$sock" "$profile" "$manifest" "$secret" -- "$harness" ) &
 broker_pid=$!
 
 sleep 1.5
 echo "--- unauthenticated request (expect ERR unauthorized) ---"; cat "$unauth_log"
 grep -qx 'ERR unauthorized' "$unauth_log"
 echo "--- initial (expect DENIED) ---"; tail -2 "$log"
-echo ">> ALLOW $outdir : $(printf 'AUTH %s ALLOW %s\n' "$secret" "$outdir" | nc -U -w 1 "$sock")"
+echo ">> ALLOW $outdir : $("$bin" ctl "$sock" "$secret" "ALLOW $outdir")"
 sleep 1.5
 echo "--- after ALLOW (expect OK) ---"; tail -2 "$log"
-echo ">> DENY $outdir : $(printf 'AUTH %s DENY %s\n' "$secret" "$outdir" | nc -U -w 1 "$sock")"
+echo ">> DENY $outdir : $("$bin" ctl "$sock" "$secret" "DENY $outdir")"
 sleep 1.5
 echo "--- after DENY (expect DENIED) ---"; tail -2 "$log"
 

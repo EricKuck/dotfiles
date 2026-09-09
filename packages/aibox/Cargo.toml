@@ -2,7 +2,7 @@
 name = "aibox"
 version = "0.1.0"
 edition = "2021"
-description = "Seatbelt sandbox host for AI coding harnesses with live directory grants"
+description = "Filesystem sandbox host for AI coding harnesses with live directory grants"
 
 [[bin]]
 name = "aibox-host"

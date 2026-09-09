@@ -6,6 +6,9 @@
 #   tools/denials.sh <label> <command> [args...]
 set -euo pipefail
 
+# Seatbelt only: this reads the macOS unified log / drives sandbox-exec.
+[[ "$(uname -s)" == Darwin ]] || { echo "$(basename "$0"): macOS only" >&2; exit 0; }
+
 here="$(cd "$(dirname "$0")/.." && pwd)"
 host="$here/target/release/aibox-host"
 [ -x "$host" ] || host="$here/target/debug/aibox-host"

@@ -45,7 +45,7 @@ git -C "$ext" add file
 git -C "$ext" commit -qm initial
 
 cat > "$ws/claude" <<EOF
-#!/bin/bash
+#!/usr/bin/env bash
 mark() { printf 'ok\n' > "$ws/result-\$1"; }
 
 # A workspace nested in a bigger repo can run git (its .git is in a parent).

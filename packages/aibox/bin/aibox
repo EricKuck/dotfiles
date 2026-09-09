@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# aibox - run an AI harness inside a macOS Seatbelt sandbox for the current
-# project. Same filesystem allow-listing as the prior containerized setup (workspace
-# read-write; agent config/cred and build caches read-write; system and
-# toolchain read-only; everything else denied), plus live add/remove of the
-# directories the agent can see. No network isolation.
+# aibox - run an AI harness inside a filesystem sandbox for the current project:
+# Seatbelt on macOS, bubblewrap on Linux. Same allow-listing as the prior
+# containerized setup (workspace read-write; agent config/cred and build caches
+# read-write; system and toolchain read-only; everything else denied), plus live
+# add/remove of the directories the agent can see. No network isolation.
 #
 # Normally invoked through a harness symlink, which drops you into that harness
 # in yolo mode, sandboxed for the current directory:
@@ -33,6 +33,7 @@ if [[ -n "$AIBOX_RUNTIME_PATH" ]]; then
 fi
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
+os="$(uname -s)"
 
 die() { printf 'aibox: %s\n' "$*" >&2; exit 1; }
 
@@ -52,6 +53,9 @@ resolve_host() {
 HOST="$(resolve_host)" || die "cannot find the aibox-host binary (build it, or set AIBOX_HOST)"
 
 STATE_ROOT="${AIBOX_STATE_ROOT:-$HOME/.aibox/state}"
+# The broker refuses to grant a directory that would carry this in, so it has to
+# know where it is.
+export AIBOX_STATE_ROOT="$STATE_ROOT"
 # One audit database for every workspace and session. It lives at the state
 # root, which the profile hard-denies, so a sandboxed harness can neither read
 # nor rewrite it, and `aibox rm` of a workspace does not take its history with
@@ -89,6 +93,7 @@ resolve_harness() {
 # trick the devcontainer's post-create.sh uses). Only seeds when missing; claude
 # refreshes the file itself thereafter, so we never clobber a fresher token.
 bootstrap_claude_credentials() {
+    [[ "$os" == Darwin ]] || return 0
     local cred_file="$HOME/.claude/.credentials.json"
     [[ -f "$cred_file" ]] && return 0
     command -v security >/dev/null 2>&1 || return 0
@@ -98,6 +103,22 @@ bootstrap_claude_credentials() {
     mkdir -p "$HOME/.claude"
     printf '%s' "$cred" > "$cred_file"
     chmod 600 "$cred_file"
+}
+
+# On Linux the sandbox gets its own $HOME: a real directory, so that the atomic
+# writes tools do there (claude renames a sibling over ~/.claude.json, and
+# rename onto a bind-mounted file fails) land somewhere that persists. The real
+# config and cache directories are mounted onto it, so only what would have been
+# written loose in $HOME diverges -- seeded once from the host.
+bootstrap_sandbox_home() {
+    [[ "$os" == Linux ]] || return 0
+    local sandbox_home="$HOME/.aibox/home"
+    mkdir -p "$sandbox_home"
+    chmod 700 "$sandbox_home"
+    [[ -e "$sandbox_home/.claude.json" ]] && return 0
+    [[ -f "$HOME/.claude.json" ]] || return 0
+    cp "$HOME/.claude.json" "$sandbox_home/.claude.json"
+    chmod 600 "$sandbox_home/.claude.json"
 }
 
 # ---------------------------------------------------------------- dispatch
@@ -138,7 +159,8 @@ control_secret_for() {
 session_sock_for() {
     local dir="$1" candidate recorded=""
     [[ -r "$dir/sock" ]] && recorded="$(<"$dir/sock")"
-    for candidate in "$recorded" "${TMPDIR:-/tmp}/aibox-${dir##*/}.sock" "$dir/ctl"; do
+    for candidate in "$recorded" "${XDG_RUNTIME_DIR:-/nonexistent}/aibox-${dir##*/}.sock" \
+                     "${TMPDIR:-/tmp}/aibox-${dir##*/}.sock" "$dir/ctl"; do
         [[ -n "$candidate" && -S "$candidate" ]] && { printf '%s' "$candidate"; return 0; }
     done
     printf '%s' "${recorded:-$dir/ctl}"
@@ -169,7 +191,7 @@ if [[ "$subcommand" == "list" ]]; then
             broker_alive_at "${s%/}" && running=$((running + 1))
         done
         printf '%s\t%s/%s running\n' "$workspace" "$running" "$total"
-    done < <(/usr/bin/find "$STATE_ROOT" -type f -name allowed -print0)
+    done < <(find "$STATE_ROOT" -type f -name allowed -print0)
     exit 0
 fi
 
@@ -213,20 +235,38 @@ prepare_workspace() {
     chmod 600 "$manifest"
 }
 
+# 32 hex characters from the system's random source. uuidgen is not everywhere
+# (it is a util-linux extra on Linux), and /dev/urandom is.
+random_hex() {
+    if command -v uuidgen >/dev/null 2>&1; then
+        uuidgen | tr -d '-' | tr '[:upper:]' '[:lower:]'
+    else
+        od -An -tx1 -N16 /dev/urandom | tr -d ' \n'
+    fi
+}
+
 new_session_id() {
-    command -v uuidgen >/dev/null 2>&1 || die "uuidgen is required to create a session id"
-    uuidgen | tr -d '-' | cut -c1-12
+    random_hex | cut -c1-12
 }
 
 prepare_session() {
     session_id="$(new_session_id)"
-    [[ -n "$session_id" ]] || die "uuidgen returned an empty session id"
+    [[ -n "$session_id" ]] || die "could not generate a session id"
     session_dir="$sessions_dir/$session_id"
     # Unix-domain sockets have a ~104-byte path limit. Keep this ephemeral
     # endpoint short while state itself retains the full workspace path.
-    sock="${TMPDIR:-/tmp}/aibox-$session_id.sock"
+    # XDG_RUNTIME_DIR is preferred where it exists: the sandbox replaces it with
+    # a tmpfs of its own, so the endpoint is not merely unauthorized from
+    # inside, it is not there.
+    if [[ -n "${XDG_RUNTIME_DIR:-}" && -d "${XDG_RUNTIME_DIR:-}" ]]; then
+        sock="$XDG_RUNTIME_DIR/aibox-$session_id.sock"
+    else
+        sock="${TMPDIR:-/tmp}/aibox-$session_id.sock"
+    fi
     rm -f "$sock"
-    profile="$session_dir/profile.sb"
+    # Seatbelt takes a profile; bubblewrap takes an argument vector. Either way
+    # it is the static policy the session starts with.
+    if [[ "$os" == Darwin ]]; then profile="$session_dir/profile.sb"; else profile="$session_dir/profile.args"; fi
     control_secret_file="$session_dir/control.secret"
     mkdir -p "$session_dir"
     chmod 700 "$session_dir"
@@ -237,9 +277,8 @@ prepare_session() {
 
 new_control_secret() {
     local secret
-    command -v uuidgen >/dev/null 2>&1 || die "uuidgen is required to create a control secret"
-    secret="$(uuidgen | tr -d '-')"
-    [[ -n "$secret" ]] || die "uuidgen returned an empty control secret"
+    secret="$(random_hex)"
+    [[ -n "$secret" ]] || die "could not generate a control secret"
     (umask 077; printf '%s\n' "$secret" > "$control_secret_file")
     chmod 600 "$control_secret_file"
 }
@@ -291,8 +330,27 @@ legacy_broker_alive() {
 # assertion as soon as the turn ends or the broker exits.
 activity_dir="$HOME/.aibox/activity"
 activity_file=""
-caffeinate_bin="${AIBOX_CAFFEINATE:-/usr/bin/caffeinate}"
+if [[ "$os" == Darwin ]]; then
+    caffeinate_bin="${AIBOX_CAFFEINATE:-/usr/bin/caffeinate}"
+else
+    caffeinate_bin="${AIBOX_CAFFEINATE:-$(command -v systemd-inhibit || true)}"
+fi
 keepawake_caffeinated=""
+
+# Both tools hold the assertion for as long as they run, and both are killed on
+# release. Watching the pid as well means a hard kill of this process cannot
+# leave an assertion behind: caffeinate takes it as a flag, systemd-inhibit
+# takes a command, and `tail --pid` is a command that ends when that pid does.
+keepawake_assert() {
+    local watched_pid="$1"
+    if [[ "$os" == Darwin ]]; then
+        "$caffeinate_bin" -i -w "$watched_pid" &
+    else
+        "$caffeinate_bin" --what=idle:sleep --who=aibox --why="agent turn" --mode=block \
+            tail --pid="$watched_pid" -f /dev/null &
+    fi
+    keepawake_caffeinated=$!
+}
 
 keepawake_release() {
     [[ -n "${keepawake_caffeinated:-}" ]] || return 0
@@ -309,8 +367,7 @@ keepawake_watch() {
         if [[ -e "$activity_file" ]]; then
             if [[ -z "${keepawake_caffeinated:-}" ]] \
                 || ! kill -0 "$keepawake_caffeinated" 2>/dev/null; then
-                "$caffeinate_bin" -i -w "$watched_pid" &
-                keepawake_caffeinated=$!
+                keepawake_assert "$watched_pid"
             fi
         else
             keepawake_release
@@ -320,7 +377,7 @@ keepawake_watch() {
 }
 
 keepawake_setup() {
-    [[ -x "$caffeinate_bin" ]] || return 0
+    [[ -n "$caffeinate_bin" && -x "$caffeinate_bin" ]] || return 0
     activity_file="$activity_dir/$session_id.busy"
     mkdir -p "$activity_dir"
     chmod 700 "$activity_dir"
@@ -370,7 +427,13 @@ case "$subcommand" in
         (( total > 0 )) || echo '  (none)'
         printf 'visible (dynamic):\n'
         if [[ -s "$manifest" ]]; then sed 's/^/  /' "$manifest"; else echo "  (none)"; fi
-        printf 'denials (all workspaces): %s\n' "$DENIAL_LOG"
+        if [[ "$os" == Darwin ]]; then
+            printf 'denials (all workspaces): %s\n' "$DENIAL_LOG"
+        else
+            # bubblewrap denies by omission: an unmounted path is simply absent,
+            # so there is no violation stream to record.
+            printf 'denials: not recorded on this platform\n'
+        fi
         exit 0
         ;;
 esac
@@ -397,12 +460,16 @@ prepare_workspace
 prepare_session
 new_control_secret
 bootstrap_claude_credentials
+bootstrap_sandbox_home
 
 # Create the activity directory before generating the profile so it is part of
 # the static allow-list for a harness session.
 [[ -z "$harness" ]] || keepawake_setup
 
-profile_args=("$root" --protect "$STATE_ROOT")
+# --sock names the session's own control endpoint so the policy can put it out
+# of reach: the launcher reaches the broker over an inherited socketpair, so
+# nothing inside ever needs to connect to it.
+profile_args=("$root" --protect "$STATE_ROOT" --sock "$sock")
 # Sessions record aggregated Seatbelt denials to one shared sqlite database;
 # brokers elect a single writer for it. Denials are machine-wide events, so the
 # database is not per-workspace and its entries identify the denied process,
