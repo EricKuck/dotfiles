@@ -235,6 +235,7 @@ in
   environment.systemPackages = with pkgs; [
     zfs_2_4
     lynx
+    unstable.claude-code
     unstable.icloudpd
     unstable.immich-go
   ];
@@ -306,7 +307,7 @@ in
         plugins = [
           "github.com/caddy-dns/cloudflare@v0.2.1"
         ];
-        hash = "sha256-pNIRthmPf+J6BPfJ51afBCWt66evnRs1+f9wv09EvK0=";
+        hash = "sha256-jNV5COlQTKSJJk8gUZ3KEs8SGC8Z7Aiy5fk7/DvkXIo=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {

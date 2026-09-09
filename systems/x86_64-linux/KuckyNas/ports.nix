@@ -41,6 +41,7 @@ in
     jellyfin = 8096;
     music-assistant_player = 8097;
     multi-scrobbler = 8098;
+    oura = 8099;
     ytdlp_web_player = 8101;
     homeassistant = 8123;
     matrix-synapse = 8124;
