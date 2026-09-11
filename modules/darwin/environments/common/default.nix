@@ -305,10 +305,6 @@ in
         "vicinae"
       ];
 
-      brews = [
-        "rtk"
-      ];
-
       masApps = {
         Gifski = 1351639930;
       };
