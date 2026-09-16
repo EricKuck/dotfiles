@@ -183,6 +183,7 @@ in
       paperless_env.owner = config.meta.flake.owner;
       paperless_postgres_env.owner = config.meta.flake.owner;
       vaultwarden_env.owner = config.meta.flake.owner;
+      cmjbooks_key.owner = config.meta.flake.owner;
       grimmory_env.owner = config.meta.flake.owner;
       grimmory-db_env.owner = config.meta.flake.owner;
       notesnook_env.owner = config.meta.flake.owner;

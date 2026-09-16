@@ -65,6 +65,7 @@ in
     notesnook-sse = 8493;
     notesnook-monograph = 8494;
     lidarr = 8686;
+    cmjbooks = 8765;
     sonarr = 8989;
     mosquitto_mqtt-websockets = 9001;
     qbittorrent_web = 9090;

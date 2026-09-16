@@ -52,6 +52,11 @@ in
       default = { };
     };
 
+    builds = lib.mkOption {
+      type = lib.types.attrsOf lib.types.anything;
+      default = { };
+    };
+
     pods = lib.mkOption {
       type = lib.types.attrsOf lib.types.anything;
       default = { };
@@ -64,6 +69,7 @@ in
       containers = lib.mapAttrs processContainer config.quadlets.containers;
       networks = config.quadlets.networks;
       pods = config.quadlets.pods;
+      builds = config.quadlets.builds;
     };
   };
 }
