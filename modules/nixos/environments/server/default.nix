@@ -195,6 +195,9 @@ in
       shpool
       lm_sensors
       sops
+      gnumake
+      gcc
+      python3
     ];
 
     programs = {

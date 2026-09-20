@@ -2,6 +2,7 @@
 let
   GRIMMORY_CONTAINER_PATH = "${osConfig.meta.containerData}/grimmory";
   SHELFMARK_CONTAINER_PATH = "${osConfig.meta.containerData}/shelfmark";
+  SHIMMORY_CONTAINER_PATH = "${osConfig.meta.containerData}/shimmory";
   inherit (config.virtualisation.quadlet) containers networks;
 in
 {
@@ -86,6 +87,46 @@ in
         };
         serviceConfig = {
           Restart = "always";
+        };
+      };
+
+      shimmory = {
+        containerConfig = {
+          image = "codeberg.org/kayohtie/shimmory:latest";
+          name = "shimmory";
+          autoUpdate = "registry";
+          environments = {
+            DB_HOST = "grimmory-db";
+            DB_PORT = "3306";
+            DATABASE_USERNAME = "booklore";
+            MYSQL_DATABASE = "booklore";
+            GRIMMORY_URL = "http://grimmory:6060";
+            LIBRARY_ROOT = "/library";
+            SCRIPT_NAME = "";
+          };
+          environmentFiles = [ osConfig.sops.secrets.grimmory_env.path ];
+          volumes = [
+            "${SHIMMORY_CONTAINER_PATH}/instance:/app/instance"
+            "/kuckyjar/media/Books:/library/books"
+          ];
+          publishPorts = [
+            "${toString osConfig.ports.shimmory}:8000"
+          ];
+          networks = [ networks.grimmory.ref ];
+          labels = [
+            "caddy.enable=true"
+            "caddy.host=shimmory.kuck.ing"
+          ];
+        };
+        serviceConfig = {
+          Restart = "always";
+        };
+        unitConfig = {
+          Requires = [ containers.grimmory-db.ref ];
+          After = [
+            containers.grimmory-db.ref
+            containers.grimmory.ref
+          ];
         };
       };
 

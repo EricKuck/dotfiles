@@ -34,6 +34,7 @@ in
     paperless = 8010;
     unifi_comm = 8080;
     grimmory = 8082;
+    shimmory = 8083;
     shelfmark = 8084;
     mylar3 = 8090;
     kapowarr = 8091;
