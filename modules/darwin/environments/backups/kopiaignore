@@ -112,6 +112,7 @@ log
 /Library/Application\ Support/SoundSource
 /Library/Application\ Support/iStat\ Menus
 /Library/Application\ Support/MobileSync
+/Library/Application\ Support/TorBrowser-Data
 /Library/Application\ Support/FaceTime
 /Library/Application\ Support/CallHistoryDB
 /Library/Application\ Support/iCloud
@@ -144,6 +145,8 @@ log
 /Library/Application\ Support/Element
 /Library/Application\ Support/OpenChamber
 /Library/Application\ Support/Aonsoku
+/Library/Application\ Support/CEF
+/Library/Application\ Support/Claude
 /Library/Containers/com.apple.*
 /Library/Containers/com.utmapp.UTM/Data
 /Library/Containers/com.utmapp.QEMUHelper
@@ -176,6 +179,7 @@ log
 /Library/Passes
 /Library/HTTPStorages
 /Library/Fonts
+/Library/Python
 /Library/WebKit
 /Library/Preferences/com.apple.*
 /Library/Preferences/ByHost/com.apple.*
@@ -199,6 +203,7 @@ caches
 com.apple.Safari
 .cocoapods
 .tmp
+GPUCache
 /temp
 .rustup
 .gradle
@@ -219,7 +224,9 @@ com.apple.Safari
 *.apk
 *.hprof
 *.hprof.*
+.pnpm-store
 Library/Android/sdk
+/Library/pnpm
 .lldb
 .rbenv
 __pycache__
@@ -251,3 +258,5 @@ Library/Intents/Image
 /.gradle/binaryen
 /.skiko
 /.supacode
+/.awe/kcef
+/.platformio
