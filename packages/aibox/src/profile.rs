@@ -121,6 +121,10 @@ const RW_HOME: &[&str] = &[
     "Library/Caches/org.swift.swiftpm",
     ".cocoapods",
     "Library/Caches/CocoaPods",
+    // Instruments keeps its unpacked instrument packages here and re-extracts
+    // into it on every launch. Without it `xctrace list instruments` reports
+    // "No instruments found" and every recording exports as malformed.
+    "Library/Application Support/Instruments",
     // Python: interpreters, pip/uv/poetry caches, and the --user prefix.
     ".pyenv",
     ".conda",
@@ -184,6 +188,26 @@ const ALLOWED_OPS: &[&str] = &[
     "pseudo-tty",
 ];
 
+// Kernel tracing is configured through sysctl writes, and Instruments does it
+// from inside the session: xctrace spawns DTServiceHub, which inherits the
+// sandbox and then fails to start with "Could not set the recording priority"
+// (the ktrace.background_pid write) while saving a trace with zero rows.
+// kdebug is a numbered kern.kdebug.* subtree; kperf, kpc and ktrace are the
+// sampler, the performance counters and the session ownership. Every other
+// sysctl stays read-only.
+// Per-process view settings that vmmap, heap, leaks and footprint write before
+// reading a target (vm.self_region_footprint, _page_size, _info_flags, and the
+// owned-objects query). They configure only the caller's own view.
+const SYSCTL_WRITE_NAMES: &[&str] = &["vm.get_owned_vmobjects"];
+const SYSCTL_WRITE_PREFIXES: &[&str] = &["kern.kdebug", "kperf.", "kpc.", "ktrace.", "vm.self_region_"];
+
+// Taking another process's task port -- what Instruments' Allocations attach,
+// vmmap, heap and leaks do -- is gated by an Authorization Services right on
+// top of the mach rules, and the request fails with -60005 (or "Failed to get
+// DYLD info for task") when the right cannot be obtained. These two are the
+// only rights allowed; the debug variant is what lldb asks for.
+const AUTHORIZATION_RIGHTS: &[&str] = &["system.privilege.taskport", "system.privilege.taskport.debug"];
+
 // Connecting to a unix domain socket is a network-outbound operation carrying
 // the socket's path, NOT a file operation -- so a blanket (allow network*)
 // hands out every agent socket on the machine (ssh-agent, gpg-agent, the Docker
@@ -220,6 +244,12 @@ const CONNECT_HOME: &[&str] = &["Library/Developer/CoreSimulator"];
 const LAUNCHD_SOCKET_DIRS: &[&str] = &["/private/tmp", "/private/var/run"];
 const LAUNCHD_SOCKET_PREFIX: &str = "com.apple.launchd.";
 
+// The one launchd-vended socket a session needs: `xcodebuild test` talks to
+// its test runner through testmanagerd, and fails with "Failed to establish
+// communication with the test runner ... Operation not permitted" without it.
+// Matched by its own basename so the agent sockets beside it stay denied.
+const LAUNCHD_SOCKET_ALLOWED: &[&str] = &["com.apple.testmanagerd.unix-domain.socket"];
+
 // CoreFoundation reads the global preference domain when it initializes, so
 // every Rust, Node and CLI tool in the sandbox trips this before running any
 // code of its own. Scoped to that one domain deliberately: a bare
@@ -227,6 +257,20 @@ const LAUNCHD_SOCKET_PREFIX: &str = "com.apple.launchd.";
 // preference plist through cfprefsd, routing around the file rules that keep
 // ~/Library/Preferences denied.
 const ALLOWED_PREFERENCE_DOMAIN: &str = "kCFPreferencesAnyApplication";
+
+// Apple's developer tools keep their settings in these domains and read them
+// on every invocation (simctl alone tripped 36,000 denials in a session). The
+// IDE domain is also where `defaults write com.apple.dt.Xcode` lands, so the
+// manifest-sandbox and similar switches are invisible to xcodebuild without it.
+// Reads only; a denied write is a harmless cache miss.
+const ALLOWED_PREFERENCE_DOMAINS: &[&str] = &[
+    "com.apple.CoreSimulator",
+    "com.apple.iphonesimulator",
+    "com.apple.dt.Xcode",
+    "com.apple.dt.xcodebuild",
+    "com.apple.dt.InstrumentsCLI",
+    "com.apple.ibtool",
+];
 
 // System + toolchain, read-only. On nix-darwin the PATH binaries live in the
 // immutable /nix/store and /run/current-system, so read access there is safe.
@@ -271,8 +315,12 @@ const TEMPORARY_ITEMS_SEGMENT: &str = ".TemporaryItems";
 
 // Terminal + std device files, read-write. stdio is a pty (/dev/ttysNNN);
 // programs fstat these fds at startup, so metadata access here is load-bearing.
+// Allocating a pty is three ioctls on the /dev/ptmx master (grantpt, unlockpt,
+// ptsname), so opening it read-write is not enough: without the ioctl rule
+// openpty(3) fails with EPERM, which is what kills `xcodebuild test` and every
+// tool that runs a child under a terminal.
 const RW_DEV_LITERAL: &[&str] = &["/dev/null", "/dev/tty", "/dev/ptmx", "/dev/dtracehelper"];
-const IOCTL_LITERAL: &[&str] = &["/dev/null", "/dev/dtracehelper"];
+const IOCTL_LITERAL: &[&str] = &["/dev/null", "/dev/ptmx", "/dev/dtracehelper"];
 const TTY_REGEX: &str = "^/dev/ttys[0-9]+$";
 
 pub fn generate(
@@ -290,8 +338,25 @@ pub fn generate(
         s.push_str(&format!("(allow {op})\n"));
     }
     s.push_str(&format!(
-        "(allow user-preference-read (preference-domain \"{ALLOWED_PREFERENCE_DOMAIN}\"))\n\n"
+        "(allow user-preference-read (preference-domain \"{ALLOWED_PREFERENCE_DOMAIN}\")"
     ));
+    for domain in ALLOWED_PREFERENCE_DOMAINS {
+        s.push_str(&format!("\n  (preference-domain \"{domain}\")"));
+    }
+    s.push_str(")\n");
+    s.push_str("(allow authorization-right-obtain\n");
+    for name in AUTHORIZATION_RIGHTS {
+        s.push_str(&format!("  (right-name \"{name}\")\n"));
+    }
+    s.push_str(")\n");
+    s.push_str("(allow sysctl-write\n");
+    for name in SYSCTL_WRITE_PREFIXES {
+        s.push_str(&format!("  (sysctl-name-prefix \"{name}\")\n"));
+    }
+    for name in SYSCTL_WRITE_NAMES {
+        s.push_str(&format!("  (sysctl-name \"{name}\")\n"));
+    }
+    s.push_str(")\n\n");
 
     s.push_str("(allow network-bind)\n(allow network-inbound)\n");
     s.push_str("(allow network-outbound (remote ip \"*:*\"))\n");
@@ -476,7 +541,16 @@ pub fn generate(
         s.push_str(&format!("  (literal \"{}\")\n", escape(&canonical(path))));
     }
     s.push_str(")\n");
+    s.push_str(&format!(
+        "(allow network-outbound (regex #\"{}\"))\n",
+        launchd_socket_allowed_regex()
+    ));
     s
+}
+
+fn launchd_socket_allowed_regex() -> String {
+    let names: Vec<String> = LAUNCHD_SOCKET_ALLOWED.iter().map(|n| regex_escape(n)).collect();
+    format!("{}[^/]+/({})$", launchd_socket_regex(), names.join("|"))
 }
 
 // Seatbelt matches literals against the resolved path, and macOS keeps /tmp,
@@ -503,13 +577,25 @@ fn launchd_socket_regex() -> String {
     )
 }
 
-// Mirrors launchd_socket_regex for the denial filter.
+// Mirrors launchd_socket_regex and launchd_socket_allowed_regex for the denial filter.
 fn is_launchd_socket(path: &str) -> bool {
     LAUNCHD_SOCKET_DIRS.iter().any(|dir| {
         path.strip_prefix(dir)
             .and_then(|rest| rest.strip_prefix('/'))
             .is_some_and(|rest| rest.starts_with(LAUNCHD_SOCKET_PREFIX))
-    })
+    }) && !is_allowed_launchd_socket(path)
+}
+
+fn is_allowed_launchd_socket(path: &str) -> bool {
+    let Some((dir, name)) = path.rsplit_once('/') else {
+        return false;
+    };
+    LAUNCHD_SOCKET_ALLOWED.contains(&name)
+        && dir
+            .rsplit_once('/')
+            .is_some_and(|(parent, vendor)| {
+                LAUNCHD_SOCKET_DIRS.contains(&parent) && vendor.starts_with(LAUNCHD_SOCKET_PREFIX)
+            })
 }
 
 // True when the profile allows this operation on this path outright, which
@@ -533,10 +619,18 @@ pub fn would_allow(operation: &str, path: &str) -> bool {
     }
     if operation == "user-preference-read" {
         // The unified log lowercases the domain it reports.
-        return path.eq_ignore_ascii_case(ALLOWED_PREFERENCE_DOMAIN);
+        return path.eq_ignore_ascii_case(ALLOWED_PREFERENCE_DOMAIN)
+            || ALLOWED_PREFERENCE_DOMAINS.iter().any(|d| path.eq_ignore_ascii_case(d));
     }
     if operation == "network-bind" || operation == "network-inbound" {
         return true;
+    }
+    if operation == "sysctl-write" {
+        return SYSCTL_WRITE_NAMES.contains(&path)
+            || SYSCTL_WRITE_PREFIXES.iter().any(|prefix| path.starts_with(prefix));
+    }
+    if operation == "authorization-right-obtain" {
+        return AUTHORIZATION_RIGHTS.contains(&path);
     }
     if operation == "network-outbound" {
         // An endpoint that is not a path is an IP address and port.
@@ -696,6 +790,16 @@ mod tests {
             "/private/tmp/com.apple.launchd.0KnX7LEp2i/Listeners"
         ));
         assert!(!would_allow("network-outbound", "/private/var/run/docker.sock"));
+        // testmanagerd is vended the same way as the agents, and is the one
+        // socket there a session needs.
+        assert!(would_allow(
+            "network-outbound",
+            "/private/tmp/com.apple.launchd.ku5xOPhovk/com.apple.testmanagerd.unix-domain.socket"
+        ));
+        assert!(!would_allow(
+            "network-outbound",
+            "/private/tmp/com.apple.launchd.ku5xOPhovk/Listeners"
+        ));
     }
 
     // SBPL is last-match-wins, so the carve-outs are worthless above the allow.
@@ -706,6 +810,10 @@ mod tests {
         let allow = sb.find("(allow network-outbound\n").expect("socket allow");
         let deny = sb.find("(deny network-outbound (regex").expect("launchd deny");
         assert!(allow < deny);
+        let carve = sb
+            .find("com\\.apple\\.testmanagerd\\.unix-domain\\.socket)$\"))")
+            .expect("testmanagerd allow");
+        assert!(deny < carve);
         assert!(sb.contains(
             "(deny file-read* file-read-metadata file-write* file-ioctl network-outbound\n"
         ));
@@ -717,7 +825,9 @@ mod tests {
             "user-preference-read",
             "kcfpreferencesanyapplication"
         ));
+        assert!(would_allow("user-preference-read", "com.apple.dt.xcode"));
         assert!(!would_allow("user-preference-read", "com.apple.triald"));
+        assert!(!would_allow("user-preference-write", "com.apple.dt.xcode"));
     }
 
     #[test]
@@ -735,6 +845,7 @@ mod tests {
         assert!(would_allow("file-write-data", "/private/tmp/x"));
         assert!(would_allow("file-read-data", "/dev/dtracehelper"));
         assert!(would_allow("file-ioctl", "/dev/ttys004"));
+        assert!(would_allow("file-ioctl", "/dev/ptmx"));
         // A prefix that merely shares a name component is a different path.
         assert!(!would_allow("file-read-data", "/usrlocal/x"));
         assert!(!would_allow("file-write-data", "/Applications/Ghostty.app"));
@@ -860,11 +971,40 @@ mod tests {
         assert!(allow < deny);
     }
 
+    // Instruments' recording helper inherits the sandbox, and its kernel
+    // tracing is all sysctl writes. The rule is scoped by name so the rest of
+    // sysctl stays read-only, and the filter must agree with the profile or
+    // an allowed write would still be logged as a denial.
+    fn sb_has_bare_authorization_allow() -> bool {
+        generate("/tmp/ws", "/Users/nobody", &[], &[], &[]).contains("(allow authorization-right-obtain)")
+    }
+
+    #[test]
+    fn allows_only_the_kernel_tracing_sysctls() {
+        assert!(would_allow("sysctl-write", "ktrace.background_pid"));
+        assert!(would_allow("sysctl-write", "kperf.blessed_preempt"));
+        assert!(would_allow("sysctl-write", "kern.kdebug"));
+        assert!(would_allow("sysctl-write", "vm.self_region_info_flags"));
+        assert!(would_allow("sysctl-write", "vm.get_owned_vmobjects"));
+        assert!(!would_allow("sysctl-write", "vm.get_owned_vmobjectsx"));
+        assert!(!would_allow("sysctl-write", "vm.page_size"));
+        assert!(!would_allow("sysctl-write", "kern.hostname"));
+        assert!(!would_allow("sysctl-write", "net.inet.ip.forwarding"));
+        assert!(would_allow("authorization-right-obtain", "system.privilege.taskport"));
+        assert!(!would_allow("authorization-right-obtain", "system.preferences"));
+        assert!(!sb_has_bare_authorization_allow());
+
+        let sb = generate("/tmp/ws", "/Users/nobody", &[], &[], &[]);
+        assert!(sb.contains("(allow sysctl-write\n  (sysctl-name-prefix \"kern.kdebug\")"));
+        assert!(!sb.contains("(allow sysctl-write)"));
+        assert!(!sb.contains("(allow sysctl*)"));
+    }
+
     #[test]
     fn emits_a_scoped_preference_rule() {
         let sb = generate("/tmp/ws", "/Users/nobody", &[], &[], &[]);
         assert!(sb.contains(
-            "(allow user-preference-read (preference-domain \"kCFPreferencesAnyApplication\"))"
+            "(allow user-preference-read (preference-domain \"kCFPreferencesAnyApplication\")\n  (preference-domain \"com.apple.CoreSimulator\")"
         ));
         assert!(!sb.contains("(allow user-preference-read)\n"));
         let _ = Path::new("/");

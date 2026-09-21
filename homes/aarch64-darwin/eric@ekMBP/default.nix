@@ -11,7 +11,6 @@ with lib.custom;
     environments = {
       workstation.enable = true;
       android.enable = true;
-      ios.enable = true;
       golang.enable = true;
       rust.enable = true;
     };

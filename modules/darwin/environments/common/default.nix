@@ -286,14 +286,13 @@ in
           name = "intellij-idea@eap";
           greedy = true;
         }
-        "thaw@beta"
         "visual-studio-code"
         "istat-menus"
         "mullvad-vpn"
         "bettertouchtool"
         "karabiner-elements"
         "hammerspoon"
-        "ghostty"
+        "ghostty@tip"
         "figma"
         "slack"
         "element"

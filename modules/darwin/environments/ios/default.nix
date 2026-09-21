@@ -1,8 +1,6 @@
 {
   lib,
   config,
-  pkgs,
-  format,
   ...
 }:
 
@@ -16,10 +14,8 @@ in
   };
 
   config = mkIf cfg.enable {
-    home.packages =
-      if format == "darwin" then
-        [ pkgs.xcodes ]
-      else
-        throw "iOS environment only available for darwin targets";
+    homebrew = {
+      brews = [ "xcodes" ];
+    };
   };
 }

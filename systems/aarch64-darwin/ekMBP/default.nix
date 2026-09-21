@@ -28,6 +28,7 @@ with lib.custom;
     environments = {
       common.enable = true;
       android.enable = true;
+      ios.enable = true;
       rust.enable = true;
       backups.enable = true;
     };

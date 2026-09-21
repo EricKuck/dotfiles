@@ -42,7 +42,8 @@ aibox (CLI)
   dirs), read-only Orca hook scripts (`~/.orca/agent-hooks`) and its hook
   channel (see below), activity bridge,
   toolchain caches (`~/.cargo`, `~/.npm`, `~/.gradle`,
-  `~/.m2`), RTK app data (`~/Library/Application Support/rtk`), and Homebrew
+  `~/.m2`), RTK app data (`~/Library/Application Support/rtk`), Instruments'
+  package cache (`~/Library/Application Support/Instruments`), and Homebrew
   (`/opt/homebrew`) are read-write; the credential files inside the caches
   (`~/.cargo/credentials`, `~/.cargo/credentials.toml`,
   `~/.gradle/gradle.properties`, `~/.m2/settings.xml`,
@@ -67,6 +68,25 @@ aibox (CLI)
   are emitted whether or not the directory exists, because `$HOME` itself is not
   writable: a toolchain that creates its cache on first run needs the rule to be
   there already.
+
+  **Instruments.** `xctrace` spawns its recording helper (`DTServiceHub`)
+  inside the session, and kernel tracing is configured through sysctl writes
+  -- kdebug, kperf, kpc and ktrace. Those four name prefixes, plus the two
+  per-process `vm.self_region_*` settings `vmmap`, `heap`, `leaks` and
+  `footprint` write before reading a target, are the only `sysctl-write` the
+  profile allows; everything else in sysctl stays read-only.
+  Allocating a pty is three ioctls on the `/dev/ptmx` master, so that device
+  gets `file-ioctl` alongside the ttys, which is what lets `xcodebuild test`
+  install its test runner. The runner then talks to `testmanagerd` through a
+  launchd-vended socket in the same directory family as the agent sockets, so
+  that one basename (`com.apple.testmanagerd.unix-domain.socket`) is carved
+  back out of the launchd deny after it. Attaching to another process's task
+  port -- Instruments' Allocations, `vmmap`, `heap`, `leaks`, lldb -- is
+  additionally gated by an Authorization Services right, so the two
+  `system.privilege.taskport` rights are the only `authorization-right-obtain`
+  the profile allows. Xcode, xcodebuild, simctl, xctrace and ibtool read their
+  own preference domains on every call, so those domains are readable beside
+  the global one; every other domain stays behind cfprefsd.
 
   **Finder staging.** `.TemporaryItems` is allowed as a whole path segment
   wherever it appears (`(regex #"/\.TemporaryItems(/|$)")`), because the
