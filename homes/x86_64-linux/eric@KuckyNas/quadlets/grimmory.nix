@@ -132,7 +132,7 @@ in
 
       shelfmark = {
         containerConfig = {
-          image = "ghcr.io/calibrain/shelfmark:latest";
+          image = "ghcr.io/calibrain/shelfmark:dev";
           name = "shelfmark";
           autoUpdate = "registry";
           volumes = [

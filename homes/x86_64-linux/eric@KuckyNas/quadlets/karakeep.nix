@@ -43,7 +43,7 @@ in
 
       karakeep-chrome = {
         containerConfig = {
-          image = "gcr.io/zenika-hub/alpine-chrome:latest";
+          image = "docker.io/zenika/alpine-chrome:latest";
           name = "karakeep-chrome";
           autoUpdate = "registry";
           exec = [
