@@ -34,6 +34,12 @@
       url = "github:SEIAROTg/quadlet-nix";
     };
 
+    claude-code = {
+      url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.systems.follows = "systems";
+    };
+
     irl-gha-runner = {
       url = "github:Infinite-Retry/gha-runner-flake";
       inputs.nixpkgs.follows = "nixpkgs";

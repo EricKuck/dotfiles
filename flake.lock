@@ -1,5 +1,28 @@
 {
   "nodes": {
+    "claude-code": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ],
+        "systems": [
+          "systems"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790096491,
+        "narHash": "sha256-zeY26igEw0G1GnVe1fA8pa/+q7mxanzCUV91GUTedzk=",
+        "owner": "sadjow",
+        "repo": "claude-code-nix",
+        "rev": "7e5f1c52ca206b2a3a535ec0e8f89bd1ae5f1afa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sadjow",
+        "repo": "claude-code-nix",
+        "type": "github"
+      }
+    },
     "darwin": {
       "inputs": {
         "nixpkgs": [
@@ -167,6 +190,7 @@
     },
     "root": {
       "inputs": {
+        "claude-code": "claude-code",
         "darwin": "darwin",
         "home-manager": "home-manager",
         "irl-gha-runner": "irl-gha-runner",

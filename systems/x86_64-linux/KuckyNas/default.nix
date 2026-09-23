@@ -184,6 +184,7 @@ in
       paperless_postgres_env.owner = config.meta.flake.owner;
       vaultwarden_env.owner = config.meta.flake.owner;
       cmjbooks_key.owner = config.meta.flake.owner;
+      irlbooks_key.owner = config.meta.flake.owner;
       grimmory_env.owner = config.meta.flake.owner;
       grimmory-db_env.owner = config.meta.flake.owner;
       notesnook_env.owner = config.meta.flake.owner;
@@ -236,7 +237,7 @@ in
   environment.systemPackages = with pkgs; [
     zfs_2_4
     lynx
-    unstable.claude-code
+    claude-code
     unstable.icloudpd
     unstable.immich-go
   ];
