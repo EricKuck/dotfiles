@@ -19,6 +19,11 @@ with lib.custom;
     };
   };
 
+  # registry credentials for private images (e.g. ghcr.io/erickuck/oura)
+  xdg.configFile."containers/auth.json".source =
+    config.lib.file.mkOutOfStoreSymlink
+      osConfig.sops.templates."containers-auth.json".path;
+
   systemd.user = {
     services = {
       sync-cloud-photos = {

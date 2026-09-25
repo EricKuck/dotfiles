@@ -201,6 +201,13 @@ in
       mautrix-slack-pickle-key = { };
       doublepuppet-as-token = { };
       doublepuppet-hs-token = { };
+      ghcr_auth = { };
+    };
+    templates."containers-auth.json" = {
+      owner = config.meta.flake.owner;
+      content = builtins.toJSON {
+        auths."ghcr.io".auth = config.sops.placeholder.ghcr_auth;
+      };
     };
     templates."mautrix-signal-env".content = ''
       MAUTRIX_SIGNAL_PICKLE_KEY=${config.sops.placeholder.mautrix-signal-pickle-key}
