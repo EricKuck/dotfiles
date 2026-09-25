@@ -323,6 +323,25 @@ const RW_DEV_LITERAL: &[&str] = &["/dev/null", "/dev/tty", "/dev/ptmx", "/dev/dt
 const IOCTL_LITERAL: &[&str] = &["/dev/null", "/dev/ptmx", "/dev/dtracehelper"];
 const TTY_REGEX: &str = "^/dev/ttys[0-9]+$";
 
+// MTLCompilerService writes the module cache for every shader compiled from source into the
+// caller's per-user cache dir, through an extension the caller issues; without this Metal
+// compilation fails with EPERM. An issued token can be passed to any process, so this stays
+// limited to those two cache dirs rather than everything the session can write.
+// Xcode 26+ ships the Metal compiler as a MobileAsset cryptex that cryptexd mounts here, so
+// `xcrun metal` needs to read the mount; Apple-signed toolchain, so read-only like /Applications.
+const METAL_TOOLCHAIN_REGEX: &str =
+    "^/private/var/run/com\\.apple\\.security\\.cryptexd/mnt/com\\.apple\\.MobileAsset\\.MetalToolchain-[^/]+(/|$)";
+const METAL_TOOLCHAIN_PREFIX: &str =
+    "/private/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-";
+
+// Claude Code's per-session scratchpads. devicectl hands every file it copies to or from a device,
+// and every screenshot, to CoreDevice through an extension on the local path, so device work needs
+// one here; scratchpads hold only temporary files, which is why this is the only place allowed.
+const SCRATCHPAD_REGEX: &str = "^/private/tmp/claude-[0-9]+(/|$)";
+
+const METAL_CACHE_REGEX: &str =
+    "^/private/var/folders/[^/]+/[^/]+/C/com\\.apple\\.(metalfe|gpuarchiver)(/|$)";
+
 pub fn generate(
     workspace: &str,
     home: &str,
@@ -402,6 +421,10 @@ pub fn generate(
     s.push_str(&format!(
         "(allow file-read* file-write* (regex #\"{TEMPORARY_ITEMS_REGEX}\"))\n"
     ));
+    s.push_str(&format!(
+        "(allow file-issue-extension (regex #\"{METAL_CACHE_REGEX}\") (regex #\"{SCRATCHPAD_REGEX}\"))\n"
+    ));
+    s.push_str(&format!("(allow file-read* (regex #\"{METAL_TOOLCHAIN_REGEX}\"))\n"));
     s.push_str("(allow file-ioctl\n");
     for path in IOCTL_LITERAL {
         s.push_str(&format!("  (literal \"{path}\")\n"));
@@ -515,7 +538,7 @@ pub fn generate(
     // the secret files inside them are carved out while the caches stay writable.
     // network-outbound is in this list for the same reason it is restricted at
     // all: ~/.docker holds Docker Desktop's daemon socket, ~/.gnupg its agent's.
-    s.push_str("(deny file-read* file-read-metadata file-write* file-ioctl network-outbound\n");
+    s.push_str("(deny file-read* file-read-metadata file-write* file-ioctl file-issue-extension network-outbound\n");
     for rel in SENSITIVE_HOME {
         s.push_str(&format!(
             "  (subpath \"{}\")\n",
@@ -642,7 +665,7 @@ pub fn would_allow(operation: &str, path: &str) -> bool {
     }
     let read = operation.starts_with("file-read");
     let write = operation.starts_with("file-write");
-    if read && (RO_LITERAL.contains(&path) || under_any(path, RO_ABSOLUTE)) {
+    if read && (RO_LITERAL.contains(&path) || under_any(path, RO_ABSOLUTE) || is_metal_toolchain(path)) {
         return true;
     }
     if (read || write) && is_temporary_items(path) {
@@ -656,6 +679,9 @@ pub fn would_allow(operation: &str, path: &str) -> bool {
             || is_tty(path))
     {
         return true;
+    }
+    if operation == "file-issue-extension" {
+        return is_metal_cache(path) || is_scratchpad(path);
     }
     operation == "file-ioctl" && (IOCTL_LITERAL.contains(&path) || is_tty(path))
 }
@@ -671,6 +697,36 @@ fn under_any(path: &str, prefixes: &[&str]) -> bool {
 // Mirrors TEMPORARY_ITEMS_REGEX: the segment, whole, anywhere in the path.
 fn is_temporary_items(path: &str) -> bool {
     path.split('/').any(|seg| seg == TEMPORARY_ITEMS_SEGMENT)
+}
+
+// Mirrors METAL_TOOLCHAIN_REGEX.
+fn is_metal_toolchain(path: &str) -> bool {
+    path.strip_prefix(METAL_TOOLCHAIN_PREFIX)
+        .is_some_and(|rest| !rest.is_empty() && !rest.starts_with('/'))
+}
+
+// Mirrors SCRATCHPAD_REGEX.
+fn is_scratchpad(path: &str) -> bool {
+    path.strip_prefix("/private/tmp/claude-").is_some_and(|rest| {
+        let uid = rest.split('/').next().unwrap_or("");
+        !uid.is_empty() && uid.bytes().all(|b| b.is_ascii_digit())
+    })
+}
+
+// Mirrors METAL_CACHE_REGEX.
+fn is_metal_cache(path: &str) -> bool {
+    let Some(rest) = path.strip_prefix("/private/var/folders/") else {
+        return false;
+    };
+    let parts: Vec<&str> = rest.splitn(4, '/').collect();
+    parts.len() >= 3
+        && !parts[0].is_empty()
+        && !parts[1].is_empty()
+        && parts[2] == "C"
+        && parts.get(3).is_some_and(|tail| {
+            let dir = tail.split('/').next().unwrap_or("");
+            dir == "com.apple.metalfe" || dir == "com.apple.gpuarchiver"
+        })
 }
 
 fn is_tty(path: &str) -> bool {
@@ -815,8 +871,37 @@ mod tests {
             .expect("testmanagerd allow");
         assert!(deny < carve);
         assert!(sb.contains(
-            "(deny file-read* file-read-metadata file-write* file-ioctl network-outbound\n"
+            "(deny file-read* file-read-metadata file-write* file-ioctl file-issue-extension network-outbound\n"
         ));
+    }
+
+    // Issued tokens can be handed to any process, so issuing is limited to Metal's compiler caches
+    // and the session scratchpads -- not everything the session can write -- and the secrets deny
+    // still outranks it.
+    #[test]
+    fn issues_extensions_only_for_metal_caches_and_scratchpads() {
+        assert!(would_allow(
+            "file-issue-extension",
+            "/private/var/folders/h8/abc/C/com.apple.metalfe/29W54HQ2OAOCK/monolithic_metal.pcm"
+        ));
+        assert!(would_allow("file-issue-extension", "/private/var/folders/h8/abc/C/com.apple.gpuarchiver"));
+        assert!(!would_allow("file-issue-extension", "/private/var/folders/h8/abc/C/com.apple.metalfe.evil"));
+        assert!(!would_allow("file-issue-extension", "/private/var/folders/h8/abc/T/com.apple.metalfe"));
+        assert!(!would_allow("file-issue-extension", "/private/var/folders/h8/abc/C/other"));
+        assert!(!would_allow("file-issue-extension", "/private/tmp/build/bench"));
+        assert!(would_allow("file-issue-extension", "/private/tmp/claude-501/-ws/session/scratchpad/trace.ndjson"));
+        assert!(!would_allow("file-issue-extension", "/private/tmp/claude-501x/trace.ndjson"));
+        assert!(!would_allow("file-issue-extension", "/private/tmp/claude-/x"));
+        assert!(!would_allow("file-issue-extension", "/Users/nobody/.ssh/id_ed25519"));
+
+        let sb = generate("/tmp/ws", "/Users/nobody", &["/state".into()], &[], &[]);
+        let allow = sb.find("(allow file-issue-extension (regex").expect("issue allow");
+        assert!(sb.contains("(regex #\"^/private/tmp/claude-[0-9]+(/|$)\"))"));
+        let deny = sb
+            .find("(deny file-read* file-read-metadata file-write* file-ioctl file-issue-extension")
+            .expect("secrets deny");
+        assert!(allow < deny);
+        assert_eq!(sb.matches("file-issue-extension").count(), 2);
     }
 
     #[test]
@@ -850,6 +935,19 @@ mod tests {
         assert!(!would_allow("file-read-data", "/usrlocal/x"));
         assert!(!would_allow("file-write-data", "/Applications/Ghostty.app"));
         assert!(!would_allow("file-read-data", "/dev/ttysabc"));
+    }
+
+    #[test]
+    fn reads_only_the_metal_toolchain_cryptex() {
+        let mnt = "/private/var/run/com.apple.security.cryptexd/mnt";
+        assert!(would_allow(
+            "file-read-data",
+            &format!("{mnt}/com.apple.MobileAsset.MetalToolchain-v27.1.266.1.6H0ooQ/Metal.xctoolchain/usr/bin/metal")
+        ));
+        assert!(!would_allow("file-write-data", &format!("{mnt}/com.apple.MobileAsset.MetalToolchain-v27/x")));
+        assert!(!would_allow("file-read-data", &format!("{mnt}/com.apple.MobileAsset.MetalToolchain-")));
+        assert!(!would_allow("file-read-data", &format!("{mnt}/com.apple.Other-v1/x")));
+        assert!(!would_allow("file-read-data", mnt));
     }
 
     // The denials worth keeping: a stat of a hard-denied secret is a real event,

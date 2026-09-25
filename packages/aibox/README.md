@@ -88,6 +88,21 @@ aibox (CLI)
   own preference domains on every call, so those domains are readable beside
   the global one; every other domain stays behind cfprefsd.
 
+  **Metal shader compilation.** `MTLCompilerService` writes its module cache
+  into the caller's per-user cache directory through a sandbox extension the
+  caller issues, so without `file-issue-extension` every Metal shader built from
+  source fails with `Operation not permitted`. An issued token can be handed to
+  any process, not just the compiler, so the rule names only
+  `C/com.apple.metalfe` and `C/com.apple.gpuarchiver` rather than everything the
+  session can write, and the secrets deny names the operation too. The compiler
+  itself (`xcrun metal`) is a MobileAsset cryptex that cryptexd mounts under
+  `/private/var/run/com.apple.security.cryptexd/mnt`; only the
+  `com.apple.MobileAsset.MetalToolchain-*` mount there is readable.
+  `devicectl` hands every file it copies to or from a device, and every
+  screenshot, to CoreDevice the same way, so Claude Code's per-session
+  scratchpads (`/private/tmp/claude-<uid>`) can issue extensions too; nothing
+  else the session can write can.
+
   **Finder staging.** `.TemporaryItems` is allowed as a whole path segment
   wherever it appears (`(regex #"/\.TemporaryItems(/|$)")`), because the
   atomic-save APIs stage into one at the root of whatever volume the file lives
