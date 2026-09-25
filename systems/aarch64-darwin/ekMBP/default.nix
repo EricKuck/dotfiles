@@ -27,6 +27,7 @@ with lib.custom;
   custom = {
     environments = {
       common.enable = true;
+      workstation.enable = true;
       android.enable = true;
       ios.enable = true;
       rust.enable = true;
@@ -74,11 +75,9 @@ with lib.custom;
       "visualvm"
       "netnewswire"
       "stablyai/orca/orca"
-      "claude-code@latest"
     ];
 
     masApps = {
-      Tailscale = 1475387142;
       "MQTT Explorer" = 1455214828;
       PagerCall = 6740581987;
     };

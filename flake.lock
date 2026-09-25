@@ -118,29 +118,6 @@
         "type": "github"
       }
     },
-    "irl-gha-runner": {
-      "inputs": {
-        "nix-darwin": [
-          "darwin"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1788977778,
-        "narHash": "sha256-xI2YDftFj7Bw6Imf1DhK6RNy69CFUD+QgT9UdcjcQzQ=",
-        "owner": "Infinite-Retry",
-        "repo": "gha-runner-flake",
-        "rev": "1958d22e68bbcaa4061946f94eb7259576ad67f4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Infinite-Retry",
-        "repo": "gha-runner-flake",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1789885152,
@@ -193,7 +170,6 @@
         "claude-code": "claude-code",
         "darwin": "darwin",
         "home-manager": "home-manager",
-        "irl-gha-runner": "irl-gha-runner",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "quadlet-nix": "quadlet-nix",

@@ -411,10 +411,6 @@ in
 
   };
 
-  gha-runner.irl.runners = {
-    irl-linux-1.tokenFile = config.sops.secrets.gha-runner-irl-linux-1-token.path;
-  };
-
   system = {
     # NEVER change this value after the initial install, for any reason,
     stateVersion = "23.11"; # Did you read the comment?

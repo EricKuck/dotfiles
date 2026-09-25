@@ -39,12 +39,6 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
       inputs.systems.follows = "systems";
     };
-
-    irl-gha-runner = {
-      url = "github:Infinite-Retry/gha-runner-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nix-darwin.follows = "darwin";
-    };
   };
 
   outputs =
@@ -108,11 +102,8 @@
 
       systems.modules.nixos = lib.snowfall.fs.get-files-recursive ./modules/system-common ++ [
         inputs.quadlet-nix.nixosModules.quadlet
-        inputs.irl-gha-runner.nixosModules.default
       ];
-      systems.modules.darwin = lib.snowfall.fs.get-files-recursive ./modules/system-common ++ [
-        inputs.irl-gha-runner.darwinModules.default
-      ];
+      systems.modules.darwin = lib.snowfall.fs.get-files-recursive ./modules/system-common;
 
       homes.modules = [ inputs.quadlet-nix.homeManagerModules.quadlet ];
     };

@@ -28,6 +28,8 @@ let
   codeMountPoint = "${config.meta.flake.ownerHome}/Code";
   codeMountOptions = "rw,noauto,nobrowse,suid,owners";
   codeKeychainEntry = "CodeVolume";
+
+  owner = config.meta.flake.owner;
 in
 {
   options.custom.environments.common = {
@@ -36,24 +38,24 @@ in
 
   config = mkIf cfg.enable {
     system = {
-      primaryUser = config.meta.flake.owner;
+      primaryUser = owner;
 
-      activationScripts.userScript.text = ''
-        #!${lib.getExe pkgs.bash}
+      activationScripts.postActivation.text = ''
         echo >&2 "wallpaper..."
-        osascript -e 'tell application "Finder" to set desktop picture to POSIX file "${wallpaper}"'
+        launchctl asuser "$(id -u ${owner})" sudo -H -u ${owner} osascript -e 'tell application "Finder" to set desktop picture to POSIX file "${wallpaper}"' || true
 
         echo >&2 "code dir..."
-        FILEICON=${fileicon}
-        CODE_ICNS=${codeIcon}
-        VOLUME=${codeVolume}
-        MOUNT_POINT="${codeMountPoint}"
-        MOUNT_OPTIONS=${codeMountOptions}
-        KEYCHAIN_ENTRY="${codeKeychainEntry}"
-        ${builtins.readFile ./configs/codedir/mk_code_volume.sh}
+        OWNER=${owner} \
+        FILEICON=${fileicon} \
+        CODE_ICNS=${codeIcon} \
+        VOLUME=${codeVolume} \
+        MOUNT_POINT="${codeMountPoint}" \
+        MOUNT_OPTIONS=${codeMountOptions} \
+        KEYCHAIN_ENTRY="${codeKeychainEntry}" \
+          ${lib.getExe pkgs.bash} ${./configs/codedir/mk_code_volume.sh} || echo >&2 "code dir setup failed"
 
         echo >&2 "disabling text replacements..."
-        defaults write -g NSUserDictionaryReplacementItems -array
+        sudo -H -u ${owner} defaults write -g NSUserDictionaryReplacementItems -array
       '';
 
       defaults = {
@@ -231,6 +233,15 @@ in
       };
     };
 
+    users = {
+      knownUsers = [ owner ];
+      users.${owner} = {
+        uid = 501;
+        home = config.meta.flake.ownerHome;
+        shell = pkgs.fish;
+      };
+    };
+
     programs.fish = {
       package = pkgs.fish;
       enable = true;
@@ -243,6 +254,7 @@ in
       ];
       systemPackages = with pkgs; [
         podman
+        ghostty-bin.terminfo
         unstable.mas
         custom.micswitch
         custom.litra-rs
@@ -256,8 +268,6 @@ in
 
     homebrew = {
       enable = true;
-
-      caskArgs.no_quarantine = true;
 
       onActivation = {
         upgrade = true;
@@ -277,36 +287,14 @@ in
 
       # TODO: add autostart entries?
       casks = [
-        "bitwarden"
-        "battery"
-        "notesnook"
-        "macmediakeyforwarder"
         "lulu"
-        {
-          name = "intellij-idea@eap";
-          greedy = true;
-        }
-        "visual-studio-code"
-        "istat-menus"
-        "mullvad-vpn"
         "bettertouchtool"
         "karabiner-elements"
         "hammerspoon"
         "ghostty@tip"
-        "figma"
-        "slack"
-        "element"
-        "cameracontroller"
-        "discord"
-        "meetingbar"
-        "grishka/grishka/neardrop"
-        "macshot"
         "vicinae"
+        "claude-code@latest"
       ];
-
-      masApps = {
-        Gifski = 1351639930;
-      };
     };
 
     fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];

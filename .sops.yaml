@@ -1,9 +1,11 @@
 keys:
-  - &host_ekmbp: age1wm57c0mv6lsdr6z3p5tjczsw04ynf6542ea7nk00pfm5k8d90axs7dsfyt
-  - &host_kuckynas: age1wm57c0mv6lsdr6z3p5tjczsw04ynf6542ea7nk00pfm5k8d90axs7dsfyt
+  - &host_ekmbp age1wm57c0mv6lsdr6z3p5tjczsw04ynf6542ea7nk00pfm5k8d90axs7dsfyt
+  - &host_kuckynas age1wm57c0mv6lsdr6z3p5tjczsw04ynf6542ea7nk00pfm5k8d90axs7dsfyt
+  - &host_irlbuild age1cfzt9pxmwuwh4rgwuxv9365yxxvmwppy0r5nf4g4llpsnprku54s4f8lwq
 creation_rules:
   - path_regex: secrets/[^/]+\.yaml$
     key_groups:
       - age:
           - *host_ekmbp
           - *host_kuckynas
+          - *host_irlbuild
