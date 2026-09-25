@@ -293,7 +293,7 @@ in
         "hammerspoon"
         "ghostty@tip"
         "vicinae"
-        "claude-code@latest"
+        "0xMH/claude-latest/claude-code"
       ];
     };
 
