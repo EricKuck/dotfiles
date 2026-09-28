@@ -303,7 +303,10 @@ in
         XCODE_APP_PATH = xcodeAppPath;
         XCODE_DEVELOPER_DIR = xcodeDeveloperDir;
       };
-      serviceOverrides.SessionCreate = true;
+      serviceOverrides = {
+        SessionCreate = true;
+        KeepAlive = true;
+      };
     }) cfg;
 
     # nix-darwin only chowns the top-level runner dirs, so files left behind by a
