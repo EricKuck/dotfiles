@@ -288,11 +288,10 @@ in
       # TODO: add autostart entries?
       casks = [
         "lulu"
-        "bettertouchtool"
         "karabiner-elements"
         "hammerspoon"
         "ghostty@tip"
-        "vicinae"
+        "abue-ammar/tinycast/tinycast"
         "0xMH/claude-latest/claude-code"
       ];
     };

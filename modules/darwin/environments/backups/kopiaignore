@@ -251,6 +251,7 @@ Library/Intents/Image
 /.local/share/opencode
 /.local/share/containers
 /.local/share/vicinae/clipboard-data
+/Library/Application\ Support/com.tinycast.app/clipboard*
 /.firebender
 /.junie
 /.gradle/nodejs

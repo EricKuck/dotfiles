@@ -19,6 +19,7 @@
 #   aibox list           list every workspace that has state
 #   aibox rm [dir|path]  remove stopped workspace state
 #   aibox shell          escape hatch: a sandboxed interactive shell
+#   aibox keychain ...   macOS signing keychain: import <p12>, unlock, lock, status, rm
 #
 # Each workspace is anchored at the directory where it is started; running from
 # a subdirectory sandboxes only that subtree.
@@ -133,9 +134,100 @@ else
     case "${1:-}" in
         allow|deny|status|rm|shell) subcommand="$1"; shift ;;
         list|ls)                 subcommand="list"; shift ;;
+        keychain)                subcommand="keychain"; shift ;;
         -h|--help|"")            sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *)                       die "unknown command: ${1:-}" ;;
     esac
+fi
+
+# ------------------------------------------------------- signing keychain
+
+# The login keychain stays denied; sessions see only this one, which holds the
+# identities imported into it. Its password lives in the login keychain.
+SIGNING_KEYCHAIN="$HOME/.aibox/signing.keychain-db"
+SIGNING_PASSWORD_SERVICE="aibox signing keychain"
+LOGIN_KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
+
+signing_password() {
+    security find-generic-password -s "$SIGNING_PASSWORD_SERVICE" -a "$USER" -w "$LOGIN_KEYCHAIN" 2>/dev/null
+}
+
+signing_keychain_unlock() {
+    local pw
+    pw="$(signing_password)" || return 1
+    security unlock-keychain -p "$pw" "$SIGNING_KEYCHAIN"
+}
+
+# xcodebuild finds identities through the search list, not a --keychain flag.
+signing_keychain_add_to_search_list() {
+    local line
+    local -a current=()
+    while IFS= read -r line; do
+        line="${line#"${line%%[![:space:]]*}"}"
+        line="${line#\"}"; line="${line%\"}"
+        [[ "$line" == "$SIGNING_KEYCHAIN" ]] && return 0
+        current+=("$line")
+    done < <(security list-keychains -d user)
+    security list-keychains -d user -s "${current[@]}" "$SIGNING_KEYCHAIN"
+}
+
+signing_keychain_create() {
+    local pw
+    pw="$(od -An -tx1 -N32 /dev/urandom | tr -d ' \n')"
+    mkdir -p "$(dirname "$SIGNING_KEYCHAIN")"
+    security add-generic-password -U -s "$SIGNING_PASSWORD_SERVICE" -a "$USER" -w "$pw" "$LOGIN_KEYCHAIN"
+    security create-keychain -p "$pw" "$SIGNING_KEYCHAIN"
+    security set-keychain-settings "$SIGNING_KEYCHAIN"
+    signing_keychain_add_to_search_list
+}
+
+# Public intermediates only. Current identities chain through the G3+ WWDR
+# certificates, which Xcode installs into the login keychain, not System.
+signing_keychain_import_wwdr() {
+    local tmp
+    tmp="$(mktemp -d)"
+    security find-certificate -a -c "Apple Worldwide Developer Relations" -p "$LOGIN_KEYCHAIN" \
+        | awk -v dir="$tmp" '/BEGIN CERT/ { n++ } n { print > (dir "/" n ".pem") }'
+    for cert in "$tmp"/*.pem; do
+        [[ -e "$cert" ]] && security import "$cert" -k "$SIGNING_KEYCHAIN" >/dev/null 2>&1 || true
+    done
+    rm -rf "$tmp"
+}
+
+signing_keychain_import() {
+    local p12="$1" p12_pw pw
+    [[ -f "$p12" ]] || die "not a file: $p12"
+    [[ -e "$SIGNING_KEYCHAIN" ]] || signing_keychain_create
+    signing_keychain_unlock || die "could not unlock $SIGNING_KEYCHAIN"
+    read -rsp "password for $(basename "$p12"): " p12_pw; echo
+    # -x: the key can be used for signing but never exported again.
+    security import "$p12" -k "$SIGNING_KEYCHAIN" -P "$p12_pw" -x -T /usr/bin/codesign
+    pw="$(signing_password)"
+    security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$pw" "$SIGNING_KEYCHAIN" >/dev/null
+    signing_keychain_import_wwdr
+    security find-identity -v -p codesigning "$SIGNING_KEYCHAIN"
+}
+
+if [[ "$subcommand" == "keychain" ]]; then
+    [[ "$os" == Darwin ]] || die "the signing keychain is macOS only"
+    action="${1:-status}"
+    [[ $# -gt 0 ]] && shift
+    case "$action" in
+        import)
+            [[ $# -eq 1 ]] || die "usage: aibox keychain import <identities.p12>"
+            signing_keychain_import "$1" ;;
+        unlock) signing_keychain_unlock || die "could not unlock $SIGNING_KEYCHAIN" ;;
+        lock)   security lock-keychain "$SIGNING_KEYCHAIN" ;;
+        status)
+            [[ -e "$SIGNING_KEYCHAIN" ]] || die "no signing keychain; create one with: aibox keychain import <p12>"
+            printf 'keychain: %s\n' "$SIGNING_KEYCHAIN"
+            security find-identity -v -p codesigning "$SIGNING_KEYCHAIN" ;;
+        rm)
+            security delete-keychain "$SIGNING_KEYCHAIN"
+            security delete-generic-password -s "$SIGNING_PASSWORD_SERVICE" -a "$USER" "$LOGIN_KEYCHAIN" >/dev/null ;;
+        *) die "usage: aibox keychain [import <p12>|unlock|lock|status|rm]" ;;
+    esac
+    exit 0
 fi
 
 # --------------------------------------------------------- session probing
@@ -461,6 +553,9 @@ prepare_session
 new_control_secret
 bootstrap_claude_credentials
 bootstrap_sandbox_home
+if [[ "$os" == Darwin && -e "$SIGNING_KEYCHAIN" ]]; then
+    signing_keychain_unlock || printf 'aibox: could not unlock %s\n' "$SIGNING_KEYCHAIN" >&2
+fi
 
 # Create the activity directory before generating the profile so it is part of
 # the static allow-list for a harness session.

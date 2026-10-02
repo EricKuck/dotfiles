@@ -24,7 +24,6 @@ in
           name = "intellij-idea@eap";
           greedy = true;
         }
-        "visual-studio-code"
         "istat-menus"
         "mullvad-vpn"
         "figma"
@@ -32,8 +31,6 @@ in
         "element"
         "cameracontroller"
         "discord"
-        "meetingbar"
-        "grishka/grishka/neardrop"
         "macshot"
       ];
 

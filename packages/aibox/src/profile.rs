@@ -32,6 +32,8 @@ const RO_HOME: &[&str] = &[
     ".profile",
     ".inputrc",
     ".orca/agent-hooks",
+    ".aibox/signing.keychain-db",
+    "Library/Preferences/com.apple.security.plist",
 ];
 
 // Crown-jewel secrets, hard-denied regardless of any allow -- including the
@@ -270,6 +272,7 @@ const ALLOWED_PREFERENCE_DOMAINS: &[&str] = &[
     "com.apple.dt.xcodebuild",
     "com.apple.dt.InstrumentsCLI",
     "com.apple.ibtool",
+    "com.apple.security",
 ];
 
 // System + toolchain, read-only. On nix-darwin the PATH binaries live in the
