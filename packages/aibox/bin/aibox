@@ -32,6 +32,8 @@ AIBOX_RUNTIME_PATH=""
 if [[ -n "$AIBOX_RUNTIME_PATH" ]]; then
     export PATH="$AIBOX_RUNTIME_PATH:$PATH"
 fi
+# Toolchain wrappers that only make sense inside a session (see the launch section).
+AIBOX_LIBEXEC=""
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 os="$(uname -s)"
@@ -573,6 +575,22 @@ profile_args=("$root" --protect "$STATE_ROOT" --sock "$sock")
 # enclosing repository -- its .git and .claude, wherever they sit relative to
 # the workspace, worktrees included -- is resolved by the profile generator.
 export AIBOX_DENIAL_LOG="$DENIAL_LOG"
+# macOS refuses a nested sandbox_apply, and SwiftPM sandboxes every manifest, plugin and macro it
+# runs. Xcode applies the xcconfig to every target, SwiftPM packages and KGP's nested xcodebuild
+# included; the wrapper directory covers tools that run `swift` through PATH. Xcode's run-script
+# phases rebuild PATH with the toolchain first, so a build script re-prepends AIBOX_SHIM_PATH.
+AIBOX_XCCONFIG=""
+if [[ "$os" == Darwin ]]; then
+    export AIBOX_SHIM_PATH="${AIBOX_LIBEXEC:-$here/../libexec}"
+    export PATH="$AIBOX_SHIM_PATH:$PATH"
+    if [[ -z "${XCODE_XCCONFIG_FILE:-}" ]]; then
+        export XCODE_XCCONFIG_FILE="${AIBOX_XCCONFIG:-$here/../share/sandboxed.xcconfig}"
+    fi
+fi
+# A Gradle daemon outlives the build that started it, and any client with a matching JVM reuses
+# it, so a daemon from another sandbox (a worktree session, or the host's own IDE) would serve
+# this workspace without being able to read it. One daemon registry per workspace keeps them apart.
+export GRADLE_OPTS="${GRADLE_OPTS:+$GRADLE_OPTS }-Dorg.gradle.daemon.registry.base=$HOME/.gradle/daemon-aibox/${root//\//_}"
 (umask 077; "$HOST" profile "${profile_args[@]}" > "$profile")
 chmod 600 "$profile"
 

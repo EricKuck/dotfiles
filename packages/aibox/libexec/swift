@@ -1,0 +1,12 @@
+#!/bin/bash
+# SwiftPM wraps manifest evaluation, plugins and macros in sandbox-exec, and the kernel refuses a
+# nested sandbox_apply inside a session, so anything reaching swift through PATH gets the opt-out.
+case "${1:-}" in
+    package|build|run|test)
+        for arg in "$@"; do
+            [[ "$arg" == --disable-sandbox ]] && exec /usr/bin/swift "$@"
+        done
+        exec /usr/bin/swift "$1" --disable-sandbox "${@:2}"
+        ;;
+esac
+exec /usr/bin/swift "$@"

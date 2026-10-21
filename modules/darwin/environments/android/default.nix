@@ -27,10 +27,6 @@ in
           name = "android-studio";
           greedy = true;
         }
-        {
-          name = "android-studio-preview@canary";
-          greedy = true;
-        }
         "livewire-kt/tap/livewire"
       ];
     };

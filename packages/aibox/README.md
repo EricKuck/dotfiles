@@ -263,6 +263,23 @@ root in, and the broker refuses to grant a directory that contains it.
   if you decide you want the agent driving Orca -- which is a deliberate escape
   hatch, not an oversight.
 
+- **SwiftPM (macOS):** the kernel refuses a nested `sandbox_apply`, and SwiftPM
+  wraps every manifest evaluation, plugin and macro in `sandbox-exec`, so an
+  unmodified Swift build dies at "Resolve Package Graph" inside a session. No
+  profile rule can allow it, so the session gets two opt-outs: `XCODE_XCCONFIG_FILE`
+  names an xcconfig with `SWIFTC_DISABLE_SANDBOX = YES`, which xcodebuild applies
+  to every target, and `AIBOX_SHIM_PATH` (first on `PATH`) holds a `swift` wrapper
+  that adds `--disable-sandbox` to `package`, `build`, `run` and `test`. A tool
+  that execs `/usr/bin/swift` by absolute path, or an Xcode run-script phase (which
+  rebuilds `PATH` with the toolchain first), still has to pass the flag or re-prepend
+  `AIBOX_SHIM_PATH` itself. Xcode's own manifest evaluation reads the
+  `IDEPackageSupportDisableManifestSandbox` default, which the preference-domain
+  allow makes visible; set it in `com.apple.dt.xcodebuild` rather than
+  `com.apple.dt.Xcode` so only command-line builds opt out.
+- **Gradle:** `GRADLE_OPTS` names a per-workspace daemon registry under
+  `~/.gradle/daemon-aibox`. A daemon started in one sandbox cannot read another
+  workspace, and without this any client with a matching JVM -- a worktree session,
+  or the host's own IDE -- would reuse it and fail on reads that look unrelated.
 - **Keep awake:** harness sessions receive `AIBOX_ACTIVITY_FILE` under
   `~/.aibox/activity`. Existing agent hooks touch it during a turn; a host-side
   watcher maps it to `caffeinate -i` (macOS) or `systemd-inhibit --what=idle:sleep`

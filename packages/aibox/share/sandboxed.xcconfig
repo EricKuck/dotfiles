@@ -1,0 +1,2 @@
+// macOS refuses a nested sandbox_apply, so swiftc's macro-plugin sandbox can only fail here.
+SWIFTC_DISABLE_SANDBOX = YES

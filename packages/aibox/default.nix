@@ -51,8 +51,12 @@ rustPlatform.buildRustPackage {
   # runtime PATH, and point each harness symlink at it.
   postInstall = ''
     install -m755 bin/aibox $out/bin/aibox
+    install -Dm644 share/sandboxed.xcconfig $out/share/aibox/sandboxed.xcconfig
+    install -Dm755 libexec/swift $out/libexec/aibox/swift
     substituteInPlace $out/bin/aibox \
-      --replace-fail 'AIBOX_RUNTIME_PATH=""' 'AIBOX_RUNTIME_PATH="${runtimePath}"'
+      --replace-fail 'AIBOX_RUNTIME_PATH=""' 'AIBOX_RUNTIME_PATH="${runtimePath}"' \
+      --replace-fail 'AIBOX_XCCONFIG=""' "AIBOX_XCCONFIG=\"$out/share/aibox/sandboxed.xcconfig\"" \
+      --replace-fail 'AIBOX_LIBEXEC=""' "AIBOX_LIBEXEC=\"$out/libexec/aibox\""
     ${lib.concatMapStringsSep "\n" (h: "ln -s aibox $out/bin/${h}") harnesses}
   '';
 
@@ -65,6 +69,8 @@ rustPlatform.buildRustPackage {
       test -x "$out/bin/$n" || { echo "missing $n"; exit 1; }
     done
     grep -q 'AIBOX_RUNTIME_PATH="/nix/store' $out/bin/aibox
+    test -f "$(sed -n 's/^AIBOX_XCCONFIG="\(.*\)"$/\1/p' $out/bin/aibox)"
+    test -x "$(sed -n 's/^AIBOX_LIBEXEC="\(.*\)"$/\1/p' $out/bin/aibox)/swift"
 
     runHook postInstallCheck
   '';
