@@ -316,7 +316,7 @@ in
         plugins = [
           "github.com/caddy-dns/cloudflare@v0.2.1"
         ];
-        hash = "sha256-jNV5COlQTKSJJk8gUZ3KEs8SGC8Z7Aiy5fk7/DvkXIo=";
+        hash = "sha256-ijDzBvNhN6kVRNkjbLMHRh1K8qP7kLCiirQJLwkzrCc=";
       };
       logFormat = ''
         output file /var/log/caddy/access.log {

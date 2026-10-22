@@ -75,7 +75,7 @@ in
           };
           Service = {
             Type = "simple";
-            ExecStart = "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia.program} server start --disable-csrf-token-checks --insecure --address=0.0.0.0:51515 --without-password";
+            ExecStart = "${osConfig.security.wrapperDir}/${osConfig.security.wrappers.kopia.program} server start --disable-csrf-token-checks --insecure --address=127.0.0.1:51515 --without-password";
           };
           Install = {
             WantedBy = [ "default.target" ];

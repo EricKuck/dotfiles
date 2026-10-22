@@ -11,13 +11,13 @@ let
     version = "0.2605.0";
 
     src = pkgs.fetchFromGitHub {
-      owner = "EricKuck";
-      repo = "mautrix-gvoice";
-      rev = "988ae443369ced993e7d3d5036d3f5a50c098063";
-      hash = "sha256-u0DIPvwl35Q+m+Zg68zxoFd3q867VOvAamH8BlEBYac=";
+      owner = "mautrix";
+      repo = "gvoice";
+      rev = "6317e1dfed3257a0757f894a6b1af089bf8851d8";
+      hash = "sha256-4L2sHyCZ1dNkBRvYCz+xc5Kpa1i1Drub3eoNQNigbxk=";
     };
 
-    vendorHash = "sha256-iNOMX7gonvkQSH6r0tCtqD71fyUfQfHmclrWbH11XiU=";
+    vendorHash = "sha256-Xg5NEXXuBPYgaju41aQMYCZW/08cSx/AwRo6AEgOk6w=";
 
     buildInputs = [ pkgs.olm ];
 
