@@ -35,7 +35,7 @@ let
     platformToolsVersion = "37.0.1";
     cmakeVersions = [ "3.22.1" ];
     includeNDK = true;
-    ndkVersions = [ "28.2.13676358" ];
+    ndkVersions = [ ndkVersion ];
   };
   androidHome = "${androidComposition.androidsdk}/libexec/android-sdk";
 
@@ -50,6 +50,7 @@ let
     curl
     unzip
     openssl
+    gcc
     ninja
     gn
     svgo
@@ -63,11 +64,40 @@ let
     ffmpeg
     libwebp
     nodejs_26
+    rustup
+    cargo-ndk
   ];
 
-  environment = {
+  # nixpkgs' rustc only has the host std, so cross builds use a rustup toolchain
+  # installed into the runner home during activation.
+  rustTargets = [
+    "aarch64-apple-ios"
+    "aarch64-apple-ios-sim"
+    "aarch64-linux-android"
+    "armv7-linux-androideabi"
+    "x86_64-linux-android"
+  ];
+  ndkVersion = "28.2.13676358";
+
+  # gcc on PATH shadows Xcode's cc, and rustc passes clang-only flags (-target)
+  # when linking Apple targets, so point those at Xcode's clang explicitly.
+  # Android targets get their linker from cargo-ndk.
+  appleRustTargets = [
+    "aarch64-apple-darwin"
+    "aarch64-apple-ios"
+    "aarch64-apple-ios-sim"
+  ];
+  rustAppleToolchainEnv = lib.listToAttrs (
+    lib.concatMap (target: [
+      (lib.nameValuePair "CARGO_TARGET_${lib.toUpper (lib.replaceStrings [ "-" ] [ "_" ] target)}_LINKER" "/usr/bin/clang")
+      (lib.nameValuePair "CC_${lib.replaceStrings [ "-" ] [ "_" ] target}" "/usr/bin/clang")
+    ]) appleRustTargets
+  );
+
+  environment = rustAppleToolchainEnv // {
     ANDROID_HOME = androidHome;
     ANDROID_SDK_ROOT = androidHome;
+    ANDROID_NDK_HOME = "${androidHome}/ndk/${ndkVersion}";
     JAVA_HOME = "${pkgs.zulu25}";
     GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${androidHome}/build-tools/${buildToolsVersion}/aapt2";
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT = "1";
@@ -138,7 +168,7 @@ let
   xcodeRunnerTools = pkgs.runCommandLocal "gha-runner-xcode-tools" { } ''
         mkdir -p $out/bin
 
-        for tool in xcrun simctl actool ibtool xctrace; do
+        for tool in simctl actool ibtool xctrace; do
           cat > "$out/bin/$tool" <<EOF
     #!${pkgs.bash}/bin/bash
     export DEVELOPER_DIR=${lib.escapeShellArg xcodeDeveloperDir}
@@ -146,6 +176,13 @@ let
     EOF
           chmod +x "$out/bin/$tool"
         done
+
+        cat > "$out/bin/xcrun" <<EOF
+    #!${pkgs.bash}/bin/bash
+    export DEVELOPER_DIR=${lib.escapeShellArg xcodeDeveloperDir}
+    exec /usr/bin/xcrun "\$@"
+    EOF
+        chmod +x "$out/bin/xcrun"
 
         # Each runner has its own security session (SessionCreate), where the
         # keychain starts locked, so unlock it before Xcode needs to sign.
@@ -354,6 +391,18 @@ in
       ${runAsRunner} /usr/bin/security default-keychain -d user -s ${runnerKeychain}
 
       /usr/sbin/DevToolsSecurity -enable >/dev/null
+
+      # Only touch the network when a target is missing, not on every switch
+      installedRustTargets="$(${runAsRunner} ${pkgs.rustup}/bin/rustup target list --installed --toolchain stable 2>/dev/null || true)"
+      for target in ${lib.concatStringsSep " " rustTargets}; do
+        if ! echo "$installedRustTargets" | grep -qx "$target"; then
+          echo >&2 "installing rust stable toolchain and targets..."
+          ${runAsRunner} ${pkgs.rustup}/bin/rustup toolchain install stable --profile minimal \
+            ${lib.concatMapStringsSep " " (t: "--target ${t}") rustTargets}
+          ${runAsRunner} ${pkgs.rustup}/bin/rustup default stable
+          break
+        fi
+      done
 
       if [ ! -d ${lib.escapeShellArg xcodeAppPath} ]; then
         export PATH=${lib.escapeShellArg "${lib.makeBinPath [ pkgs.coreutils ]}:/usr/bin:/bin:/usr/sbin:/sbin"}
