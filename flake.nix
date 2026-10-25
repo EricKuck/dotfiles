@@ -39,6 +39,11 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
       inputs.systems.follows = "systems";
     };
+
+    immich-photo-sync = {
+      url = "github:EricKuck/ImmichPhotoSync";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

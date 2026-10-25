@@ -118,6 +118,26 @@
         "type": "github"
       }
     },
+    "immich-photo-sync": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792960292,
+        "narHash": "sha256-v17rz9g3Es05ueJw/53l20GKw6flllvW75ZlwGJjuwk=",
+        "owner": "EricKuck",
+        "repo": "ImmichPhotoSync",
+        "rev": "3bcedb6b2bdc1b3c95d94aa0a1785013ba5af402",
+        "type": "github"
+      },
+      "original": {
+        "owner": "EricKuck",
+        "repo": "ImmichPhotoSync",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1792615934,
@@ -170,6 +190,7 @@
         "claude-code": "claude-code",
         "darwin": "darwin",
         "home-manager": "home-manager",
+        "immich-photo-sync": "immich-photo-sync",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "quadlet-nix": "quadlet-nix",
@@ -257,11 +278,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791885023,
-        "narHash": "sha256-C3alQ2MEt0zVrUSho5NUDo3jmhbff72++bfwoqT9Omo=",
+        "lastModified": 1786901030,
+        "narHash": "sha256-WSFCsDSE5ffgD2MqzkM2CYjeFiKhRF/dJUN8uedb6YE=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "0d6d739a833ba9a9c93034862e4a7b061a062a1c",
+        "rev": "27b3b12a8e6375f28ebe122f07d230ca5459bbfa",
         "type": "github"
       },
       "original": {
