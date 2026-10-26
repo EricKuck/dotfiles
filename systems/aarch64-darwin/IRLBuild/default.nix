@@ -21,30 +21,7 @@ with lib.custom;
       server.enable = true;
       ios.enable = true;
     };
-
-    services.corten-matrix = {
-      enable = true;
-      homeserver = {
-        address = "https://matrix.kuck.ing";
-        domain = "kuck.ing";
-      };
-      adminUser = "@eric:kuck.ing";
-
-      settings = {
-        # Must match the registration Synapse loads (KuckyNas matrix/imessage.nix).
-        appservice = {
-          as_token = config.sops.placeholder.corten-matrix-as-token;
-          hs_token = config.sops.placeholder.corten-matrix-hs-token;
-        };
-
-        double_puppet.secrets."kuck.ing" = "as_token:${config.sops.placeholder.doublepuppet-as-token}";
-      };
-    };
   };
-
-  # KuckyNas builds the appservice registration from this, so it has to stay
-  # reachable from there.
-  meta.ipAddress = "192.168.1.23";
 
   networking = {
     hostName = "IRLBuild";
@@ -61,10 +38,6 @@ with lib.custom;
       })
       // {
         immich-photo-sync-api-key.owner = config.meta.flake.owner;
-        corten-matrix-as-token = { };
-        corten-matrix-hs-token = { };
-        # Same value as on KuckyNas; lets the bridge double-puppet @eric.
-        doublepuppet-as-token = { };
       };
   };
 
@@ -91,6 +64,7 @@ with lib.custom;
 
   environment.systemPackages = with pkgs; [
     sops
+    lynx
   ];
 
   system.stateVersion = 6;
