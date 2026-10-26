@@ -12,10 +12,6 @@ let
 
   buildToolsVersion = "37.0.0";
 
-  emptySysImgXml = pkgs.writeText "sys-img2-3.xml" ''
-    <?xml version="1.0" encoding="utf-8"?>
-    <sys-img:sdk-sys-img xmlns:sys-img="http://schemas.android.com/sdk/android/repo/sys-img2/03"/>
-  '';
   emptyAddonXml = pkgs.writeText "addon2-3.xml" ''
     <?xml version="1.0" encoding="utf-8"?>
     <addon:sdk-addon xmlns:addon="http://schemas.android.com/sdk/android/repo/addon2/03"/>
@@ -24,11 +20,14 @@ let
   androidComposition = pkgs.androidenv.composeAndroidPackages {
     repoXmls = {
       packages = [ ./android-repo/repository2-3.xml ];
-      images = [ emptySysImgXml ];
+      images = [ ./android-repo/sys-img2-3.xml ];
       addons = [ emptyAddonXml ];
     };
     buildToolsVersions = [ buildToolsVersion ];
+    # 35 is here for its system image, the one Gradle managed devices boot (AWE's screenshot and baseline
+    # profile devices). Images follow platformVersions, so 37.0's default image comes along with it.
     platformVersions = [
+      "35"
       "37.0"
       "37.2"
     ];
@@ -36,6 +35,11 @@ let
     cmakeVersions = [ "3.22.1" ];
     includeNDK = true;
     ndkVersions = [ ndkVersion ];
+    includeEmulator = true;
+    emulatorVersion = "37.1.11";
+    includeSystemImages = true;
+    systemImageTypes = [ "default" ];
+    abiVersions = [ "arm64-v8a" ];
   };
   androidHome = "${androidComposition.androidsdk}/libexec/android-sdk";
 
@@ -345,6 +349,15 @@ in
         KeepAlive = true;
       };
     }) cfg;
+
+    launchd.daemons = lib.mapAttrs' (
+      name: _:
+      lib.nameValuePair "github-runner-${name}" {
+        script = lib.mkBefore ''
+          rm -f -- "$RUNNER_ROOT/.env" "$RUNNER_ROOT/.path"
+        '';
+      }
+    ) cfg;
 
     # nix-darwin only chowns the top-level runner dirs, so files left behind by a
     # previous runner user (e.g. .runner/.credentials, logs, caches) would be
