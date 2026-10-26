@@ -8,9 +8,9 @@
 }:
 
 # Upstream ships the bridge as a single self-contained binary (Go + a static
-# rustpush core). Building it from source needs Apple's private
-# AAAbsintheContext framework, a patched vendored rustpush checkout and a
-# Homebrew toolchain, so the release binary is the sane thing to package.
+# rustpush core). Since 1.3.6 it can't be built from source at all: the code
+# that registers with Apple (on macOS, by reading this Mac's hardware
+# identifiers) is closed-source and only ships in the release binaries.
 #
 # The binary only links system frameworks. Its two optional runtime
 # dependencies are resolved at runtime: libheif is dlopen()ed by bare name
@@ -18,11 +18,11 @@
 # looked up on PATH. The wrapper points both at nixpkgs instead of Homebrew.
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "corten-matrix";
-  version = "1.3.5";
+  version = "1.3.6";
 
   src = fetchurl {
     url = "https://github.com/lrhodin/corten-matrix/releases/download/${finalAttrs.version}/corten-matrix-macos";
-    hash = "sha256-JoblgDw2rtQVXYGBPm+mNXmpMso/dJbOiwFJTjFKfHc=";
+    hash = "sha256-KYrN7yIFB0vGqi5VfODLIVayx5zIEpTLRui3/pNOMdo=";
   };
 
   dontUnpack = true;
@@ -56,7 +56,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   meta = {
     description = "Matrix-iMessage puppeting bridge built on rustpush";
     homepage = "https://github.com/lrhodin/corten-matrix";
-    license = lib.licenses.agpl3Plus;
+    # AGPL source plus the closed-source registration code linked in.
+    license = with lib.licenses; [
+      agpl3Plus
+      unfree
+    ];
     sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
     platforms = [
       "aarch64-darwin"

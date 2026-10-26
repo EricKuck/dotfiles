@@ -12,7 +12,7 @@
   sops.templates."doublepuppet-registration" = {
     content = ''
       id: doublepuppet
-      url: ""
+      url: null
       as_token: ${config.sops.placeholder.doublepuppet-as-token}
       hs_token: ${config.sops.placeholder.doublepuppet-hs-token}
       sender_localpart: doublepuppetbot

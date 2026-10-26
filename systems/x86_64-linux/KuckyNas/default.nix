@@ -174,7 +174,6 @@ in
       mxroute-apikey = { };
       mxroute-emails = { };
       immich_api_key.owner = config.meta.flake.owner;
-      eric_icloud_username.owner = config.meta.flake.owner;
       karakeep_env.owner = config.meta.flake.owner;
       gluetun-uk-key.owner = config.meta.flake.owner;
       immich_server_env.owner = config.meta.flake.owner;
@@ -196,7 +195,6 @@ in
       matrix-mas-encryption-key = { };
       mautrix-signal-pickle-key = { };
       mautrix-gvoice-pickle-key = { };
-      mautrix-gmessages-pickle-key = { };
       mautrix-discord-pickle-key = { };
       mautrix-slack-pickle-key = { };
       doublepuppet-as-token = { };
@@ -215,10 +213,6 @@ in
     '';
     templates."mautrix-gvoice-env".content = ''
       MAUTRIX_GVOICE_PICKLE_KEY=${config.sops.placeholder.mautrix-gvoice-pickle-key}
-      DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
-    '';
-    templates."mautrix-gmessages-env".content = ''
-      MAUTRIX_GMESSAGES_PICKLE_KEY=${config.sops.placeholder.mautrix-gmessages-pickle-key}
       DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
     '';
     templates."mautrix-discord-env".content = ''
@@ -245,7 +239,6 @@ in
     zfs_2_4
     lynx
     claude-code
-    unstable.icloudpd
     unstable.immich-go
   ];
 
