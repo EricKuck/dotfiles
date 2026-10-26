@@ -21,7 +21,29 @@ with lib.custom;
       server.enable = true;
       ios.enable = true;
     };
+
+    # The imessage-bridge VM: Messages + BlueBubbles for the iMessage bridge on
+    # KuckyNas. Built with `imessage-vm-image`, deployed with
+    # `imessage-vm-deploy`.
+    services.tart-vms.vms.imessage-bridge.forwardPorts = [
+      # BlueBubbles, for mautrix-imessage on KuckyNas.
+      {
+        host = 1234;
+        guest = 1234;
+      }
+      {
+        host = 2222;
+        guest = 22;
+      }
+      # Screen Sharing; 5900 is IRLBuild's own.
+      {
+        host = 5901;
+        guest = 5900;
+      }
+    ];
   };
+
+  meta.ipAddress = "192.168.1.23";
 
   networking = {
     hostName = "IRLBuild";
@@ -65,6 +87,8 @@ with lib.custom;
   environment.systemPackages = with pkgs; [
     sops
     lynx
+    custom.imessage-vm-image
+    custom.imessage-vm-deploy
   ];
 
   system.stateVersion = 6;

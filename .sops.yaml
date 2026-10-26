@@ -2,7 +2,12 @@ keys:
   - &host_ekmbp age1wm57c0mv6lsdr6z3p5tjczsw04ynf6542ea7nk00pfm5k8d90axs7dsfyt
   - &host_kuckynas age1wm57c0mv6lsdr6z3p5tjczsw04ynf6542ea7nk00pfm5k8d90axs7dsfyt
   - &host_irlbuild age1cfzt9pxmwuwh4rgwuxv9365yxxvmwppy0r5nf4g4llpsnprku54s4f8lwq
+  - &imessage_bridge age10shjxdwd4awzm0gfkuadfc6anfml5mw60ezs0vt52rjtam4uaveqeqrvwj
 creation_rules:
+  - path_regex: secrets/imessage_bridge\.yaml$
+    key_groups:
+      - age:
+          - *imessage_bridge
   - path_regex: secrets/[^/]+\.yaml$
     key_groups:
       - age:

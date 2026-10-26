@@ -49,6 +49,7 @@ in
     matrix-mas = 8125;
     matrix-gvoice = 8126;
     matrix-signal = 8127;
+    matrix-imessage = 8128;
     matrix-discord = 8129;
     matrix-slack = 8130;
     byparr = 8191;

@@ -197,6 +197,7 @@ in
       mautrix-gvoice-pickle-key = { };
       mautrix-discord-pickle-key = { };
       mautrix-slack-pickle-key = { };
+      mautrix-imessage-pickle-key = { };
       doublepuppet-as-token = { };
       doublepuppet-hs-token = { };
       ghcr_auth = { };
@@ -221,6 +222,10 @@ in
     '';
     templates."mautrix-slack-env".content = ''
       MAUTRIX_SLACK_PICKLE_KEY=${config.sops.placeholder.mautrix-slack-pickle-key}
+      DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
+    '';
+    templates."mautrix-imessage-env".content = ''
+      MAUTRIX_IMESSAGE_PICKLE_KEY=${config.sops.placeholder.mautrix-imessage-pickle-key}
       DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
     '';
   };

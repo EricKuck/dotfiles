@@ -37,8 +37,14 @@ let
         "matrix-synapse.service"
         "matrix-bridges-registration.service"
       ]
-      ++ lib.optionals bridge.database.enable [ "postgresql.service" ];
-      requires = lib.optionals bridge.database.enable [ "postgresql.service" ];
+      ++ lib.optionals bridge.database.enable [
+        "postgresql.service"
+        "postgresql-setup.service"
+      ];
+      requires = lib.optionals bridge.database.enable [
+        "postgresql.service"
+        "postgresql-setup.service"
+      ];
 
       preStart = ''
         # Create data directory if it doesn't exist
@@ -146,6 +152,25 @@ in
               type = types.lines;
               default = "";
               description = "Extra commands to run in the preStart script";
+            };
+
+            extraRegistrationUsers = mkOption {
+              type = types.listOf types.str;
+              default = [ ];
+              description = ''
+                Matrix IDs added to the registration as non-exclusive user
+                namespaces, for bridges that double puppet by logging in with
+                their own appservice token.
+              '';
+            };
+
+            registrationUrl = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = ''
+                Overrides the URL in the generated registration, for bridges
+                whose config can't set it.
+              '';
             };
 
             createUser = mkOption {
@@ -302,6 +327,23 @@ in
                 chown mautrix-${name}:mautrix-${name} ${settingsFile}
                 chmod 600 ${settingsFile}
               fi
+
+              ${lib.concatMapStrings (mxid: ''
+                ${pkgs.yq}/bin/yq -y --arg regex ${lib.escapeShellArg "^${lib.escapeRegex mxid}$"} \
+                  '.namespaces.users = ((.namespaces.users // []) + [{regex: $regex, exclusive: false}] | unique_by(.regex))' \
+                  ${registrationFile} > ${registrationFile}.tmp
+                mv ${registrationFile}.tmp ${registrationFile}
+                chown mautrix-${name}:mautrix-${name} ${registrationFile}
+                chmod 640 ${registrationFile}
+              '') bridge.extraRegistrationUsers}
+
+              ${lib.optionalString (bridge.registrationUrl != null) ''
+                ${pkgs.yq}/bin/yq -y --arg url ${lib.escapeShellArg bridge.registrationUrl} '.url = $url' \
+                  ${registrationFile} > ${registrationFile}.tmp
+                mv ${registrationFile}.tmp ${registrationFile}
+                chown mautrix-${name}:mautrix-${name} ${registrationFile}
+                chmod 640 ${registrationFile}
+              ''}
 
               echo "Registration for ${name} complete."
             ''
