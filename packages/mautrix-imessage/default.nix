@@ -8,13 +8,13 @@
 
 buildGoModule (finalAttrs: {
   pname = "mautrix-imessage";
-  version = "0.2.0-unstable-2026-10-26";
+  version = "0.2.1-unstable-2026-10-26";
 
   src = fetchFromGitHub {
     owner = "EricKuck";
     repo = "imessage";
-    rev = "3356e13301d4ba28133c7999e0d680601f1f9c97";
-    hash = "sha256-rL7cKlTRD59QxKE12nLVKgweTHQIqatWfFIAmJ49LTo=";
+    rev = "92ab3d3c100607539328be897a85e3970cbfaea2";
+    hash = "sha256-A3MALl9L6PLE84ZzushgFO0RPObDD45BcVPYrvx8x3I=";
   };
 
   vendorHash = "sha256-AMmJvgzQ48/K0Ug4uCX0KnO69pBvzvZ6OO0oE+747xY=";
