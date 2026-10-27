@@ -229,7 +229,7 @@ in
     xcode = {
       version = lib.mkOption {
         type = lib.types.str;
-        default = "27.0.0";
+        default = "27.1.0";
         description = "Xcode version to keep installed for Darwin GitHub Actions runners.";
       };
 
