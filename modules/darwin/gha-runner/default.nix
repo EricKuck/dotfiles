@@ -455,6 +455,7 @@ in
 
       if ! ${lib.escapeShellArg xcodeBuildPath} -checkFirstLaunchStatus >/dev/null 2>&1; then
         ${lib.escapeShellArg xcodeBuildPath} -runFirstLaunch
+        /usr/bin/pkill -u ${runnerUser} -f CoreSimulatorService || true
       fi
 
       ${lib.concatMapStrings (platform: ''

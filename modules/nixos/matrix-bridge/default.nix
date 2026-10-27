@@ -311,6 +311,12 @@ in
                 ${bridge.package}/bin/${bridge.executable} \
                   -c ${settingsFile} \
                   -g -r ${registrationFile}
+
+                if [ -n "''${AS_TOKEN:-}" ] && [ -n "''${HS_TOKEN:-}" ]; then
+                  ${pkgs.yq}/bin/yq -y --arg as "$AS_TOKEN" --arg hs "$HS_TOKEN" \
+                    '.as_token = $as | .hs_token = $hs' ${registrationFile} > ${registrationFile}.tmp
+                  mv ${registrationFile}.tmp ${registrationFile}
+                fi
                 chown mautrix-${name}:mautrix-${name} ${registrationFile}
                 chmod 640 ${registrationFile}
 

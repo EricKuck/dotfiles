@@ -34,6 +34,7 @@ const RO_HOME: &[&str] = &[
     ".orca/agent-hooks",
     ".aibox/signing.keychain-db",
     "Library/Preferences/com.apple.security.plist",
+    "Library/Java/JavaVirtualMachines",
 ];
 
 // Crown-jewel secrets, hard-denied regardless of any allow -- including the
@@ -337,6 +338,14 @@ const METAL_TOOLCHAIN_REGEX: &str =
 const METAL_TOOLCHAIN_PREFIX: &str =
     "/private/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-";
 
+const CRYPTEX_MOUNT_DIR: &str = "/private/var/run/com.apple.security.cryptexd/mnt";
+const SIMULATOR_RUNTIME_REGEX: &str =
+    "^/private/var/run/com\\.apple\\.security\\.cryptexd/mnt/com\\.apple\\.[A-Za-z]+\\.SimulatorRuntime-[^/]+(/|$)";
+
+const TEST_SESSION_LOGS_REGEX: &str = "^/private/var/tmp/test-session-systemlogs-[^/]+\\.logarchive(/|$)";
+
+const READ_EXTENSION_CLASS: &str = "com.apple.app-sandbox.read";
+
 // Claude Code's per-session scratchpads. devicectl hands every file it copies to or from a device,
 // and every screenshot, to CoreDevice through an extension on the local path, so device work needs
 // one here; scratchpads hold only temporary files, which is why this is the only place allowed.
@@ -427,7 +436,15 @@ pub fn generate(
     s.push_str(&format!(
         "(allow file-issue-extension (regex #\"{METAL_CACHE_REGEX}\") (regex #\"{SCRATCHPAD_REGEX}\"))\n"
     ));
+    s.push_str(&format!(
+        "(allow file-issue-extension (require-all (extension-class \"{READ_EXTENSION_CLASS}\") (subpath \"{}\")))\n",
+        escape(workspace)
+    ));
     s.push_str(&format!("(allow file-read* (regex #\"{METAL_TOOLCHAIN_REGEX}\"))\n"));
+    s.push_str(&format!(
+        "(allow file-read* (literal \"{CRYPTEX_MOUNT_DIR}\") (regex #\"{SIMULATOR_RUNTIME_REGEX}\"))\n"
+    ));
+    s.push_str(&format!("(allow file-read* file-write* (regex #\"{TEST_SESSION_LOGS_REGEX}\"))\n"));
     s.push_str("(allow file-ioctl\n");
     for path in IOCTL_LITERAL {
         s.push_str(&format!("  (literal \"{path}\")\n"));
@@ -668,10 +685,16 @@ pub fn would_allow(operation: &str, path: &str) -> bool {
     }
     let read = operation.starts_with("file-read");
     let write = operation.starts_with("file-write");
-    if read && (RO_LITERAL.contains(&path) || under_any(path, RO_ABSOLUTE) || is_metal_toolchain(path)) {
+    if read
+        && (RO_LITERAL.contains(&path)
+            || under_any(path, RO_ABSOLUTE)
+            || is_metal_toolchain(path)
+            || path == CRYPTEX_MOUNT_DIR
+            || is_simulator_runtime(path))
+    {
         return true;
     }
-    if (read || write) && is_temporary_items(path) {
+    if (read || write) && (is_temporary_items(path) || is_test_session_logs(path)) {
         return true;
     }
     if (read || write)
@@ -706,6 +729,26 @@ fn is_temporary_items(path: &str) -> bool {
 fn is_metal_toolchain(path: &str) -> bool {
     path.strip_prefix(METAL_TOOLCHAIN_PREFIX)
         .is_some_and(|rest| !rest.is_empty() && !rest.starts_with('/'))
+}
+
+fn is_simulator_runtime(path: &str) -> bool {
+    let Some(rest) = path
+        .strip_prefix(CRYPTEX_MOUNT_DIR)
+        .and_then(|rest| rest.strip_prefix("/com.apple."))
+    else {
+        return false;
+    };
+    let mount = rest.split('/').next().unwrap_or("");
+    mount.split_once(".SimulatorRuntime-").is_some_and(|(platform, version)| {
+        !platform.is_empty() && platform.bytes().all(|b| b.is_ascii_alphabetic()) && !version.is_empty()
+    })
+}
+
+fn is_test_session_logs(path: &str) -> bool {
+    path.strip_prefix("/private/var/tmp/test-session-systemlogs-").is_some_and(|rest| {
+        let name = rest.split('/').next().unwrap_or("");
+        name.len() > ".logarchive".len() && name.ends_with(".logarchive")
+    })
 }
 
 // Mirrors SCRATCHPAD_REGEX.
@@ -904,7 +947,7 @@ mod tests {
             .find("(deny file-read* file-read-metadata file-write* file-ioctl file-issue-extension")
             .expect("secrets deny");
         assert!(allow < deny);
-        assert_eq!(sb.matches("file-issue-extension").count(), 2);
+        assert_eq!(sb.matches("file-issue-extension").count(), 3);
     }
 
     #[test]
@@ -950,7 +993,55 @@ mod tests {
         assert!(!would_allow("file-write-data", &format!("{mnt}/com.apple.MobileAsset.MetalToolchain-v27/x")));
         assert!(!would_allow("file-read-data", &format!("{mnt}/com.apple.MobileAsset.MetalToolchain-")));
         assert!(!would_allow("file-read-data", &format!("{mnt}/com.apple.Other-v1/x")));
-        assert!(!would_allow("file-read-data", mnt));
+    }
+
+    #[test]
+    fn reads_simulator_runtime_cryptexes_and_lists_their_mount() {
+        let mnt = "/private/var/run/com.apple.security.cryptexd/mnt";
+        let runtime = format!("{mnt}/com.apple.iPhoneOS.SimulatorRuntime-v24.1.94232.0.Qxtnsn");
+        assert!(would_allow("file-read-data", mnt));
+        assert!(would_allow("file-read-data", &runtime));
+        assert!(would_allow(
+            "file-read-data",
+            &format!("{runtime}/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.1.simruntime")
+        ));
+        assert!(would_allow("file-read-data", &format!("{mnt}/com.apple.xrOS.SimulatorRuntime-v3/x")));
+        assert!(!would_allow("file-write-data", &format!("{runtime}/x")));
+        assert!(!would_allow("file-write-data", mnt));
+        assert!(!would_allow("file-read-data", &format!("{mnt}/com.apple.iPhoneOS.SimulatorRuntime-")));
+        assert!(!would_allow("file-read-data", &format!("{mnt}/com.apple..SimulatorRuntime-v1/x")));
+        assert!(!would_allow("file-read-data", &format!("{mnt}/com.apple.Safari-v1/x")));
+
+        let sb = generate("/tmp/ws", "/Users/nobody", &["/state".into()], &[], &[]);
+        assert!(sb.contains(&format!("(literal \"{mnt}\")")));
+        assert!(sb.contains("SimulatorRuntime-[^/]+(/|$)"));
+    }
+
+    #[test]
+    fn writes_only_test_session_log_archives_under_var_tmp() {
+        let archive = "/private/var/tmp/test-session-systemlogs-2026.10.27_11-31-37--0400.logarchive";
+        assert!(would_allow("file-write-unlink", archive));
+        assert!(would_allow("file-write-create", &format!("{archive}/Info.plist")));
+        assert!(would_allow("file-read-data", archive));
+        assert!(!would_allow("file-write-create", "/private/var/tmp/test-session-systemlogs-x"));
+        assert!(!would_allow("file-write-create", "/private/var/tmp/test-session-systemlogs-.logarchive"));
+        assert!(!would_allow("file-write-create", "/private/var/tmp/other.logarchive"));
+        assert!(!would_allow("file-write-create", "/private/var/tmp/x"));
+    }
+
+    // The workspace's read extensions are emitted, but only of the read class and only for the workspace.
+    #[test]
+    fn issues_read_extensions_for_the_workspace_only() {
+        let sb = generate("/tmp/ws", "/Users/nobody", &["/state".into()], &[], &[]);
+        assert!(sb.contains(
+            "(allow file-issue-extension (require-all (extension-class \"com.apple.app-sandbox.read\") (subpath \"/tmp/ws\")))"
+        ));
+        assert_eq!(sb.matches("(extension-class").count(), 1);
+        let allow = sb.find("(extension-class").expect("workspace issue allow");
+        let deny = sb
+            .find("(deny file-read* file-read-metadata file-write* file-ioctl file-issue-extension")
+            .expect("secrets deny");
+        assert!(allow < deny);
     }
 
     // The denials worth keeping: a stat of a hard-denied secret is a real event,
