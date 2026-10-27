@@ -292,7 +292,7 @@ in
         "hammerspoon"
         "ghostty@tip"
         "abue-ammar/tinycast/tinycast"
-        "0xMH/claude-latest/claude-code"
+        "0xmh/claude-latest/claude-code"
       ];
     };
 

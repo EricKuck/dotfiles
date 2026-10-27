@@ -63,12 +63,6 @@ with lib.custom;
       };
   };
 
-  homebrew = {
-    casks = [
-      "utm"
-    ];
-  };
-
   gha-runner.irl.runners = lib.genAttrs runners (name: {
     tokenFile = config.sops.secrets."gha-runner-${name}-token".path;
   });
