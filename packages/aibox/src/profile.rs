@@ -242,9 +242,9 @@ const CONNECT_HOME: &[&str] = &["Library/Developer/CoreSimulator"];
 // launchd vends the per-user agent sockets out of directories it owns, one of
 // which sits inside the /private/tmp allow above -- SSH_AUTH_SOCK is
 // /private/var/run/com.apple.launchd.<random>/Listeners, and the same shape
-// appears under /private/tmp. Named in both places so that widening a temp
+// appears under /private/tmp and, on macOS 27, /private/var/tmp. Named in each so that widening a temp
 // directory later cannot quietly hand the agents back.
-const LAUNCHD_SOCKET_DIRS: &[&str] = &["/private/tmp", "/private/var/run"];
+const LAUNCHD_SOCKET_DIRS: &[&str] = &["/private/tmp", "/private/var/run", "/private/var/tmp"];
 const LAUNCHD_SOCKET_PREFIX: &str = "com.apple.launchd.";
 
 // The one launchd-vended socket a session needs: `xcodebuild test` talks to
@@ -680,8 +680,9 @@ pub fn would_allow(operation: &str, path: &str) -> bool {
         if !path.starts_with('/') {
             return true;
         }
-        return !is_launchd_socket(path)
-            && (CONNECT_LITERAL.contains(&path) || under_any(path, CONNECT_SUBPATH));
+        return is_allowed_launchd_socket(path)
+            || (!is_launchd_socket(path)
+                && (CONNECT_LITERAL.contains(&path) || under_any(path, CONNECT_SUBPATH)));
     }
     let read = operation.starts_with("file-read");
     let write = operation.starts_with("file-write");
@@ -901,6 +902,15 @@ mod tests {
         assert!(!would_allow(
             "network-outbound",
             "/private/tmp/com.apple.launchd.ku5xOPhovk/Listeners"
+        ));
+        // macOS 27 vends them under /private/var/tmp too.
+        assert!(would_allow(
+            "network-outbound",
+            "/private/var/tmp/com.apple.launchd.rVX6WZY3Jr/com.apple.testmanagerd.unix-domain.socket"
+        ));
+        assert!(!would_allow(
+            "network-outbound",
+            "/private/var/tmp/com.apple.launchd.rVX6WZY3Jr/Listeners"
         ));
     }
 

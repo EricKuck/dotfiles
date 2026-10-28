@@ -78,6 +78,7 @@ with lib.custom;
     masApps = {
       "MQTT Explorer" = 1455214828;
       PagerCall = 6740581987;
+      Reeder = 1449412482;
     };
   };
 
