@@ -1,0 +1,17 @@
+[GENERAL]
+
+config-version = 3
+dominant-hand = "right"
+haptic-feedback = true
+menu-bar-icon = "trickpad"   # Or name an SF Symbol: "sf:hand.tap.fill"
+
+[MOUSE]
+
+[TRACKPAD]
+
+three-finger-swipe-up = "cmd+down"           # Jump to bottom
+three-finger-swipe-down = "cmd+up"           # Jump to top
+three-finger-swipe-left = "cmd+shift+["      # Previous tab
+three-finger-swipe-right = "cmd+shift+]"     # Next tab
+four-finger-swipe-down = "mission-control"
+four-finger-swipe-up = "show-desktop"

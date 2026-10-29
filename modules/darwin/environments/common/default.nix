@@ -257,6 +257,7 @@ in
         ghostty-bin.terminfo
         unstable.mas
         custom.micswitch
+        custom.trickpad
         custom.litra-rs
       ];
       variables = {
@@ -290,7 +291,7 @@ in
         "lulu"
         "karabiner-elements"
         "hammerspoon"
-        "ghostty@tip"
+        "ghostty"
         "abue-ammar/tinycast/tinycast"
         "0xmh/claude-latest/claude-code"
       ];

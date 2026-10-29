@@ -210,9 +210,23 @@ in
       };
     };
 
+    launchd.agents."fyi.thirdwind.trickpad.agent" = mkIf pkgs.stdenv.isDarwin {
+      enable = true;
+      config = {
+        Label = "fyi.thirdwind.trickpad.agent";
+        ProgramArguments = [
+          "${pkgs.custom.trickpad}/Applications/Trickpad.app/Contents/MacOS/Trickpad"
+        ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        ProcessType = "Interactive";
+      };
+    };
+
     xdg.configFile = {
       "lazygit/config.yml".source = ../configs/lazygit/config.yml;
       "karabiner/karabiner.json".source = ../configs/karabiner/karabiner.json;
+      "trickpad/config.toml".source = ../configs/trickpad/config.toml;
       "bat".source = ../configs/bat;
       "ghostty".source = ../configs/ghostty;
 
