@@ -36,6 +36,7 @@ with lib.custom;
 
     programs = {
       nh.enable = true;
+      rex.enable = true;
     };
   };
 
@@ -80,6 +81,38 @@ with lib.custom;
       PagerCall = 6740581987;
       Reeder = 1449412482;
     };
+  };
+
+  # Forwards KuckyNas's personal Rex server socket to a local one, since Rex has no
+  # authenticated LAN listener. Add the local socket path as a remote host in Rex.
+  # macOS's ssh is used so a key passphrase can come from the keychain.
+  launchd.user.agents.rex-kuckynas-tunnel.serviceConfig = {
+    ProgramArguments = [
+      "/usr/bin/ssh"
+      "-N"
+      "-o"
+      "BatchMode=yes"
+      "-o"
+      "ConnectTimeout=10"
+      "-o"
+      "ExitOnForwardFailure=yes"
+      "-o"
+      "ServerAliveInterval=30"
+      "-o"
+      "ServerAliveCountMax=3"
+      "-o"
+      "StreamLocalBindUnlink=yes"
+      "-o"
+      "StreamLocalBindMask=0177"
+      "-L"
+      # uid 1000, as reported by `rex server status` on KuckyNas.
+      "${config.meta.flake.ownerHome}/.ssh/rex-kuckynas.sock:/run/user/1000/rex/server.sock"
+      "${config.meta.flake.owner}@${kuckyNasIp}"
+    ];
+    RunAtLoad = true;
+    KeepAlive = true;
+    ThrottleInterval = 30;
+    StandardErrorPath = "${config.meta.flake.ownerHome}/Library/Logs/rex-kuckynas-tunnel.log";
   };
 
   system.activationScripts.postActivation.text = ''

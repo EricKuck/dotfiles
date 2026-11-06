@@ -89,6 +89,7 @@ in
 
   config = mkIf cfg.enable {
     custom.programs.nh.enable = true;
+    custom.programs.rex.enable = true;
 
     security.wrappers = {
       kopia = {

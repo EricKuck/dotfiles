@@ -40,6 +40,11 @@
       inputs.systems.follows = "systems";
     };
 
+    rex = {
+      url = "https://pkgs.superlogical.com/rex/nix/preview.tar.gz";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     immich-photo-sync = {
       url = "github:EricKuck/ImmichPhotoSync";
       inputs.nixpkgs.follows = "nixpkgs";
