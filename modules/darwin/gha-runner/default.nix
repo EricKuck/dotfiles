@@ -169,6 +169,23 @@ let
       ${lib.optionalString (xcodeCfg.fastlaneSessionFile != null) "--use-fastlane-auth"}
   '';
 
+  # The runner user can't resolve the Metal toolchain through the metal stub
+  # in Xcode (it reports it missing even when installed), so link the mounted
+  # toolchain where xcrun looks for toolchains and select it with TOOLCHAINS.
+  # The mount path changes between boots, so this runs on every runner start.
+  metalToolchainLink = "${runnerHome}/Library/Developer/Toolchains/Metal.xctoolchain";
+  linkMetalToolchain = ''
+    metalToolchain="$(/bin/ls -d /private/var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-*/Metal.xctoolchain 2>/dev/null | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/tail -n1)"
+    if [ -n "$metalToolchain" ]; then
+      ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg (dirOf metalToolchainLink)}
+      ${pkgs.coreutils}/bin/ln -sfn "$metalToolchain" ${lib.escapeShellArg metalToolchainLink}
+      TOOLCHAINS="$(/usr/libexec/PlistBuddy -c "Print :Identifier" "$metalToolchain/ToolchainInfo.plist")"
+      export TOOLCHAINS
+    else
+      echo >&2 "no mounted Metal toolchain found"
+    fi
+  '';
+
   xcodeRunnerTools = pkgs.runCommandLocal "gha-runner-xcode-tools" { } ''
         mkdir -p $out/bin
 
@@ -355,6 +372,7 @@ in
       lib.nameValuePair "github-runner-${name}" {
         script = lib.mkBefore ''
           rm -f -- "$RUNNER_ROOT/.env" "$RUNNER_ROOT/.path"
+          ${linkMetalToolchain}
         '';
       }
     ) cfg;
@@ -465,6 +483,20 @@ in
           ${lib.escapeShellArg xcodeBuildPath} -downloadPlatform ${platform}
         fi
       '') xcodeCfg.simulatorPlatforms}
+
+      # Xcode no longer bundles the Metal compiler either. It's a system-wide
+      # asset matched to each Xcode build, but the runner user can't fetch the
+      # asset catalog, so install it as the primary user.
+      if ! /bin/launchctl asuser "$(/usr/bin/id -u ${lib.escapeShellArg xcodesUser})" \
+        /usr/bin/sudo -u ${lib.escapeShellArg xcodesUser} --set-home \
+        env DEVELOPER_DIR=${lib.escapeShellArg xcodeDeveloperDir} \
+        ${lib.escapeShellArg xcodeBuildPath} -showComponent MetalToolchain 2>/dev/null | grep -q '^Status: installed'; then
+        echo >&2 "installing Metal toolchain..."
+        /bin/launchctl asuser "$(/usr/bin/id -u ${lib.escapeShellArg xcodesUser})" \
+          /usr/bin/sudo -u ${lib.escapeShellArg xcodesUser} --set-home \
+          env DEVELOPER_DIR=${lib.escapeShellArg xcodeDeveloperDir} \
+          ${lib.escapeShellArg xcodeBuildPath} -downloadComponent MetalToolchain
+      fi
     '';
   };
 }
