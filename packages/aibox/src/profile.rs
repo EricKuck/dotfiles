@@ -237,7 +237,10 @@ const CONNECT_SUBPATH: &[&str] = &[
 
 // Home-relative sockets, allowed the same way. The simulator's launchd_sim and
 // its per-device services listen inside the device's own data directory.
-const CONNECT_HOME: &[&str] = &["Library/Developer/CoreSimulator"];
+const CONNECT_HOME: &[&str] = &[
+    "Library/Developer/CoreSimulator",
+    "Library/Application Support/rex/server.sock",
+];
 
 // launchd vends the per-user agent sockets out of directories it owns, one of
 // which sits inside the /private/tmp allow above -- SSH_AUTH_SOCK is

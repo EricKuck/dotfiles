@@ -12,6 +12,23 @@ let
   hostLines = builtins.concatStringsSep "\n" (
     builtins.map (host: "${kuckyNasIp} ${host}") caddyHosts
   );
+  irlBuildConfig = inputs.self.darwinConfigurations.IRLBuild.config;
+  # Remote socket paths are what `rex server status` reports on each machine; the
+  # Linux ones are under uid 1000's runtime dir.
+  rexTunnels = {
+    kuckynas = {
+      address = kuckyNasIp;
+      socket = "/run/user/1000/rex/server.sock";
+    };
+    kuckythings = {
+      address = inputs.self.nixosConfigurations.KuckyThings.config.meta.ipAddress;
+      socket = "/run/user/1000/rex/server.sock";
+    };
+    irlbuild = {
+      address = irlBuildConfig.meta.ipAddress;
+      socket = "${irlBuildConfig.meta.flake.ownerHome}/Library/Application Support/rex/server.sock";
+    };
+  };
   hostsFile = pkgs.writeText "kuckynas-hosts" ''
     127.0.0.1       localhost
     255.255.255.255 broadcasthost
@@ -83,37 +100,41 @@ with lib.custom;
     };
   };
 
-  # Forwards KuckyNas's personal Rex server socket to a local one, since Rex has no
-  # authenticated LAN listener. Add the local socket path as a remote host in Rex.
+  # Forwards each machine's personal Rex server socket to a local one, since Rex has
+  # no authenticated LAN listener. Add ~/.ssh/rex-<name>.sock as a remote host in Rex.
   # macOS's ssh is used so a key passphrase can come from the keychain.
-  launchd.user.agents.rex-kuckynas-tunnel.serviceConfig = {
-    ProgramArguments = [
-      "/usr/bin/ssh"
-      "-N"
-      "-o"
-      "BatchMode=yes"
-      "-o"
-      "ConnectTimeout=10"
-      "-o"
-      "ExitOnForwardFailure=yes"
-      "-o"
-      "ServerAliveInterval=30"
-      "-o"
-      "ServerAliveCountMax=3"
-      "-o"
-      "StreamLocalBindUnlink=yes"
-      "-o"
-      "StreamLocalBindMask=0177"
-      "-L"
-      # uid 1000, as reported by `rex server status` on KuckyNas.
-      "${config.meta.flake.ownerHome}/.ssh/rex-kuckynas.sock:/run/user/1000/rex/server.sock"
-      "${config.meta.flake.owner}@${kuckyNasIp}"
-    ];
-    RunAtLoad = true;
-    KeepAlive = true;
-    ThrottleInterval = 30;
-    StandardErrorPath = "${config.meta.flake.ownerHome}/Library/Logs/rex-kuckynas-tunnel.log";
-  };
+  launchd.user.agents = lib.mapAttrs' (
+    name: tunnel:
+    lib.nameValuePair "rex-${name}-tunnel" {
+      serviceConfig = {
+        ProgramArguments = [
+          "/usr/bin/ssh"
+          "-N"
+          "-o"
+          "BatchMode=yes"
+          "-o"
+          "ConnectTimeout=10"
+          "-o"
+          "ExitOnForwardFailure=yes"
+          "-o"
+          "ServerAliveInterval=30"
+          "-o"
+          "ServerAliveCountMax=3"
+          "-o"
+          "StreamLocalBindUnlink=yes"
+          "-o"
+          "StreamLocalBindMask=0177"
+          "-L"
+          "${config.meta.flake.ownerHome}/.ssh/rex-${name}.sock:${tunnel.socket}"
+          "${config.meta.flake.owner}@${tunnel.address}"
+        ];
+        RunAtLoad = true;
+        KeepAlive = true;
+        ThrottleInterval = 30;
+        StandardErrorPath = "${config.meta.flake.ownerHome}/Library/Logs/rex-${name}-tunnel.log";
+      };
+    }
+  ) rexTunnels;
 
   system.activationScripts.postActivation.text = ''
     cp ${hostsFile} /etc/hosts
