@@ -65,6 +65,7 @@ const RW_HOME: &[&str] = &[
     ".local/share/fish",
     ".clipboard-images",
     ".aibox/activity",
+    ".local/share/rex-agent-resume",
     // Orca's hook channel, and only that: the endpoint file the hooks read and
     // the spool they fall back to. Its userData directory (~/.config/orca on
     // this platform) is deliberately not mounted -- it holds the app's cookies,

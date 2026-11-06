@@ -24,6 +24,8 @@ with lib.custom;
       scrcpy
       rclone
       platformio
+      custom.nix-rebuild-all
+      custom.rx
     ];
 
     # NEVER change this value after the initial install, for any reason,

@@ -91,6 +91,7 @@ const RW_HOME: &[&str] = &[
     ".local/share/fish",
     ".clipboard-images",
     ".aibox/activity",
+    ".local/share/rex-agent-resume",
     "Library/Application Support/rtk",
     // Orca's hook channel, and only that. Its userData directory is NOT
     // granted: the agent hooks need the endpoint file and the spool they fall
