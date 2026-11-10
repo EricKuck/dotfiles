@@ -346,6 +346,10 @@ const CRYPTEX_MOUNT_DIR: &str = "/private/var/run/com.apple.security.cryptexd/mn
 const SIMULATOR_RUNTIME_REGEX: &str =
     "^/private/var/run/com\\.apple\\.security\\.cryptexd/mnt/com\\.apple\\.[A-Za-z]+\\.SimulatorRuntime-[^/]+(/|$)";
 
+// A linked worktree's settings.local.json lives in the main checkout, which is otherwise outside the sandbox.
+const CLAUDE_LOCAL_SETTINGS_REGEX: &str = "/\\.claude/settings\\.local\\.json$";
+const CLAUDE_LOCAL_SETTINGS_SUFFIX: &str = "/.claude/settings.local.json";
+
 const TEST_SESSION_LOGS_REGEX: &str = "^/private/var/tmp/test-session-systemlogs-[^/]+\\.logarchive(/|$)";
 
 const READ_EXTENSION_CLASS: &str = "com.apple.app-sandbox.read";
@@ -449,6 +453,7 @@ pub fn generate(
         "(allow file-read* (literal \"{CRYPTEX_MOUNT_DIR}\") (regex #\"{SIMULATOR_RUNTIME_REGEX}\"))\n"
     ));
     s.push_str(&format!("(allow file-read* file-write* (regex #\"{TEST_SESSION_LOGS_REGEX}\"))\n"));
+    s.push_str(&format!("(allow file-read* (regex #\"{CLAUDE_LOCAL_SETTINGS_REGEX}\"))\n"));
     s.push_str("(allow file-ioctl\n");
     for path in IOCTL_LITERAL {
         s.push_str(&format!("  (literal \"{path}\")\n"));
@@ -695,7 +700,8 @@ pub fn would_allow(operation: &str, path: &str) -> bool {
             || under_any(path, RO_ABSOLUTE)
             || is_metal_toolchain(path)
             || path == CRYPTEX_MOUNT_DIR
-            || is_simulator_runtime(path))
+            || is_simulator_runtime(path)
+            || path.ends_with(CLAUDE_LOCAL_SETTINGS_SUFFIX))
     {
         return true;
     }
@@ -1108,6 +1114,16 @@ mod tests {
         assert!(sb.contains(&format!("(literal \"{}/.git\")", ws.display())));
 
         std::fs::remove_dir_all(&tmp).unwrap();
+    }
+
+    #[test]
+    fn any_claude_local_settings_file_is_read_only() {
+        let path = "/Users/eric/Code/kmp/AWE/.claude/settings.local.json";
+        assert!(would_allow("file-read-data", path));
+        assert!(!would_allow("file-write-data", path));
+        assert!(!would_allow("file-read-data", "/Users/eric/Code/kmp/AWE/.claude/settings.json"));
+        let sb = generate("/tmp/ws", "/Users/nobody", &[], &[], &[]);
+        assert!(sb.contains(r#"(allow file-read* (regex #"/\.claude/settings\.local\.json$"))"#));
     }
 
     #[test]
