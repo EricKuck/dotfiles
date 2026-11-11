@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   inputs,
   system,
   ...
@@ -24,6 +25,10 @@ let
     TERMINFO_DIRS = "${cfg.package}/share/terminfo:";
     GODEBUG = "";
   };
+
+  # aibox allows exactly this path and denies the server's own socket.
+  guardSocket = "${home}/Library/Application Support/rex-guard/guarded.sock";
+  serverSocket = "${home}/Library/Application Support/rex/server.sock";
 in
 {
   options.custom.programs.rex = {
@@ -53,6 +58,21 @@ in
             EnvironmentVariables = serverEnvironment // {
               HOME = home;
             };
+          };
+
+          launchd.user.agents.rex-guard.serviceConfig = {
+            ProgramArguments = [
+              (lib.getExe pkgs.custom.rex-guard)
+              "--listen"
+              guardSocket
+              "--upstream"
+              serverSocket
+            ];
+            RunAtLoad = true;
+            KeepAlive = true;
+            ThrottleInterval = 5;
+            StandardOutPath = "${home}/Library/Logs/rex-guard.log";
+            StandardErrorPath = "${home}/Library/Logs/rex-guard.log";
           };
         }
       else

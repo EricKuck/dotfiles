@@ -52,6 +52,8 @@ pub fn run(args: &[String]) -> i32 {
     let mut command = Command::new(&harness[0]);
     command.args(&harness[1..]);
     hide_agent_sockets(&mut command);
+    #[cfg(target_os = "macos")]
+    point_rex_at_guard(&mut command);
     let mut child = match command.spawn() {
         Ok(c) => c,
         Err(e) => {
@@ -104,6 +106,28 @@ fn hide_agent_sockets(command: &mut Command) {
     }
 }
 
+// A convenience, not the control: the profile denies the Rex server's own
+// socket, so a REX_SERVER inherited from a Rex terminal would be unreachable.
+#[cfg(target_os = "macos")]
+fn point_rex_at_guard(command: &mut Command) {
+    if let Ok(home) = std::env::var("HOME") {
+        command.env("REX_SERVER", rex_guard_url(&home));
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn rex_guard_url(home: &str) -> String {
+    let path = format!("{home}/{}", crate::profile::REX_GUARD_SOCKET);
+    let mut url = String::from("unix://");
+    for byte in path.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'/' | b'-' | b'.' | b'_' | b'~' => url.push(byte as char),
+            _ => url.push_str(&format!("%{byte:02X}")),
+        }
+    }
+    url
+}
+
 fn handle_line(sb: &Sandbox, fd: i32, line: &str, grants: &mut Vec<Grant>) {
     // "CONSUME <b64-token> <dir...>" -- the token is base64 (it embeds the
     // target path, spaces included, so it may itself contain spaces; the base64
@@ -144,5 +168,18 @@ fn handle_line(sb: &Sandbox, fd: i32, line: &str, grants: &mut Vec<Grant>) {
         }
     } else {
         let _ = write_all(fd, "ERR unknown\n");
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rex_guard_url_percent_encodes_the_path() {
+        assert_eq!(
+            rex_guard_url("/Users/no body"),
+            "unix:///Users/no%20body/Library/Application%20Support/rex-guard/guarded.sock"
+        );
     }
 }

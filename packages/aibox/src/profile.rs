@@ -71,6 +71,9 @@ const SENSITIVE_HOME: &[&str] = &[
     ".gem/credentials",
     ".bundle/config",
     "Library/Application Support/pypoetry/auth.toml",
+    // The Rex server runs unsandboxed and will spawn a shell for any client
+    // that reaches its socket; REX_GUARD_SOCKET is the filtered way in.
+    "Library/Application Support/rex",
 ];
 
 // Config/cred/cache locations that must persist, relative to $HOME. Emitted
@@ -238,10 +241,9 @@ const CONNECT_SUBPATH: &[&str] = &[
 
 // Home-relative sockets, allowed the same way. The simulator's launchd_sim and
 // its per-device services listen inside the device's own data directory.
-const CONNECT_HOME: &[&str] = &[
-    "Library/Developer/CoreSimulator",
-    "Library/Application Support/rex/server.sock",
-];
+const CONNECT_HOME: &[&str] = &["Library/Developer/CoreSimulator", REX_GUARD_SOCKET];
+
+pub const REX_GUARD_SOCKET: &str = "Library/Application Support/rex-guard/guarded.sock";
 
 // launchd vends the per-user agent sockets out of directories it owns, one of
 // which sits inside the /private/tmp allow above -- SSH_AUTH_SOCK is
@@ -922,6 +924,23 @@ mod tests {
             "network-outbound",
             "/private/var/tmp/com.apple.launchd.rVX6WZY3Jr/Listeners"
         ));
+    }
+
+    #[test]
+    fn reaches_rex_only_through_the_guard() {
+        let sb = generate("/tmp/ws", "/Users/nobody", &[], &[], &[]);
+        assert!(!sb.contains("rex/server.sock"));
+        let allow = sb
+            .find("  (subpath \"/Users/nobody/Library/Application Support/rex-guard/guarded.sock\")\n")
+            .expect("guard allow");
+        let deny = sb
+            .find("(deny file-read* file-read-metadata file-write* file-ioctl file-issue-extension network-outbound\n")
+            .expect("secrets deny");
+        let server = sb
+            .rfind("  (subpath \"/Users/nobody/Library/Application Support/rex\")\n")
+            .expect("server deny");
+        let grants = sb.find("network-outbound (extension").expect("grant allow");
+        assert!(allow < deny && grants < deny && deny < server);
     }
 
     // SBPL is last-match-wins, so the carve-outs are worthless above the allow.
