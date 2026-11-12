@@ -49,3 +49,15 @@ else
     grep -q '^start --what=idle:sleep ' "$log"
 fi
 echo 'keep-awake bridge: OK'
+
+# A background tool command keeps the host awake after the turn's flag is gone.
+rm -f "$log"
+cat > "$ws/claude" <<'EOF'
+#!/usr/bin/env bash
+bash -c 'sleep 1; : /.claude/shell-snapshots/fake' &
+wait
+sleep 0.2
+EOF
+( cd "$ws" && HOME="$test_home" "$here/bin/claude" )
+grep -q '^start ' "$log"
+echo 'keep-awake background tool: OK'

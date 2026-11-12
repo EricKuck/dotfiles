@@ -283,7 +283,9 @@ root in, and the broker refuses to grant a directory that contains it.
 - **Keep awake:** harness sessions receive `AIBOX_ACTIVITY_FILE` under
   `~/.aibox/activity`. Existing agent hooks touch it during a turn; a host-side
   watcher maps it to `caffeinate -i` (macOS) or `systemd-inhibit --what=idle:sleep`
-  (Linux) and clears the assertion when the turn or session ends. Neither tool
+  (Linux) and clears the assertion when the turn or session ends. A Claude
+  Bash command still running in the session (such as a background build)
+  also holds the assertion, since it outlives the turn's `Stop` hook. Neither tool
   is required: without one, the watcher does nothing. `aibox shell` does not
   start this watcher.
 - **Fish shell:** `aibox shell` shares host `~/.config/fish` and

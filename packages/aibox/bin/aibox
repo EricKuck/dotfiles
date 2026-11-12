@@ -452,13 +452,27 @@ keepawake_release() {
     keepawake_caffeinated=""
 }
 
+# Background Bash commands outlive the turn that started them, after the Stop
+# hook has already cleared the activity file.
+keepawake_tool_running() {
+    ps -axo pid=,ppid=,command= | awk -v root="$1" '
+        { parent[$1] = $2; cmd[$1] = $0 }
+        END {
+            for (pid in cmd) {
+                if (index(cmd[pid], "/.claude/shell-snapshots/") == 0) continue
+                for (p = parent[pid]; p > 1; p = parent[p]) if (p == root) exit 0
+            }
+            exit 1
+        }'
+}
+
 keepawake_watch() {
     local watched_pid="$1" interval="${AIBOX_ACTIVITY_POLL_SECONDS:-5}"
     [[ "$interval" =~ ^[0-9]+([.][0-9]+)?$ ]] || interval=5
     trap 'keepawake_release; rm -f "$activity_file"' EXIT
-    trap 'exit 0' TERM INT
+    trap 'exit 0' TERM INT HUP
     while kill -0 "$watched_pid" 2>/dev/null; do
-        if [[ -e "$activity_file" ]]; then
+        if [[ -e "$activity_file" ]] || keepawake_tool_running "$watched_pid"; then
             if [[ -z "${keepawake_caffeinated:-}" ]] \
                 || ! kill -0 "$keepawake_caffeinated" 2>/dev/null; then
                 keepawake_assert "$watched_pid"
