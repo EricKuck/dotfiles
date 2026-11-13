@@ -292,7 +292,7 @@ in
         "karabiner-elements"
         "hammerspoon"
         "ghostty"
-        "abue-ammar/tinycast/tinycast"
+        "tinycast"
         "0xmh/claude-latest/claude-code"
       ];
     };
