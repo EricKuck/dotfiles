@@ -3,6 +3,7 @@
   symlinkJoin,
   stdenv,
   git,
+  gh,
   jq,
   inputs,
 }:
@@ -24,6 +25,7 @@ let
     name = "wt";
     runtimeInputs = [
       git
+      gh
       jq
       rex
       rx
@@ -37,4 +39,7 @@ symlinkJoin {
     rx
     wt
   ];
+  postBuild = ''
+    install -Dm644 ${./wt.fish} $out/share/fish/vendor_completions.d/wt.fish
+  '';
 }
