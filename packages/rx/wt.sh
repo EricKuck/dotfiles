@@ -241,9 +241,9 @@ list() {
   fi
 
   git worktree list --porcelain |
-    awk -v here="$here" -v home="$HOME" -v labels="$labels" '
+    labels=$labels awk -v here="$here" -v home="$HOME" '
       BEGIN {
-        n = split(labels, l, "\n")
+        n = split(ENVIRON["labels"], l, "\n")
         for (i = 1; i <= n; i++) if (l[i] != "") tab[l[i]] = 1
         rows = 0; wa = 8; wb = 3
       }
