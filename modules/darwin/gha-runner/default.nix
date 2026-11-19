@@ -198,6 +198,17 @@ let
           chmod +x "$out/bin/$tool"
         done
 
+        # Exec the toolchain binaries directly rather than through xcrun, since
+        # TOOLCHAINS points xcrun at the Metal toolchain first.
+        for tool in swift swiftc; do
+          cat > "$out/bin/$tool" <<EOF
+    #!${pkgs.bash}/bin/bash
+    export DEVELOPER_DIR=${lib.escapeShellArg xcodeDeveloperDir}
+    exec ${lib.escapeShellArg "${xcodeDeveloperDir}/Toolchains/XcodeDefault.xctoolchain/usr/bin/$tool"} "\$@"
+    EOF
+          chmod +x "$out/bin/$tool"
+        done
+
         cat > "$out/bin/xcrun" <<EOF
     #!${pkgs.bash}/bin/bash
     export DEVELOPER_DIR=${lib.escapeShellArg xcodeDeveloperDir}
