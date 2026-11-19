@@ -193,6 +193,12 @@ in
           url = "http://localhost:${toString config.ports.prometheus}";
         }
         {
+          name = "irlbuild-uptime";
+          type = "prometheus";
+          access = "proxy";
+          url = "http://192.168.1.23:9090";
+        }
+        {
           name = "loki";
           type = "loki";
           access = "proxy";

@@ -10,6 +10,9 @@ let
     "irl-macos-1"
     "irl-macos-2"
   ];
+  # Registered with the RIPcord repository only, so other repositories' jobs
+  # never land on an ephemeral runner.
+  ripcordRunners = [ "ripcord-macos-1" ];
 in
 with lib.custom;
 {
@@ -58,19 +61,43 @@ with lib.custom;
       lib.genAttrs (map (name: "gha-runner-${name}-token") runners) (_: {
         key = "gha-runner-token";
       })
+      // lib.genAttrs (map (name: "gha-runner-${name}-token") ripcordRunners) (_: {
+        key = "gha-runner-ripcord-token";
+      })
       // {
         immich-photo-sync-api-key.owner = config.meta.flake.owner;
+        uptime-slack-webhook-url.owner = config.meta.flake.owner;
+        uptime-heartbeat-url.owner = config.meta.flake.owner;
       };
   };
 
-  gha-runner.irl.runners = lib.genAttrs runners (name: {
-    tokenFile = config.sops.secrets."gha-runner-${name}-token".path;
-  });
+  gha-runner.irl.runners =
+    lib.genAttrs runners (name: {
+      tokenFile = config.sops.secrets."gha-runner-${name}-token".path;
+    })
+    // lib.genAttrs ripcordRunners (name: {
+      tokenFile = config.sops.secrets."gha-runner-${name}-token".path;
+      url = "https://github.com/Infinite-Retry/RIPcord";
+      ephemeral = true;
+      extraLabels = [ "ripcord" ];
+    });
 
   custom.services.immich-photo-sync = {
     enable = true;
     server = "https://immich.kuck.ing";
     apiKeyFile = config.sops.secrets.immich-photo-sync-api-key.path;
+  };
+
+  custom.services.uptime-monitor = {
+    enable = true;
+    # KuckyNas's Grafana reads this as a data source.
+    listenAddress = "0.0.0.0:9090";
+    slackWebhookUrlFile = config.sops.secrets.uptime-slack-webhook-url.path;
+    heartbeatUrlFile = config.sops.secrets.uptime-heartbeat-url.path;
+    probes.ripcord = {
+      url = "https://crash.infiniteretry.com/healthz";
+      bodyRegex = "^ok$";
+    };
   };
 
   services.openssh.extraConfig = ''

@@ -201,6 +201,7 @@ in
       doublepuppet-as-token = { };
       doublepuppet-hs-token = { };
       ghcr_auth = { };
+      gha-runner-ripcord-token = { };
     };
     templates."containers-auth.json" = {
       owner = config.meta.flake.owner;
@@ -228,6 +229,15 @@ in
       MAUTRIX_IMESSAGE_PICKLE_KEY=${config.sops.placeholder.mautrix-imessage-pickle-key}
       DOUBLEPUPPET_TOKEN=as_token:${config.sops.placeholder.doublepuppet-as-token}
     '';
+  };
+
+  # Registered with the RIPcord repository only, and ephemeral: every job
+  # starts from an empty work directory, so target/ never accumulates.
+  gha-runner.irl.runners.ripcord-linux-1 = {
+    tokenFile = config.sops.secrets.gha-runner-ripcord-token.path;
+    url = "https://github.com/Infinite-Retry/RIPcord";
+    ephemeral = true;
+    extraLabels = [ "ripcord" ];
   };
 
   users = {

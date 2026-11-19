@@ -226,9 +226,37 @@ in
   options.gha-runner.irl.runners = lib.mkOption {
     type = lib.types.attrsOf (
       lib.types.submodule {
-        options.tokenFile = lib.mkOption {
-          type = lib.types.path;
-          description = "Path to file containing the runner's registration token.";
+        options = {
+          tokenFile = lib.mkOption {
+            type = lib.types.path;
+            description = "Path to file containing the runner's registration token.";
+          };
+
+          url = lib.mkOption {
+            type = lib.types.str;
+            default = "https://github.com/Infinite-Retry";
+            description = ''
+              Organization or repository the runner registers with. A repository
+              URL makes the runner pick up jobs from that repository only.
+            '';
+          };
+
+          ephemeral = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = ''
+              Take one job, then re-register with an empty state and work
+              directory. The shared runner home (Gradle, Konan, Cargo caches)
+              is kept. Needs tokenFile to hold a PAT, since the runner
+              registers again after every job.
+            '';
+          };
+
+          extraLabels = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [ ];
+            description = "Labels in addition to macOS.";
+          };
         };
       }
     );
@@ -344,10 +372,10 @@ in
     services.github-runners = lib.mapAttrs (name: runner: {
       enable = true;
       inherit name;
-      url = "https://github.com/Infinite-Retry";
+      inherit (runner) url ephemeral;
       tokenFile = toString runner.tokenFile;
       replace = true;
-      extraLabels = [ "macOS" ];
+      extraLabels = [ "macOS" ] ++ runner.extraLabels;
       user = runnerUser;
       group = runnerGroup;
       extraPackages = extraPackages ++ [
@@ -363,7 +391,8 @@ in
       };
       serviceOverrides = {
         SessionCreate = true;
-        KeepAlive = true;
+        # mkForce: an ephemeral runner makes the upstream module set this too.
+        KeepAlive = lib.mkForce true;
       };
     }) cfg;
 
