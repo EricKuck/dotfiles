@@ -53,19 +53,28 @@ let
             alert = "ServiceDown";
             expr = "probe_success == 0";
             "for" = cfg.downFor;
-            annotations.summary = "{{ $labels.target }} is down";
+            annotations = {
+              summary = "{{ $labels.target }} is down";
+              resolved = "{{ $labels.target }} is back up";
+            };
           }
           {
             alert = "CertExpiringSoon";
             expr = "probe_ssl_earliest_cert_expiry - time() < 7 * 86400";
             "for" = "1h";
-            annotations.summary = "TLS certificate for {{ $labels.target }} expires in under 7 days";
+            annotations = {
+              summary = "TLS certificate for {{ $labels.target }} expires in under 7 days";
+              resolved = "TLS certificate for {{ $labels.target }} has been renewed";
+            };
           }
           {
             alert = "MonitorBroken";
             expr = "up == 0";
             "for" = "5m";
-            annotations.summary = "{{ $labels.job }} on IRLBuild is not being scraped";
+            annotations = {
+              summary = "{{ $labels.job }} on IRLBuild is not being scraped";
+              resolved = "{{ $labels.job }} on IRLBuild is being scraped again";
+            };
           }
           {
             alert = "Watchdog";
@@ -137,7 +146,7 @@ let
             api_url_file = cfg.slackWebhookUrlFile;
             send_resolved = true;
             title = ''{{ if eq .Status "firing" }}:red_circle:{{ else }}:large_green_circle:{{ end }} {{ .CommonLabels.alertname }}'';
-            text = ''{{ range .Alerts }}{{ .Annotations.summary }}{{ "\n" }}{{ end }}'';
+            text = ''{{ range .Alerts }}{{ if eq .Status "resolved" }}{{ .Annotations.resolved }}{{ else }}{{ .Annotations.summary }}{{ end }}{{ "\n" }}{{ end }}'';
           }
         ];
       }
