@@ -233,12 +233,18 @@ in
 
   # Registered with the RIPcord repository only, and ephemeral: every job
   # starts from an empty work directory, so target/ never accumulates.
-  gha-runner.irl.runners.ripcord-linux-1 = {
-    tokenFile = config.sops.secrets.gha-runner-ripcord-token.path;
-    url = "https://github.com/Infinite-Retry/RIPcord";
-    ephemeral = true;
-    extraLabels = [ "ripcord" ];
-  };
+  gha-runner.irl.runners =
+    lib.genAttrs
+      [
+        "ripcord-linux-1"
+        "ripcord-linux-2"
+      ]
+      (_: {
+        tokenFile = config.sops.secrets.gha-runner-ripcord-token.path;
+        url = "https://github.com/Infinite-Retry/RIPcord";
+        ephemeral = true;
+        extraLabels = [ "ripcord" ];
+      });
 
   users = {
     users = {
