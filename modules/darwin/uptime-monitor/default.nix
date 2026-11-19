@@ -25,6 +25,13 @@ let
 
   toYAML = name: value: pkgs.writeText name (builtins.toJSON value);
 
+  host = ''{{ reReplaceAll "^https?://([^/]+).*" "$1" $labels.target }}'';
+  siteLink = ''{{ reReplaceAll "^(https?://[^/]+).*" "$1" $labels.target }}'';
+  # A zero status code means no HTTP response arrived; a 200 means the body check failed.
+  failureCause = ''{{ with query (printf "probe_http_status_code{target=%q}" $labels.target) }}{{ $code := . | first | value }}{{ if eq $code 0.0 }}no response (timeout or connection error){{ else if eq $code 200.0 }}unexpected response body{{ else }}HTTP {{ printf "%.0f" $code }}{{ end }}{{ else }}no probe result{{ end }}'';
+  certExpiry = ''{{ with query (printf "probe_ssl_earliest_cert_expiry{target=%q}" $labels.target) }}{{ (. | first | value | toTime).Format "Jan 2" }}{{ end }}'';
+  brokenPart = "{{ if $labels.service }}The {{ $labels.service }} probe on IRLBuild{{ else }}IRLBuild's probe exporter{{ end }}";
+
   blackboxConfig = toYAML "blackbox.yml" {
     modules = mapAttrs' (
       name: probe:
@@ -53,27 +60,38 @@ let
             alert = "ServiceDown";
             expr = "probe_success == 0";
             "for" = cfg.downFor;
+            labels.severity = "critical";
             annotations = {
-              summary = "{{ $labels.target }} is down";
-              resolved = "{{ $labels.target }} is back up";
+              title = ":red_circle: {{ $labels.service }} is down";
+              resolved_title = "{{ $labels.service }} is back up";
+              summary = "${host} is failing its health check: ${failureCause}.";
+              resolved = "${host} is passing its health check again.";
+              link = siteLink;
             };
           }
           {
             alert = "CertExpiringSoon";
             expr = "probe_ssl_earliest_cert_expiry - time() < 7 * 86400";
             "for" = "1h";
+            labels.severity = "warning";
             annotations = {
-              summary = "TLS certificate for {{ $labels.target }} expires in under 7 days";
-              resolved = "TLS certificate for {{ $labels.target }} has been renewed";
+              title = ":large_orange_circle: {{ $labels.service }}'s certificate expires soon";
+              resolved_title = "{{ $labels.service }}'s certificate was renewed";
+              summary = "The TLS certificate for ${host} expires ${certExpiry} and hasn't been renewed.";
+              resolved = "The TLS certificate for ${host} has been renewed.";
+              link = siteLink;
             };
           }
           {
             alert = "MonitorBroken";
             expr = "up == 0";
             "for" = "5m";
+            labels.severity = "warning";
             annotations = {
-              summary = "{{ $labels.job }} on IRLBuild is not being scraped";
-              resolved = "{{ $labels.job }} on IRLBuild is being scraped again";
+              title = ":warning: Uptime monitoring is broken";
+              resolved_title = "Uptime monitoring is working again";
+              summary = "${brokenPart} isn't working, so outages won't be reported until this is fixed.";
+              resolved = "${brokenPart} is working again.";
             };
           }
           {
@@ -106,7 +124,10 @@ let
       static_configs = [
         {
           targets = [ blackboxAddress ];
-          labels.target = probe.url;
+          labels = {
+            target = probe.url;
+            service = probe.name;
+          };
         }
       ];
       relabel_configs = [
@@ -145,8 +166,10 @@ let
           {
             api_url_file = cfg.slackWebhookUrlFile;
             send_resolved = true;
-            title = ''{{ if eq .Status "firing" }}:red_circle:{{ else }}:large_green_circle:{{ end }} {{ .CommonLabels.alertname }}'';
-            text = ''{{ range .Alerts }}{{ if eq .Status "resolved" }}{{ .Annotations.resolved }}{{ else }}{{ .Annotations.summary }}{{ end }}{{ "\n" }}{{ end }}'';
+            color = ''{{ if eq .Status "resolved" }}good{{ else if eq .CommonLabels.severity "warning" }}warning{{ else }}danger{{ end }}'';
+            title_link = "{{ (index .Alerts 0).Annotations.link }}";
+            title = ''{{ with index .Alerts 0 }}{{ if eq .Status "firing" }}{{ .Annotations.title }}{{ else }}:large_green_circle: {{ .Annotations.resolved_title }}{{ end }}{{ end }}'';
+            text = ''{{ range .Alerts }}{{ if eq .Status "resolved" }}{{ .Annotations.resolved }}{{ "\n" }}Lasted {{ .EndsAt.Sub .StartsAt | humanizeDuration }}{{ else }}{{ .Annotations.summary }}{{ end }}{{ "\n" }}{{ end }}'';
           }
         ];
       }
@@ -181,19 +204,27 @@ in
 
     probes = mkOption {
       type = types.attrsOf (
-        types.submodule {
-          options = {
-            url = mkOption {
-              type = types.str;
-              example = "https://example.com/healthz";
+        types.submodule (
+          { name, ... }:
+          {
+            options = {
+              name = mkOption {
+                type = types.str;
+                default = name;
+                description = "Name shown in Slack alerts.";
+              };
+              url = mkOption {
+                type = types.str;
+                example = "https://example.com/healthz";
+              };
+              bodyRegex = mkOption {
+                type = types.nullOr types.str;
+                default = null;
+                example = "^ok$";
+              };
             };
-            bodyRegex = mkOption {
-              type = types.nullOr types.str;
-              default = null;
-              example = "^ok$";
-            };
-          };
-        }
+          }
+        )
       );
       default = { };
     };

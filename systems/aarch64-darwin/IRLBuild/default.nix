@@ -95,6 +95,7 @@ with lib.custom;
     slackWebhookUrlFile = config.sops.secrets.uptime-slack-webhook-url.path;
     heartbeatUrlFile = config.sops.secrets.uptime-heartbeat-url.path;
     probes.ripcord = {
+      name = "RIPcord";
       url = "https://crash.infiniteretry.com/healthz";
       bodyRegex = "^ok$";
     };
