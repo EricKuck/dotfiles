@@ -24,5 +24,11 @@ in
       };
       restartAfterFreeze = true;
     };
+
+    system.activationScripts.postActivation.text = ''
+      echo >&2 "disabling sleep..."
+      pmset -a sleep 0 disksleep 0 standby 0 powernap 0 ttyskeepawake 1 || true
+      pmset -a disablesleep 1 || true
+    '';
   };
 }
